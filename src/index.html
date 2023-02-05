@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Rocksmith Leaderboards</title>
+</head>
+<body>
+  <h1 id="message">Hello, world!</h1>
+  <script>
+    async function authenticate(authData) {
+      try {
+        const response = await fetch('https://' + api.getHost() + '/api/auth/authenticate.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(authData)
+        });
+
+        if (response.ok) {
+          // Authentication successful
+          return true;
+        }
+        else {
+          // Authentication failed
+          const data = await response.json();
+          api.error(data['error']);
+          return false;
+        }
+      } catch (error) {
+        api.error(error);
+        return false;
+      }
+    }
+
+    async function main() {
+      const authData = await api.getAuthData();
+      if (authData === null) {
+        // No auth data found - redirect to login
+        window.location.href = "auth/login.html";
+        return;
+      }
+      const authStatus = await authenticate(authData);
+      if (!authStatus) {
+        // Authentication failed - redirect to login
+        window.location.href = "auth/login.html";
+        return;
+      }
+    }
+
+    main();
+  </script>
+</body>
+</html>

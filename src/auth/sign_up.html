@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Rocksmith Leaderboards</title>
+</head>
+<body>
+  <h1>Sign Up</h1>
+  <form>
+    <label for="username">Username:</label><br>
+    <input id="username" type="text" name="username"><br><br>
+    <label for="email">Email:</label><br>
+    <input id="email" type="text" name="email"><br><br>
+    <label for="password">Password:</label><br>
+    <input id="password" type="password" name="password"><br><br>
+    <label for="confirm_password">Confirm Password:</label><br>
+    <input id="confirm_password" type="password" name="confirm_password"><br><br>
+    <input type="submit" value="Submit" onclick="signUp(event)"><br><br>
+  </form>
+  <p>Already have an account? <a href="login.html">Login</a></p>
+  <script>
+    function validateUsername(username) {
+      // Should not contain special characters
+      const specialChars = /[^\w]/g;
+      if (username.match(specialChars)) {
+        api.error('Username cannot contain special characters.');
+        return false;
+      }
+
+      // Should not contain any spaces
+      if (username.indexOf(' ') !== -1) {
+        api.error('Username cannot contain spaces.');
+        return false;
+      }
+
+      // Check username length
+      if (username.length < 4 || username.length > 25) {
+        api.error('Username must be between 4 and 25 characters.');
+        return false;
+      }
+
+      return true;
+    }
+
+    function validateEmail(email) {
+      const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!regex.test(email)) {
+        api.error('Email is invalid.');
+        return false;
+      }
+
+      if (email.length < 5 || email.length > 255) {
+        api.error('Email must be between 5 and 255 characters.');
+        return;
+      }
+
+      return true;
+    }
+
+    function validatePassword(password, confirmPassword) {
+      // Password must contain:
+      // 1 uppercase letter
+      // 1 lowercase letter
+      // 1 number
+      // 1 special character
+      const upperCase = /[A-Z]/g;
+      const lowerCase = /[a-z]/g;
+      const numbers = /[0-9]/g;
+      const specialChars = /[^\w]/g;
+      if (!upperCase.test(password)
+       || !lowerCase.test(password)
+       || !numbers.test(password)
+       || !specialChars.test(password)
+       || password.length < 8) {
+        api.error("Password must contain:\n"
+          + "1 uppercase letter,\n"
+          + "1 lowercase letter,\n"
+          + "1 number\n"
+          + "1 special character\n"
+          + 'and be at least 8 characters long.');
+        return false;
+      }
+
+      // Should not contain any spaces
+      if (password.indexOf(' ') !== -1) {
+        api.error('Password cannot contain spaces.');
+        return false;
+      }
+
+      // Check password length
+      if (password.length < 8 || password.length > 255) {
+        api.error('Password must be between 8 and 255 characters.');
+        return;
+      }
+
+      // Password and confirm password must match
+      if (password !== confirmPassword) {
+        api.error('Passwords do not match.');
+        return false;
+      }
+
+      return true;
+    }
+
+    async function insertUser(username, email, password) {
+      try {
+        const response = await fetch('https://' + api.getHost() + '/api/auth/sign_up.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            username: username,
+            email: email,
+            password: password
+          })
+        });
+
+        if (response.ok) {
+          // Sign up successful
+          return true;
+        }
+        else {
+          // Sign up failed
+          const data = await response.json();
+          api.error(data['error']);
+          return false;
+        }
+      } catch (error) {
+        api.error(error);
+        return false;
+      }
+    }
+
+    async function signUp(event) {
+      // Prevents the form from being immediately cleared
+      event.preventDefault();
+
+      const username = document.getElementById('username').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirm_password').value;
+
+      if (!validateUsername(username)) {
+        document.getElementById('username').value = '';
+        return;
+      }
+      if (!validateEmail(email)) {
+        document.getElementById('email').value = '';
+        return;
+      }
+      if (!validatePassword(password, confirmPassword)) {
+        document.getElementById('password').value = '';
+        document.getElementById('confirm_password').value = '';
+        return;
+      }
+
+      const success = await insertUser(username, email, password);
+      if (success) {
+        api.info('User created successfully.');
+        window.location.href = 'login.html';
+        return;
+      }
+    }
+  </script>
+</body>
+</html>

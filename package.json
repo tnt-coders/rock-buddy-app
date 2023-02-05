@@ -1,0 +1,15 @@
+{
+  "name": "rocksmith-leaderboards",
+  "version": "1.0.0",
+  "description": "Rocksmith Leaderboards",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "TNTMusicStudios",
+  "license": "MIT",
+  "dependencies": {
+    "electron": "^22.2.0",
+    "electron-store": "^8.1.0"
+  }
+}
