@@ -102,8 +102,9 @@
     }
 
     async function insertUser(username, email, password) {
+      const host = await api.getHost();
       try {
-        const response = await fetch('https://' + api.getHost() + '/api/auth/sign_up.php', {
+        const response = await fetch(host + '/api/auth/sign_up.php', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

@@ -7,8 +7,9 @@
   <h1 id="message">Hello, world!</h1>
   <script>
     async function authenticate(authData) {
+      const host = await api.getHost();
       try {
-        const response = await fetch('https://' + api.getHost() + '/api/auth/authenticate.php', {
+        const response = await fetch(host + '/api/auth/authenticate.php', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

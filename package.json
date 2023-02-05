@@ -4,7 +4,8 @@
   "description": "Rocksmith Leaderboards",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "prd": "electron .",
+    "dev": "electron . http://raspberrypi:8080"
   },
   "author": "TNTMusicStudios",
   "license": "MIT",

@@ -3,6 +3,10 @@ const Store = require('electron-store');
 const path = require('path');
 const fs = require('fs');
 
+// Process input args
+const args = process.argv.slice(2);
+const host = args[0] || 'https://rocksmith-leaderboards.com';
+
 // Store for user config data
 const store = new Store();
 
@@ -37,6 +41,10 @@ function createWindow() {
       buttons: ['OK']
     });
   });
+
+  ipcMain.handle('get-host', (event) => {
+    return host;
+  })
 
   // Get user authentication data
   ipcMain.handle('get-auth-data', (event) => {
