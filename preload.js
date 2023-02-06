@@ -6,7 +6,6 @@ contextBridge.exposeInMainWorld('api', {
   error: (message) => ipcRenderer.send('error', message),
   getHost: async () => ipcRenderer.invoke('get-host'),
   getAuthData: async () => ipcRenderer.invoke('get-auth-data'),
-  setAuthData: async (authData) => ipcRenderer.invoke('set-auth-data', authData)
+  setAuthData: async (authData) => ipcRenderer.invoke('set-auth-data', authData),
+  deleteAuthData: async () => ipcRenderer.invoke('delete-auth-data')
 });
-
-  //openInBrowser: (url) => ipcRenderer.send('open-in-browser', url)

@@ -1,73 +1,55 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Rocksmith Leaderboards</title>
+  <title>Rocksmith Leaderboards</title>
 </head>
 <body>
-    <h1>Login</h1>
-    <form method="post">
-        <label for="username_or_email">Username or Email:</label><br>
-        <input id="username_or_email" type="text" name="username_or_email"><br><br>
-        <label for="password">Password:</label><br>
-        <input id="password" type="password" name="password"><br><br>
-        <input type="submit" value="Submit" onclick="login(event)"><br><br>
-    </form>
-    <p>Don't have an account? <a href="sign_up.html">Sign Up</a></p>
-    <script>
-      async function generateAuthData(usernameOrEmail, password) {
-        const host = await api.getHost();
-        try {
-          const response = await fetch(host + '/api/auth/login.php', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              username_or_email: usernameOrEmail,
-              password: password
-            })
-          });
+  <h1>Login</h1>
+  <form method="post">
+    <label for="username">Username:</label><br>
+    <input id="username" type="text" name="username"><br><br>
+    <label for="password">Password:</label><br>
+    <input id="password" type="password" name="password"><br><br>
+    <input type="submit" value="Submit" onclick="login(event)"><br><br>
+  </form>
+  <p>Don't have an account? <a href="sign_up.html">Sign Up</a></p>
+  <script src="../functions.js"></script>
+  <script>
+    async function generateAuthData(username, password) {
+      const host = await api.getHost();
+      const response = await post(host + '/api/auth/login.php', {
+        username: username,
+        password: password
+      });
 
-          if (response.ok) {
-            // Sign up successful
-            const data = await response.json();
-            authData = {
-              user_id: data['user_id'],
-              api_key: data['api_key']
-            };
-            return authData;
-          }
-          else {
-            // Sign up failed
-            const data = await response.json();
-            api.error(data['error']);
-            return null;
-          }
-        } catch (error) {
-          api.error(error.toString());
-          return null;
-        }
+      if ('error' in response) {
+        console.error(response['error']);
+        return null;
       }
 
-      async function login(event) {
-        // Prevents the form from being immediately cleared
-        event.preventDefault();
+      return response;
+    }
 
-        const usernameOrEmail = document.getElementById('username_or_email').value;
-        const password = document.getElementById('password').value;
+    async function login(event) {
+      // Prevents the form from being immediately cleared
+      event.preventDefault();
 
-        const authData = await generateAuthData(usernameOrEmail, password);
-        if (authData !== null) {
-          // Login successful - store auth data and redirect to home page
-          await api.setAuthData(authData);
-          window.location.href = '../index.html';
-          return; 
-        }
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
 
+      const authData = await generateAuthData(username, password);
+      if (authData === null) {
         // Login failed - reset password and let the user know
+        api.error('Login failed.');
         document.getElementById('password').value = '';
         return;
       }
-    </script>
+        
+      // Login successful - store auth data and redirect to home page
+      await api.setAuthData(authData);
+      window.location.href = '../index.html';
+      return; 
+    }
+  </script>
 </body>
 </html>

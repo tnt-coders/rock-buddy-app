@@ -5,10 +5,10 @@
 </head>
 <body>
   <h1>Email Not Verified</h1>
-  <p>Your email address has not been verified. Please check your inbox for a verification email or 
-  <a href="#" onclick="resendVerificationEmail()">click here</a> to resend the verification email.</p>
-  <a href="logout.html">Logout</a>
-  <script src="email_verification.js"></script>
+  <p>Your email address has not been verified. Please check your inbox for a verification email or <a href="#" onclick="resendVerificationEmail()">click here</a> to request a new one.</p>
+  <p>After you have verified your email <a href="#" onclick="redirectToHomepage()">click here</a> to be redirected to the homepage.</p>
+  <a href="#" onclick="logout()">Logout</a>
+  <script src="../functions.js"></script>
   <script>
     async function resendVerificationEmail() {
       const userId = sessionStorage.getItem('user_id');
@@ -16,6 +16,11 @@
       if (emailSent) {
         api.info("Email sent.");
       }
+    }
+
+    async function redirectToHomepage() {
+      window.location.href = '../index.html';
+      return;
     }
   </script>
 </body>

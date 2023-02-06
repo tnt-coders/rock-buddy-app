@@ -17,7 +17,7 @@
     <input type="submit" value="Submit" onclick="signUp(event)"><br><br>
   </form>
   <p>Already have an account? <a href="login.html">Login</a></p>
-  <script src="email_verification.js"></script>
+  <script src="../functions.js"></script>
   <script>
     function validateUsername(username) {
       // Should not contain special characters
@@ -104,34 +104,18 @@
 
     async function insertUser(username, email, password) {
       const host = await api.getHost();
-      try {
-        const response = await fetch(host + '/api/auth/sign_up.php', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            username: username,
-            email: email,
-            password: password
-          })
-        });
+      const response = await post(host + '/api/auth/sign_up.php', {
+        username: username,
+        email: email,
+        password: password
+      });
 
-        if (response.ok) {
-          // Sign up successful
-          const data = await response.json();
-          return data['user_id'];
-        }
-        else {
-          // Sign up failed
-          const data = await response.json();
-          api.error(data['error']);
-          return null;
-        }
-      } catch (error) {
-        api.error(error.toString());
+      if ('error' in response) {
+        console.error(response['error']);
         return null;
       }
+
+      return response['user_id'];
     }
 
     async function signUp(event) {

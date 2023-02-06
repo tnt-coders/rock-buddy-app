@@ -48,7 +48,7 @@ function createWindow() {
 
   // Get user authentication data
   ipcMain.handle('get-auth-data', (event) => {
-    let authData = store.get('auth');
+    const authData = store.get('auth');
     if (authData === undefined) {
       return null;
     }
@@ -61,10 +61,10 @@ function createWindow() {
     store.set('auth', authData);
   });
 
-  // // Open a webpage in the browser
-  // ipcMain.on('open-in-browser', (event, url) => {
-  //   shell.openExternal(url);
-  // })
+  // Open a webpage in the browser
+  ipcMain.handle('delete-auth-data', (event) => {
+    store.delete('auth');
+  })
 
   win.loadFile('src/index.html');
 }
