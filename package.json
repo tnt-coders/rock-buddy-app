@@ -5,12 +5,15 @@
   "main": "main.js",
   "scripts": {
     "prd": "electron .",
-    "dev": "electron . http://raspberrypi:8080"
+    "dev": "electron . http://raspberrypi:8080",
+    "package": "electron-packager . --overwrite --out=./dist"
   },
   "author": "TNTMusicStudios",
   "license": "MIT",
   "dependencies": {
-    "electron": "^22.2.0",
     "electron-store": "^8.1.0"
+  },
+  "devDependencies": {
+    "electron": "^22.2.0"
   }
 }
