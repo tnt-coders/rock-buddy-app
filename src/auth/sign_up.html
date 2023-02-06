@@ -17,6 +17,7 @@
     <input type="submit" value="Submit" onclick="signUp(event)"><br><br>
   </form>
   <p>Already have an account? <a href="login.html">Login</a></p>
+  <script src="email_verification.js"></script>
   <script>
     function validateUsername(username) {
       // Should not contain special characters
@@ -118,17 +119,18 @@
 
         if (response.ok) {
           // Sign up successful
-          return true;
+          const data = await response.json();
+          return data['user_id'];
         }
         else {
           // Sign up failed
           const data = await response.json();
           api.error(data['error']);
-          return false;
+          return null;
         }
       } catch (error) {
-        api.error(error);
-        return false;
+        api.error(error.toString());
+        return null;
       }
     }
 
@@ -155,9 +157,12 @@
         return;
       }
 
-      const success = await insertUser(username, email, password);
-      if (success) {
+      const userId = await insertUser(username, email, password);
+      if (userId !== null) {
         api.info('User created successfully.');
+
+        // Send the verification email and redirect to login
+        sendVerificationEmail(userId);
         window.location.href = 'login.html';
         return;
       }

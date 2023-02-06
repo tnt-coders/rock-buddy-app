@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Rocksmith Leaderboards</title>
+</head>
+<body>
+  <h1>Email Not Verified</h1>
+  <p>Your email address has not been verified. Please check your inbox for a verification email or 
+  <a href="#" onclick="resendVerificationEmail()">click here</a> to resend the verification email.</p>
+  <a href="logout.html">Logout</a>
+  <script src="email_verification.js"></script>
+  <script>
+    async function resendVerificationEmail() {
+      const userId = sessionStorage.getItem('user_id');
+      const emailSent = await sendVerificationEmail(userId);
+      if (emailSent) {
+        api.info("Email sent.");
+      }
+    }
+  </script>
+</body>
+</html>

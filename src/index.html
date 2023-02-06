@@ -5,6 +5,7 @@
 </head>
 <body>
   <h1 id="message">Hello, world!</h1>
+  <script src="auth/email_verification.js"></script>
   <script>
     async function authenticate(authData) {
       const host = await api.getHost();
@@ -19,6 +20,7 @@
 
         if (response.ok) {
           // Authentication successful
+          sessionStorage.setItem('user_id', authData['user_id']);
           return true;
         }
         else {
@@ -28,7 +30,7 @@
           return false;
         }
       } catch (error) {
-        api.error(error);
+        api.error(error.toString());
         return false;
       }
     }
@@ -37,14 +39,25 @@
       const authData = await api.getAuthData();
       if (authData === null) {
         // No auth data found - redirect to login
-        window.location.href = "auth/login.html";
+        window.location.href = 'auth/login.html';
         return;
       }
+
+      // Authenticate
       const authStatus = await authenticate(authData);
       if (!authStatus) {
         // Authentication failed - redirect to login
-        window.location.href = "auth/login.html";
+        window.location.href = 'auth/login.html';
         return;
+      }
+
+      // Check email verification
+      const userId = sessionStorage.getItem('user_id')
+      const verified = await checkEmailVerification(userId);
+      if (!verified) {
+        // Verification failed - redirect to email_not_verified
+        window.location.href = 'auth/email_not_verified.html'
+        return; 
       }
     }
 
