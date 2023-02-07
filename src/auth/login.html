@@ -13,7 +13,7 @@
     <input type="submit" value="Submit" onclick="login(event)"><br><br>
   </form>
   <p>Don't have an account? <a href="sign_up.html">Sign Up</a></p>
-  <script src="../functions.js"></script>
+  <script src="../common/functions.js"></script>
   <script>
     async function generateAuthData(username, password) {
       const host = await api.getHost();
@@ -47,7 +47,7 @@
         
       // Login successful - store auth data and redirect to home page
       await api.setAuthData(authData);
-      window.location.href = '../index.html';
+      window.location.href = '../sniffer/sniffer.html';
       return; 
     }
   </script>

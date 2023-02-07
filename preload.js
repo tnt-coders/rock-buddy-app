@@ -1,6 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
+  projectRoot: () => { return __dirname; },
   info: (message) => ipcRenderer.send('info', message),
   warning: (message) => ipcRenderer.send('warning', message),
   error: (message) => ipcRenderer.send('error', message),

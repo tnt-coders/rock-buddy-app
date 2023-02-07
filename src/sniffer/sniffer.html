@@ -5,11 +5,16 @@
 </head>
 <body>
   <div class="auth-required" style="display: none;">
-    <h1 id="message">Hello, world!</h1>
-    <a href="#" onclick="logout()">Logout</a>
+    <div>
+      <a href="../sniffer/sniffer.html">Sniffer</a> |
+      <a href="../search/search.html">Search</a> |
+      <a href="../account/account.html">Account</a>
+    </div>
+    <h1>Leaderboard Sniffer</h1>
+    <p>Waiting for RockSniffer...</p>
   </div>
   <div class="loading">Loading...</div>
-  <script src="functions.js"></script>
+  <script src="../common/functions.js"></script>
   <script>
     async function authenticate(authData) {
       const host = await api.getHost();
@@ -36,7 +41,7 @@
         const authData = await api.getAuthData();
         if (authData === null) {
           // No auth data found - redirect to login
-          window.location.href = 'auth/login.html';
+          window.location.href = '../auth/login.html';
           return;
         }
 
@@ -44,7 +49,7 @@
         const authStatus = await authenticate(authData);
         if (!authStatus) {
           // Authentication failed - redirect to login
-          window.location.href = 'auth/login.html';
+          window.location.href = '../auth/login.html';
           return;
         }
       }
@@ -56,7 +61,7 @@
       const verified = await checkEmailVerification(userId);
       if (!verified) {
         // Verification failed - redirect to email_not_verified
-        window.location.href = 'auth/email_not_verified.html'
+        window.location.href = '../auth/email_not_verified.html'
         return; 
       }
 

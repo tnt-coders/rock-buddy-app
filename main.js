@@ -18,6 +18,9 @@ function createWindow() {
     }
   });
 
+  // Hide the menu bar
+  win.setMenuBarVisibility(false);
+
   ipcMain.on('info', (event, message) => {
     dialog.showMessageBox({
       type: 'info',
@@ -66,7 +69,7 @@ function createWindow() {
     store.delete('auth');
   })
 
-  win.loadFile('src/index.html');
+  win.loadFile('src/sniffer/sniffer.html');
 }
 
 app.on('ready', createWindow);

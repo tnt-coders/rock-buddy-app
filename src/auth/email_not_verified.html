@@ -8,7 +8,7 @@
   <p>Your email address has not been verified. Please check your inbox for a verification email or <a href="#" onclick="resendVerificationEmail()">click here</a> to request a new one.</p>
   <p>After you have verified your email <a href="#" onclick="redirectToHomepage()">click here</a> to be redirected to the homepage.</p>
   <a href="#" onclick="logout()">Logout</a>
-  <script src="../functions.js"></script>
+  <script src="../common/functions.js"></script>
   <script>
     async function resendVerificationEmail() {
       const userId = sessionStorage.getItem('user_id');
@@ -19,7 +19,7 @@
     }
 
     async function redirectToHomepage() {
-      window.location.href = '../index.html';
+      window.location.href = '../sniffer/index.html';
       return;
     }
   </script>
