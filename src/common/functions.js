@@ -22,9 +22,9 @@ async function post(url, data) {
 }
 
 async function logout() {
-  sessionStorage.removeItem('user_id');
+  sessionStorage.removeItem('auth_data');
   await api.deleteAuthData();
-  window.location.href = 'auth/login.html';
+  window.location.href = '../auth/login.html';
   return;
 }
 

@@ -10,5 +10,42 @@
     <a href="../account/account.html">Account</a>
   </div>
   <h1>Account</h1>
-  <p>This page is a work in progres...</p>
+  <h2>Username:</h2>
+  <p id="username"></p>
+  <h2>Email:</h2>
+  <p id="email"></p>
+  <h2>Password:</h2>
+  <p>**********</p>
+  <a href="#" onclick="logout()">Logout</a>
+  <script src="../common/functions.js"></script>
+  <script>
+    async function getAccountInfo(authData) {
+      const host = await api.getHost();
+      const response = await post(host + '/api/account/get_account_info.php', authData);
+
+      if ('error' in response) {
+        console.error(response['error']);
+        return null;
+      }
+
+      return response;
+    }
+
+    async function displayAccountInfo() {
+      const authData = JSON.parse(sessionStorage.getItem('auth_data'));
+
+      const accountInfo = await getAccountInfo(authData);
+      if (!accountInfo) {
+        api.error('Failed to get account info.');
+        return;
+      }
+      
+      console.log(accountInfo['username']);
+
+      document.getElementById('username').innerText = accountInfo['username'];
+      document.getElementById('email').innerText = accountInfo['email'];
+    }
+
+    displayAccountInfo();
+  </script>
 </body>

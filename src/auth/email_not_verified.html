@@ -11,15 +11,18 @@
   <script src="../common/functions.js"></script>
   <script>
     async function resendVerificationEmail() {
-      const userId = sessionStorage.getItem('user_id');
-      const emailSent = await sendVerificationEmail(userId);
+      const authData = JSON.parse(sessionStorage.getItem('auth_data'));
+      const emailSent = await sendVerificationEmail(authData['user_id']);
       if (emailSent) {
-        api.info("Email sent.");
+        api.info('Email sent.');
+      }
+      else {
+        api.error('Failed to send email.');
       }
     }
 
     async function redirectToHomepage() {
-      window.location.href = '../sniffer/index.html';
+      window.location.href = '../sniffer/sniffer.html';
       return;
     }
   </script>
