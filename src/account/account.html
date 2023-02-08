@@ -16,9 +16,11 @@
   <p id="email"></p>
   <h2>Password:</h2>
   <p>**********</p>
-  <a href="#" onclick="logout()">Logout</a>
+  <a href="../auth/logout.html">Logout</a>
   <script src="../common/functions.js"></script>
   <script>
+    'use strict';
+
     async function getAccountInfo(authData) {
       const host = await api.getHost();
       const response = await post(host + '/api/account/get_account_info.php', authData);

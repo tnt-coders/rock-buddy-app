@@ -1,3 +1,5 @@
+'use strict';
+
 async function post(url, data) {
   try {
     const response = await fetch(url, {
@@ -21,11 +23,21 @@ async function post(url, data) {
   }
 }
 
-async function logout() {
-  sessionStorage.removeItem('auth_data');
-  await api.deleteAuthData();
-  window.location.href = '../auth/login.html';
-  return;
+async function authenticate(authData) {
+  const host = await api.getHost();
+  const response = await post(host + '/api/auth/authenticate.php', authData);
+
+  if ('error' in response) {
+    console.error(response['error']);
+    return false;
+  }
+
+  if (response['success']) {
+    // User has been authenticated, set the auth data for the active session
+    sessionStorage.setItem('auth_data', JSON.stringify(authData));
+  }
+
+  return response['success'];
 }
 
 async function checkEmailVerification(userId) {
@@ -40,6 +52,26 @@ async function checkEmailVerification(userId) {
   }
 
   return response['verified'];
+}
+
+async function checkAuthentication() {
+  if (sessionStorage.getItem('auth_data') !== null) {
+    return true;
+  }
+
+  // Get stored authentication data
+  const authData = await api.getAuthData();
+  if (authData === null) {
+    return false;
+  }
+
+  // Authenticate
+  const authStatus = await authenticate(authData);
+  if (!authStatus) {
+    return false;
+  }
+
+  return true;
 }
 
 async function sendVerificationEmail(userId) {

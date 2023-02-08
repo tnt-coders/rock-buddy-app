@@ -15,6 +15,8 @@
   <p>Don't have an account? <a href="sign_up.html">Sign Up</a></p>
   <script src="../common/functions.js"></script>
   <script>
+    'use strict';
+
     async function generateAuthData(username, password) {
       const host = await api.getHost();
       const response = await post(host + '/api/auth/login.php', {
@@ -45,8 +47,18 @@
         return;
       }
         
-      // Login successful - store auth data and redirect to home page
+      // Login successful - store auth data
       await api.setAuthData(authData);
+
+      // Verify the user's email
+      const verified = await checkEmailVerification(authData['user_id']);
+      if (!verified) {
+        // Verification failed - redirect to email_not_verified
+        window.location.href = '../auth/email_not_verified.html'
+        return; 
+      }
+
+      // Email is verified - proceed to application
       window.location.href = '../sniffer/sniffer.html';
       return; 
     }

@@ -69,7 +69,7 @@ function createWindow() {
     store.delete('auth');
   })
 
-  win.loadFile('src/sniffer/sniffer.html');
+  win.loadFile('src/index.html');
 }
 
 app.on('ready', createWindow);

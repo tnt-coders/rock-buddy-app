@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Rocksmith Leaderboards</title>
+</head>
+<body>
+  <p>Loading...</p>
+  <script src="common/functions.js"></script>
+  <script>
+    'use strict';
+    
+    async function main() {
+      if(await checkAuthentication()) {
+        // Authentication successful - proceed
+        window.location.href = './sniffer/sniffer.html';
+        return;
+      }
+
+      // Authentication failed - navigate to login
+      window.location.href = './auth/login.html';
+      return;
+    }
+
+    main();
+  </script>
+</body>
+</html>

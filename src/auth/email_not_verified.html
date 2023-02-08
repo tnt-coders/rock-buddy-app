@@ -10,6 +10,8 @@
   <a href="#" onclick="logout()">Logout</a>
   <script src="../common/functions.js"></script>
   <script>
+    'use strict';
+
     async function resendVerificationEmail() {
       const authData = JSON.parse(sessionStorage.getItem('auth_data'));
       const emailSent = await sendVerificationEmail(authData['user_id']);

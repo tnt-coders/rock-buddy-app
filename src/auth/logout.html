@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Rocksmith Leaderboards</title>
+</head>
+<body>
+  <p>Logging out...</p>
+  <script>
+    'use strict';
+
+    sessionStorage.removeItem('auth_data');
+    api.deleteAuthData();
+    window.location.href = './login.html';
+  </script>
+</body>
+</html>
