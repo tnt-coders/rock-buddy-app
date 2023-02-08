@@ -5,8 +5,10 @@
 </head>
 <body>
   <p>Logging out...</p>
+  <script src="../common/functions.js"></script>
   <script>
     'use strict';
+    sessionUpdate();
 
     sessionStorage.removeItem('auth_data');
     api.deleteAuthData();

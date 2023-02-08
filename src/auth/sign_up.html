@@ -20,6 +20,7 @@
   <script src="../common/functions.js"></script>
   <script>
     'use strict';
+    sessionUpdate();
 
     function validateUsername(username) {
       // Should not contain special characters
@@ -147,8 +148,7 @@
       if (userId !== null) {
         api.info('User created successfully.');
 
-        // Send the verification email and redirect to login
-        sendVerificationEmail(userId);
+        // Redirect to login
         window.location.href = 'login.html';
         return;
       }

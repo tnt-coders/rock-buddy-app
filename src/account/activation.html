@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Rocksmith Leaderboards</title>
+</head>
+<body>
+  <h1>Account Activation</h1>
+  <p style="display: inline;">An activation email has been sent to <div id="email" style="display: inline;"></div>.
+  If you do not see an email within a few minutes, <a href="#" onclick="resendActivationEmail()">click here</a> to request a new one.</p>
+  <p>After activating your account, <a href="#" onclick="redirectToHomepage()">click here</a> to be redirected to the homepage.</p>
+  <a href="./logout.html">Logout</a>
+  <script src="../common/functions.js"></script>
+  <script>
+    'use strict';
+    sessionUpdate();
+
+    async function resendActivationEmail() {
+      const authData = JSON.parse(sessionStorage.getItem('auth_data'));
+      const emailSent = await sendActivationEmail(authData);
+      if (emailSent) {
+        api.info('Email sent.');
+      }
+      else {
+        api.error('Failed to send email.');
+      }
+    }
+
+    async function redirectToHomepage() {
+      window.location.href = '../index.html';
+      return;
+    }
+
+    async function main() {
+      const authData = JSON.parse(sessionStorage.getItem('auth_data'));
+
+      const accountInfo = await getAccountInfo(authData);
+      if (!accountInfo) {
+        api.error('Failed to get account info.');
+        return;
+      }
+
+      // Send an activation email if one has never been sent
+      if (accountInfo['token_timestamp'] === null) {
+        sendActivationEmail(authData);
+      }
+
+      document.getElementById('email').innerText = accountInfo['email'];
+    }
+
+    main();
+  </script>
+</body>
+</html>

@@ -9,31 +9,32 @@
     <a href="../search/search.html">Search</a> |
     <a href="../account/account.html">Account</a>
   </div>
-  <h1>Account</h1>
-  <h2>Username:</h2>
-  <p id="username"></p>
-  <h2>Email:</h2>
-  <p id="email"></p>
-  <h2>Password:</h2>
-  <p>**********</p>
+  <h1>Account Settings</h1>
+  <h2>Username</h2>
+  <div id="username" style="display: inline;"></div>
+  <div style="display: inline; float: right;">
+    <a href="./change_username.html">Change</a>
+  </div>
+  <hr>
+  <h2>Email</h2>
+  <div id="email" style="display: inline;"></div>
+  <div style="display: inline; float: right;">
+    <a href="./change_email.html">Change</a>
+  </div>
+  <hr>
+  <h2>Password</h2>
+  <div style="display: inline;">**********</div>
+  <div style="display: inline; float: right;">
+    <a href="./change_password.html">Change</a>
+  </div>
+  <hr>
   <a href="../auth/logout.html">Logout</a>
   <script src="../common/functions.js"></script>
   <script>
     'use strict';
+    sessionUpdate();
 
-    async function getAccountInfo(authData) {
-      const host = await api.getHost();
-      const response = await post(host + '/api/account/get_account_info.php', authData);
-
-      if ('error' in response) {
-        console.error(response['error']);
-        return null;
-      }
-
-      return response;
-    }
-
-    async function displayAccountInfo() {
+    async function main() {
       const authData = JSON.parse(sessionStorage.getItem('auth_data'));
 
       const accountInfo = await getAccountInfo(authData);
@@ -41,13 +42,11 @@
         api.error('Failed to get account info.');
         return;
       }
-      
-      console.log(accountInfo['username']);
 
       document.getElementById('username').innerText = accountInfo['username'];
       document.getElementById('email').innerText = accountInfo['email'];
     }
 
-    displayAccountInfo();
+    main();
   </script>
 </body>

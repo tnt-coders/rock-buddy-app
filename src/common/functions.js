@@ -1,5 +1,23 @@
 'use strict';
 
+function sessionUpdate() {
+  // Get current page and previous page so we can implement "back" functionality
+  const currentPage = sessionStorage.getItem('current_page');
+  if (currentPage !== null) {
+    sessionStorage.setItem('previous_page', currentPage);
+  }
+
+  sessionStorage.setItem('current_page', window.location.href);
+}
+
+function back() {
+  const previousPage = sessionStorage.getItem('previous_page');
+  if (previousPage !== null) {
+    window.location.href = previousPage;
+    return;
+  }
+} 
+
 async function post(url, data) {
   try {
     const response = await fetch(url, {
@@ -40,20 +58,6 @@ async function authenticate(authData) {
   return response['success'];
 }
 
-async function checkEmailVerification(userId) {
-  const host = await api.getHost();
-  const response = await post(host + '/api/auth/check_email_verification.php', {
-    user_id: userId
-  });
-
-  if ('error' in response) {
-    console.error(response['error']);
-    return false;
-  }
-
-  return response['verified'];
-}
-
 async function checkAuthentication() {
   if (sessionStorage.getItem('auth_data') !== null) {
     return true;
@@ -74,11 +78,33 @@ async function checkAuthentication() {
   return true;
 }
 
-async function sendVerificationEmail(userId) {
+async function getAccountInfo(authData) {
   const host = await api.getHost();
-  const response = await post(host + '/api/auth/send_verification_email.php', {
-    user_id: userId
-  });
+  const response = await post(host + '/api/account/get_account_info.php', authData);
+
+  if ('error' in response) {
+    console.error(response['error']);
+    return null;
+  }
+
+  return response;
+}
+
+async function checkAccountActivation(authData) {
+  const host = await api.getHost();
+  const response = await post(host + '/api/account/check_account_activation.php', authData);
+
+  if ('error' in response) {
+    console.error(response['error']);
+    return false;
+  }
+
+  return response['activated'];
+}
+
+async function sendActivationEmail(authData) {
+  const host = await api.getHost();
+  const response = await post(host + '/api/account/send_activation_email.php', authData);
 
   if ('error' in response) {
     console.error(response['error']);

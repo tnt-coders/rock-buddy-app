@@ -4,15 +4,17 @@
   <title>Rocksmith Leaderboards</title>
 </head>
 <body>
-  <div class="auth-required" style="display: none;">
-    <div>
-      <a href="../sniffer/sniffer.html">Sniffer</a> |
-      <a href="../search/search.html">Search</a> |
-      <a href="../account/account.html">Account</a>
-    </div>
-    <h1>Leaderboard Sniffer</h1>
-    <p>Waiting for RockSniffer...</p>
+  <div>
+    <a href="../sniffer/sniffer.html">Sniffer</a> |
+    <a href="../search/search.html">Search</a> |
+    <a href="../account/account.html">Account</a>
   </div>
-  <div class="auth-pending">Loading...</div>
+  <h1>Leaderboard Sniffer</h1>
+  <p>Waiting for RockSniffer...</p>
+  <script src="../common/functions.js"></script>
+  <script>
+    'use strict';
+    sessionUpdate();
+  </script>
 </body>
 </html>

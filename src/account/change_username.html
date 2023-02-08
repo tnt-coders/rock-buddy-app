@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Rocksmith Leaderboards</title>
+</head>
+<body>
+  <h1>Change Username</h1>
+  <form method="post">
+    <label for="username">New Username:</label><br>
+    <input id="username" type="text" name="username">
+    <p style="color: red;">Warning: You can only change your username once every 30 days.</p>
+    <input type="submit" value="Submit" onclick="changeUsername(event)"><br><br>
+  </form>
+  <a href="#" onclick="back()">Cancel</a>
+  <script src="../common/functions.js"></script>
+  <script>
+    'use strict';
+    sessionUpdate();
+
+    async function changeUsername(event) {
+      // Prevents the form from being immediately cleared
+      event.preventDefault();
+
+      
+    }
+  </script>
+</body>
