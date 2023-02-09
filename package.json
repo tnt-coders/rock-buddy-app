@@ -1,7 +1,7 @@
 {
-  "name": "rocksmith-leaderboards",
+  "name": "rock-buddy",
   "version": "1.0.0",
-  "description": "Rocksmith Leaderboards",
+  "description": "Rock Buddy",
   "main": "main.js",
   "scripts": {
     "prd": "electron .",

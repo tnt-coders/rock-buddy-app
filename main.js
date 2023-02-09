@@ -5,7 +5,7 @@ const fs = require('fs');
 
 // Process input args
 const args = process.argv.slice(2);
-const host = args[0] || 'https://rocksmith-leaderboards.com';
+const host = args[0] || 'https://rock-buddy.com';
 
 // Store for user config data
 const store = new Store();
