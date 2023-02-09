@@ -6,8 +6,10 @@
 <body>
   <h1>Change Username</h1>
   <form method="post">
-    <label for="username">New Username:</label><br>
-    <input id="username" type="text" name="username">
+    <label for="new_username">New Username:</label><br>
+    <input id="new_username" type="text" name="new_username"><br><br>
+    <label for="password">Password:</label><br>
+    <input id="password" type="password" name="password">
     <p style="color: red;">Warning: You can only change your username once every 30 days.</p>
     <input type="submit" value="Submit" onclick="changeUsername(event)"><br><br>
   </form>
@@ -17,11 +19,47 @@
     'use strict';
     sessionUpdate();
 
+    async function requestUsernameChange(newUsername, password) {
+      const authData = JSON.parse(sessionStorage.getItem('auth_data'));
+
+      const host = await api.getHost();
+      const response = await post(host + '/api/account/change_username.php', {
+        auth_data: authData,
+        new_username: newUsername,
+        password: password
+      });
+
+      if ('error' in response) {
+        api.error(response['error']);
+        return false;
+      }
+
+      return response['success'];
+    }
+
     async function changeUsername(event) {
       // Prevents the form from being immediately cleared
       event.preventDefault();
 
-      
+      const newUsername = document.getElementById('new_username').value;
+      const password = document.getElementById('password').value;
+
+      // Make sure the new username is valid
+      if (!validateUsername(newUsername)) {
+        document.getElementById('new_username').value = '';
+        document.getElementById('password').value = '';
+        return;
+      }
+
+      const status = await requestUsernameChange(newUsername, password);
+      if (!status) {
+        document.getElementById('password').value = '';
+        return;
+      }
+
+      api.info("Username changed successfully.");
+      back();
+      return;
     }
   </script>
 </body>

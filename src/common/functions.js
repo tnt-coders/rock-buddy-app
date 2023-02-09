@@ -46,7 +46,7 @@ async function authenticate(authData) {
   const response = await post(host + '/api/auth/authenticate.php', authData);
 
   if ('error' in response) {
-    console.error(response['error']);
+    api.error(response['error']);
     return false;
   }
 
@@ -83,7 +83,7 @@ async function getAccountInfo(authData) {
   const response = await post(host + '/api/account/get_account_info.php', authData);
 
   if ('error' in response) {
-    console.error(response['error']);
+    api.error(response['error']);
     return null;
   }
 
@@ -95,7 +95,7 @@ async function checkAccountActivation(authData) {
   const response = await post(host + '/api/account/check_account_activation.php', authData);
 
   if ('error' in response) {
-    console.error(response['error']);
+    api.error(response['error']);
     return false;
   }
 
@@ -107,9 +107,92 @@ async function sendActivationEmail(authData) {
   const response = await post(host + '/api/account/send_activation_email.php', authData);
 
   if ('error' in response) {
-    console.error(response['error']);
+    api.error(response['error']);
     return false;
   }
 
   return response['success'];
+}
+
+function validateUsername(username) {
+  // Should not contain special characters
+  const specialChars = /[^\w]/g;
+  if (username.match(specialChars)) {
+    api.error('Username cannot contain special characters.');
+    return false;
+  }
+
+  // Should not contain any spaces
+  if (username.indexOf(' ') !== -1) {
+    api.error('Username cannot contain spaces.');
+    return false;
+  }
+
+  // Check username length
+  if (username.length < 4 || username.length > 25) {
+    api.error('Username must be between 4 and 25 characters.');
+    return false;
+  }
+
+  return true;
+}
+
+function validateEmail(email) {
+  const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (!regex.test(email)) {
+    api.error('Email is invalid.');
+    return false;
+  }
+
+  if (email.length < 5 || email.length > 255) {
+    api.error('Email must be between 5 and 255 characters.');
+    return;
+  }
+
+  return true;
+}
+
+function validatePassword(password, confirmPassword) {
+  // Password must contain:
+  // 1 uppercase letter
+  // 1 lowercase letter
+  // 1 number
+  // 1 special character
+  const upperCase = /[A-Z]/g;
+  const lowerCase = /[a-z]/g;
+  const numbers = /[0-9]/g;
+  const specialChars = /[^\w]/g;
+  if (!upperCase.test(password)
+   || !lowerCase.test(password)
+   || !numbers.test(password)
+   || !specialChars.test(password)
+   || password.length < 8) {
+    api.error("Password must contain:\n"
+      + "1 uppercase letter,\n"
+      + "1 lowercase letter,\n"
+      + "1 number\n"
+      + "1 special character\n"
+      + 'and be at least 8 characters long.');
+    return false;
+  }
+
+  // Should not contain any spaces
+  if (password.indexOf(' ') !== -1) {
+    api.error('Password cannot contain spaces.');
+    return false;
+  }
+
+  // Check password length
+  if (password.length < 8 || password.length > 255) {
+    api.error('Password must be between 8 and 255 characters.');
+    return;
+  }
+
+  // Password and confirm password must match
+  if (password !== confirmPassword) {
+    api.error('Passwords do not match.');
+    return false;
+  }
+
+  return true;
 }

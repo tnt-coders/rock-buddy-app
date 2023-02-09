@@ -6,8 +6,8 @@
 <body>
   <h1>Login</h1>
   <form method="post">
-    <label for="username">Username:</label><br>
-    <input id="username" type="text" name="username"><br><br>
+    <label for="username_or_email">Username or Email:</label><br>
+    <input id="username_or_email" type="text" name="username_or_email"><br><br>
     <label for="password">Password:</label><br>
     <input id="password" type="password" name="password"><br><br>
     <input type="submit" value="Submit" onclick="login(event)"><br><br>
@@ -18,15 +18,15 @@
     'use strict';
     sessionUpdate();
 
-    async function generateAuthData(username, password) {
+    async function generateAuthData(usernameOrEmail, password) {
       const host = await api.getHost();
       const response = await post(host + '/api/auth/login.php', {
-        username: username,
+        username_or_email: usernameOrEmail,
         password: password
       });
 
       if ('error' in response) {
-        console.error(response['error']);
+        api.error(response['error']);
         return null;
       }
 
@@ -37,13 +37,12 @@
       // Prevents the form from being immediately cleared
       event.preventDefault();
 
-      const username = document.getElementById('username').value;
+      const usernameOrEmail = document.getElementById('username_or_email').value;
       const password = document.getElementById('password').value;
 
-      const authData = await generateAuthData(username, password);
+      const authData = await generateAuthData(usernameOrEmail, password);
       if (authData === null) {
         // Login failed - reset password and let the user know
-        api.error('Login failed.');
         document.getElementById('password').value = '';
         return;
       }
