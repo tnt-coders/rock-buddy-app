@@ -5,7 +5,7 @@
 </head>
 <body>
   <h1>Change Username</h1>
-  <form method="post">
+  <form>
     <label for="new_username">New Username:</label><br>
     <input id="new_username" type="text" name="new_username"><br><br>
     <label for="password">Password:</label><br>
@@ -57,7 +57,7 @@
         return;
       }
 
-      api.info("Username changed successfully.");
+      api.info('Username changed successfully.');
       back();
       return;
     }

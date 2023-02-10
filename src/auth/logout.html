@@ -11,7 +11,7 @@
     sessionUpdate();
 
     sessionStorage.removeItem('auth_data');
-    api.deleteAuthData();
+    api.storeDelete('auth_data');
     window.location.href = './login.html';
   </script>
 </body>

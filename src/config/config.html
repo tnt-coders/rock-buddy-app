@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Rock Buddy</title>
+</head>
+<body>
+  <div>
+    <a href="../sniffer/sniffer.html">Sniffer</a> |
+    <a href="../search/search.html">Search</a> |
+    <a href="../account/account.html">Account</a>
+    <a href="../config/config.html" style="float: right;">Config</a>
+  </div>
+
+  <h1>Config</h1>
+  
+  <h2>Steam User Data Path</h2>
+  <div id="steam_user_data_path" style="display: inline;"> </div>
+  <div style="display: inline; float: right;">
+    <button onclick="getSteamUserDataPath()">Browse</button>
+  </div>
+  <hr>
+  <h2>Steam Profile</h2>
+  <select id="steam_profile">
+    <option value="1" selected>[None]</option>
+  </select>
+  <hr>
+  <h2>Rocksmith Profile</h2>
+  <select id="rocksmith_profile">
+    <option value="1" selected>[None]</option>
+  </select>
+  <hr>
+
+  <script src="../common/functions.js"></script>
+  <script>
+    'use strict';
+    sessionUpdate();
+
+    async function getSteamUserDataPath() {
+      const defaultPath = document.getElementById('steam_user_data_path').innerText;
+
+      const steamUserDataPath = await api.getPath(defaultPath);
+      if (steamUserDataPath !== null) {
+        document.getElementById('steam_user_data_path').innerText = steamUserDataPath;
+        api.storeSet('steam_user_data_path', steamUserDataPath);
+      }
+    }
+
+    async function getSteamProfile() {
+      const steamUserDataPath = document.getElementById('steam_user_data_path').innerText;
+
+    }
+
+    async function getRocksmithProfile() {
+      const steamUserDataPath = document.getElementById('steam_user_data_path').innerText;
+      
+    }
+
+    async function main() {
+      const steamUserDataPath = await api.storeGet('steam_user_data_path');
+      if (steamUserDataPath !== null) {
+        document.getElementById('steam_user_data_path').innerText = steamUserDataPath;
+      }
+
+      const steamProfile = await api.storeGet('steam_profile');
+      if (steamProfile !== null) {
+        document.getElementById('steam_profile').innerText = steamProfile;
+      }
+
+      const rocksmithProfile = await api.storeGet('rocksmith_profile');
+      if (rocksmithProfile !== null) {
+        document.getElementById('rocksmith_profile').innerText = rocksmithProfile;
+      }
+    }
+
+    main();
+  </script>
+</body>

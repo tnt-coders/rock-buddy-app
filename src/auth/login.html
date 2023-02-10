@@ -5,7 +5,7 @@
 </head>
 <body>
   <h1>Login</h1>
-  <form method="post">
+  <form>
     <label for="username_or_email">Username or Email:</label><br>
     <input id="username_or_email" type="text" name="username_or_email"><br><br>
     <label for="password">Password:</label><br>
@@ -48,7 +48,7 @@
       }
         
       // Login successful - store auth data
-      await api.setAuthData(authData);
+      await api.storeSet('auth_data', authData);
 
       // Email is verified - proceed to application
       window.location.href = '../index.html';

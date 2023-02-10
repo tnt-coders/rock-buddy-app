@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Rock Buddy</title>
+</head>
+<body>
+  <h1>Change Email</h1>
+  <form>
+    <label for="new_email">New Email:</label><br>
+    <input id="new_email" type="text" name="new_email"><br><br>
+    <label for="password">Password:</label><br>
+    <input id="password" type="password" name="password">
+    <p style="color: red;">Warning: Your account will need to be reactivated using the new email.</p>
+    <input type="submit" value="Submit" onclick="changeEmail(event)"><br><br>
+  </form>
+  <a href="#" onclick="back()">Cancel</a>
+  <script src="../common/functions.js"></script>
+  <script>
+    'use strict';
+    sessionUpdate();
+
+    async function requestEmailChange(newEmail, password) {
+      const authData = JSON.parse(sessionStorage.getItem('auth_data'));
+
+      const host = await api.getHost();
+      const response = await post(host + '/api/account/change_email.php', {
+        auth_data: authData,
+        new_email: newEmail,
+        password: password
+      });
+
+      if ('error' in response) {
+        api.error(response['error']);
+        return false;
+      }
+
+      return response['success'];
+    }
+
+    async function changeEmail(event) {
+      // Prevents the form from being immediately cleared
+      event.preventDefault();
+
+      const newEmail = document.getElementById('new_email').value;
+      const password = document.getElementById('password').value;
+
+      // Make sure the new username is valid
+      if (!validateEmail(newEmail)) {
+        document.getElementById('new_email').value = '';
+        document.getElementById('password').value = '';
+        return;
+      }
+
+      const status = await requestEmailChange(newEmail, password);
+      if (!status) {
+        document.getElementById('password').value = '';
+        return;
+      }
+
+      api.info('Email changed successfully.');
+      window.location.href = './activation.html';
+      return;
+    }
+  </script>
+</body>

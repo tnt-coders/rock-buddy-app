@@ -3,11 +3,10 @@
 function sessionUpdate() {
   // Get current page and previous page so we can implement "back" functionality
   const currentPage = sessionStorage.getItem('current_page');
-  if (currentPage !== null) {
+  if (currentPage !== window.location.href) {
+    sessionStorage.setItem('current_page', window.location.href);
     sessionStorage.setItem('previous_page', currentPage);
   }
-
-  sessionStorage.setItem('current_page', window.location.href);
 }
 
 function back() {
@@ -64,7 +63,7 @@ async function checkAuthentication() {
   }
 
   // Get stored authentication data
-  const authData = await api.getAuthData();
+  const authData = await api.storeGet('auth_data');
   if (authData === null) {
     return false;
   }
