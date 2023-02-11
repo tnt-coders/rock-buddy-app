@@ -21,7 +21,6 @@
   <hr>
   <h2>Steam Profile</h2>
   <select id="steam_profile">
-    <option value="1" selected>[None]</option>
   </select>
   <hr>
   <h2>Rocksmith Profile</h2>
@@ -45,14 +44,51 @@
       }
     }
 
-    async function getSteamProfile() {
+    async function getSteamProfiles() {
       const steamUserDataPath = document.getElementById('steam_user_data_path').innerText;
 
+      // Get all steam profiles on disk
+      const steamProfiles = await api.getSteamProfiles(steamUserDataPath);
+      const profileNames = Object.keys(steamProfiles);
+
+      // If a profile is already saved, remember it
+      let selectedProfile = await api.storeGet('steam_profile');
+      if (profileNames.length === 1) {
+        selectedProfile = steamProfiles[profileNames[0]];
+        api.storeSet('steam_profile', selectedProfile);
+      }
+
+      // Build the combo box
+      const comboBox = document.querySelector('#steam_profile');
+      profileNames.forEach((profileName) => {
+        const option = document.createElement('option');
+        option.text = profileName;
+        option.value = steamProfiles[profileName];
+        
+        // Set the selected profile to the saved profile if there is one
+        if (steamProfiles[profileName] === selectedProfile) {
+          option.selected = true;
+        }
+
+        comboBox.appendChild(option);
+      });
+
+      // Link the combo box selected option to the saved steam profile
+      comboBox.addEventListener("change", () => {
+        const selectedOption = comboBox.options[comboBox.selectedIndex];
+        const selectedProfile = selectedOption.value;
+        api.storeSet('steam_profile', selectedProfile);
+      });
     }
 
-    async function getRocksmithProfile() {
+    async function getRocksmithProfiles() {
       const steamUserDataPath = document.getElementById('steam_user_data_path').innerText;
-      
+    
+
+      const rocksmithProfile = await api.storeGet('rocksmith_profile');
+      if (rocksmithProfile !== null) {
+        // set combo box to stored value
+      }
     }
 
     async function main() {
@@ -61,15 +97,10 @@
         document.getElementById('steam_user_data_path').innerText = steamUserDataPath;
       }
 
-      const steamProfile = await api.storeGet('steam_profile');
-      if (steamProfile !== null) {
-        document.getElementById('steam_profile').innerText = steamProfile;
-      }
+      // Populate the combo boxes with available data
+      await getSteamProfiles();
 
-      const rocksmithProfile = await api.storeGet('rocksmith_profile');
-      if (rocksmithProfile !== null) {
-        document.getElementById('rocksmith_profile').innerText = rocksmithProfile;
-      }
+      await getRocksmithProfiles();
     }
 
     main();

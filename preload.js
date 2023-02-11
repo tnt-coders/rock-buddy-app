@@ -10,5 +10,6 @@ contextBridge.exposeInMainWorld('api', {
   storeSet: async (key, value) => ipcRenderer.invoke('store-set', key, value),
   storeDelete: async (key) => ipcRenderer.invoke('delete-auth-data', key),
   getPath: async(defaultPath) => ipcRenderer.invoke('get-path', defaultPath),
-  readRocksmithData: async(dataFile) => ipcRenderer.incoke('read-rocksmith-data', dataFile)
+  readRocksmithData: async(dataFile) => ipcRenderer.invoke('read-rocksmith-data', dataFile),
+  getSteamProfiles: async(steamUserDataPath) => ipcRenderer.invoke('get-steam-profiles', steamUserDataPath)
 });

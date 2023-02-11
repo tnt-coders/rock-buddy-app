@@ -12,6 +12,9 @@ const host = args[0] || 'https://rock-buddy.com';
 // Store for user config data
 const store = new Store();
 
+// Define Rocksmith app ID
+const rocksmithAppId = 221680;
+
 // Initialize some app data
 function init() {
 
@@ -32,16 +35,57 @@ function readRocksmithData(dataFile) {
   // I would hide this key, but it's already been leaked to the public long ago lol
   const key = Buffer.from('\x72\x8B\x36\x9E\x24\xED\x01\x34\x76\x85\x11\x02\x18\x12\xAF\xC0\xA3\xC2\x5D\x02\x06\x5F\x16\x6B\x4B\xCC\x58\xCD\x26\x44\xF2\x9E', 'ascii');
 
-  let saveFile = fs.readFileSync(dataFile, { encoding: null });
-  saveFile = saveFile.slice(20);
+  try {
+    let saveFile = fs.readFileSync(dataFile, { encoding: null });
+    saveFile = saveFile.slice(20);
 
-  const aesEcb = new aesjs.ModeOfOperation.ecb(key);
-  const decrypted = aesEcb.decrypt(saveFile);
+    const aesEcb = new aesjs.ModeOfOperation.ecb(key);
+    const decrypted = aesEcb.decrypt(saveFile);
 
-  const unzipped = unzipSync(decrypted);
-  const text = unzipped.toString('utf8').slice(0, -1);
+    const unzipped = unzipSync(decrypted);
+    const text = unzipped.toString('utf8').slice(0, -1);
 
-  return JSON.parse(text);
+    return JSON.parse(text);
+  } catch(error) {
+    console.error(error);
+    return null;
+  }
+}
+
+function getSteamProfiles(steamUserDataPath) {
+  let profiles = {};
+  try {
+    const paths = fs.readdirSync(steamUserDataPath);
+    paths.forEach((profileNumber) => {
+      // Get the users local config file
+      const localConfig = path.join(steamUserDataPath, profileNumber, '/config/localconfig.vdf');
+      if (fs.existsSync(localConfig)) {
+        // Extract the username from the local config file
+        try {
+          const content = fs.readFileSync(localConfig, 'utf-8');
+          const regex = /"PersonaName"\s+"([^"]+)"/;
+          const match = content.match(regex);
+          if (match) {
+            profiles[match[1]] = profileNumber;
+          } else {
+            throw new Error(`\nInvalid format for config file '${config_file}'\n`);
+          }
+        } catch(error) {
+          console.log(error)
+        }
+      }
+    });
+    return profiles;
+  } catch(error) {
+    console.error(error);
+    return {};
+  }
+}
+
+function getRocksmithProfiles(steamUserDataPath, steamProfile) {
+  let profiles = {};
+
+  //TODO work in progress
 }
 
 // Creates the main window
@@ -122,6 +166,11 @@ function createWindow() {
   // Reads an encrypted Rocksmith data file and returns the contents
   ipcMain.handle('read-rocksmith-data', (event, dataFile) => {
     return readRocksmithData(dataFile);
+  });
+
+  // Gets a map of steam profiles and their corresponding folder names
+  ipcMain.handle('get-steam-profiles', (event, steamUserDataPath) => {
+    return getSteamProfiles(steamUserDataPath);
   });
 
   win.loadFile('src/index.html');
