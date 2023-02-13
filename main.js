@@ -22,10 +22,10 @@ function init() {
   const steamUserDataPath = store.get('steam_user_data_path');
   if (steamUserDataPath === undefined) {
     if (process.platform === 'win32') {
-      store.set('steam_user_data_path', 'C:\\Program Files (x86)\\Steam\\userdata\\');
+      store.set('steam_user_data_path', 'C:\\Program Files (x86)\\Steam\\userdata');
     }
     else if (process.platform === 'darwin') {
-      store.set('steam_user_data_path', '~/Library/Application Support/Steam/userdata/');
+      store.set('steam_user_data_path', '~/Library/Application Support/Steam/userdata');
     }
   }
 }
@@ -58,7 +58,7 @@ function getSteamProfiles(steamUserDataPath) {
     const paths = fs.readdirSync(steamUserDataPath);
     paths.forEach((profileNumber) => {
       // Get the users local config file
-      const localConfig = path.join(steamUserDataPath, profileNumber, '/config/localconfig.vdf');
+      const localConfig = path.join(steamUserDataPath, profileNumber, 'config', 'localconfig.vdf');
       if (fs.existsSync(localConfig)) {
         // Extract the username from the local config file
         try {
@@ -84,8 +84,16 @@ function getSteamProfiles(steamUserDataPath) {
 
 function getRocksmithProfiles(steamUserDataPath, steamProfile) {
   let profiles = {};
+  const rocksmithDataFolder = path.join(steamUserDataPath, steamProfile.toString(), rocksmithAppId.toString(), 'remote');
+  const localProfilesFile = path.join(rocksmithDataFolder, 'LocalProfiles.json');
 
-  //TODO work in progress
+  // Read the localProfiles.json file to get the list of available profiles
+  const localProfiles = readRocksmithData(localProfilesFile);
+  localProfiles['Profiles'].forEach((profile) => {
+    profiles[profile['PlayerName']] = profile['UniqueID'];
+  });
+
+  return profiles;
 }
 
 // Creates the main window
@@ -96,7 +104,7 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
     },
-    icon: path.join(__dirname, 'images/favicon.ico')
+    icon: path.join(__dirname, 'images', 'favicon.ico')
   });
 
   // Hide the menu bar
@@ -162,16 +170,42 @@ function createWindow() {
 
     return result.filePaths[0];
   });
+  
+  ipcMain.handle('path-join', async (event, ...args) => {
+    return path.join(...args);
+  });
+
+  // Read a file and return the contents
+  ipcMain.handle('read-file', (event, file) => {
+    try {
+      return fs.readFileSync(file, 'utf-8');
+    } catch(error) {
+      console.error(error);
+      return null;
+    }
+  });
+
+  // Write a file
+  ipcMain.handle('write-file', (event, file, contents) => {
+    fs.writeFileSync(file, contents);
+  });
 
   // Reads an encrypted Rocksmith data file and returns the contents
   ipcMain.handle('read-rocksmith-data', (event, dataFile) => {
     return readRocksmithData(dataFile);
   });
 
-  // Gets a map of steam profiles and their corresponding folder names
+  // Gets a map of Steam profiles and their corresponding folder names
   ipcMain.handle('get-steam-profiles', (event, steamUserDataPath) => {
     return getSteamProfiles(steamUserDataPath);
   });
+
+  // Gets a map of Rocksmith profiles and their corresponding file names
+  ipcMain.handle('get-rocksmith-profiles', (event, steamUserDataPath, steamProfile) => {
+    return getRocksmithProfiles(steamUserDataPath, steamProfile);
+  });
+
+  // Reads 
 
   win.loadFile('src/index.html');
 }

@@ -11,11 +11,111 @@
     <a href="../config/config.html" style="float: right;">Config</a>
   </div>
   <h1>Leaderboard Sniffer</h1>
-  <p>Waiting for RockSniffer...</p>
+  <div id="loading">
+    <p>Loading...</p>
+  </div>
+  <div id="error" style="display: none;">
+    <p>Could not find Rocksniffer. Check that the "Rocksniffer Path" is correct in the config.</p>
+    <a href="#" onclick="connectToRocksniffer()">Retry</a>
+  </div>
+  <div id="waiting" style="display: none;">
+    <p>Waiting for Rocksniffer...</p>
+  </div>
+  <div id="connected" style="display: none;">
+    <div class="data">
+
+    </div>
+  </div>
   <script src="../common/functions.js"></script>
+  <script src="../../node_modules/jquery/dist/jquery.min.js"></script>
   <script>
     'use strict';
     sessionUpdate();
+
+    const pollRate = 900;
+    let activeRequest = false;
+
+    function refresh() {
+      if (activeRequest) {
+        return;
+      }
+
+      activeRequest = true;
+
+      const rocksnifferHost = sessionStorage.getItem('rocksniffer_host');
+      const rocksnifferPort = sessionStorage.getItem('rocksniffer_port');
+
+      //JSON query the addon service
+      $.get("http://"+rocksnifferHost+":"+rocksnifferPort)
+      .done((data) => {
+        $("div.data").html("<pre>"+JSON.stringify(data, null, 4)+"</pre");
+        showComponent('connected');
+
+        let randomNumber = Math.floor(Math.random() * 69) + 1;
+        if (randomNumber === 69) {
+          console.log('*sniff sniff*');
+        }
+      }).fail((jqXhr, textStatus, errorThrown) => {
+        showComponent('waiting');
+      }).always(() => {
+        activeRequest = false;
+      });
+    }
+
+    async function showComponent(component) {
+      const components = {
+        loading: document.getElementById('loading'),
+        error: document.getElementById('error'),
+        waiting: document.getElementById('waiting'),
+        connected: document.getElementById('connected')
+      };
+
+      const componentsKeys = Object.keys(components);
+      componentsKeys.forEach((c) => {
+        if (component === c) {
+          components[c].style.display = 'block';
+        }
+        else {
+          components[c].style.display = 'none';
+        }
+      });
+    }
+
+    async function connectToRocksniffer() {
+      const rocksnifferHost = sessionStorage.getItem('rocksniffer_host');
+      const rocksnifferPort = sessionStorage.getItem('rocksniffer_port');
+
+      // If we don't have the host and port, get it
+      if (rocksnifferHost === null || rocksnifferPort === null) {
+        const rocksnifferPath = await api.storeGet('rocksniffer_path');
+        if (rocksnifferPath === null) {
+          showComponent('error');
+          return;
+        }
+
+        const addonConfigFile = await api.pathJoin(rocksnifferPath, 'config', 'addons.json');
+        const addonConfig = JSON.parse(await api.readFile(addonConfigFile));
+
+        // Make sure addons are enabled
+        if (!addonConfig['enableAddons']) {
+          console.log('Enabling Rocksniffer addons.');
+          addonConfig['enableAddons'] = true;
+          await api.writeFile(addonConfigFile, JSON.stringify(addonConfig, null, 2));
+        }
+
+        sessionStorage.setItem('rocksniffer_host', addonConfig['ipAddress']);
+        sessionStorage.setItem('rocksniffer_port', addonConfig['port']);
+      }
+
+      setInterval(refresh, pollRate);
+      refresh();
+    }
+
+    async function main() {
+      await connectToRocksniffer();
+    }
+
+    main();
   </script>
 </body>
 </html>
