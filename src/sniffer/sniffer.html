@@ -15,13 +15,14 @@
     <p>Loading...</p>
   </div>
   <div id="error" style="display: none;">
-    <p>Could not find Rocksniffer. Check that the "Rocksniffer Path" is correct in the config.</p>
-    <a href="#" onclick="connectToRocksniffer()">Retry</a>
   </div>
   <div id="waiting" style="display: none;">
     <p>Waiting for Rocksniffer...</p>
   </div>
   <div id="connected" style="display: none;">
+    <div class="status">
+      Sniffing...
+    </div>
     <div class="data">
 
     </div>
@@ -33,33 +34,82 @@
     sessionUpdate();
 
     const pollRate = 900;
-    let activeRequest = false;
-
-    function refresh() {
-      if (activeRequest) {
+    let requestActive = false;
+    let currentSong = null;
+    
+    async function refresh() {
+      if (requestActive) {
+        console.warn('A request is already active, returning.');
         return;
       }
 
-      activeRequest = true;
+      requestActive = true;
 
+      const rocksnifferData = await getRocksnifferData();
+
+      if (rocksnifferData['success']) {
+
+        // If we are switching songs, perform a sync
+        if (rocksnifferData['songDetails']['songID'] !== currentSong) {
+          currentSong = rocksnifferData['songDetails']['songID'];
+          await syncData(rocksnifferData);
+        }
+        
+        displayData(rocksnifferData);
+      }
+      else {
+        $('div.status').html('Navigate to a song in Rocksmith...');
+      }
+
+      requestActive = false;
+    }
+
+    async function displayData(rocksnifferData) {
+
+    }
+
+    async function syncData(rocksnifferData) {
+      $('div.status').html('Syncing data...');
+      const rocksmithData = await getRocksmithProfileData();
+      
+      $('div.status').html('Sniffing...');
+    }
+
+    async function checkForNewRocksmithProfileData() {
+      const steamUserDataPath = sessionStorage.getItem('steam_user_data_path');
+      const steamProfile = sessionStorage.getItem('steam_profile');
+      const rocksmithProfile = sessionStorage.getItem('rocksmith_profile');
+
+      return await api.checkForNewRocksmithProfileData(steamUserDataPath, steamProfile, rocksmithProfile);
+    }
+
+    async function getRocksmithProfileData() {
+      const steamUserDataPath = sessionStorage.getItem('steam_user_data_path');
+      const steamProfile = sessionStorage.getItem('steam_profile');
+      const rocksmithProfile = sessionStorage.getItem('rocksmith_profile');
+
+      return await api.getRocksmithProfileData(steamUserDataPath, steamProfile, rocksmithProfile);
+    }
+
+    async function getRocksnifferData() {
       const rocksnifferHost = sessionStorage.getItem('rocksniffer_host');
       const rocksnifferPort = sessionStorage.getItem('rocksniffer_port');
 
       //JSON query the addon service
-      $.get("http://"+rocksnifferHost+":"+rocksnifferPort)
-      .done((data) => {
-        $("div.data").html("<pre>"+JSON.stringify(data, null, 4)+"</pre");
+      try {
+        const response = await $.get("http://"+rocksnifferHost+":"+rocksnifferPort);
         showComponent('connected');
 
         let randomNumber = Math.floor(Math.random() * 69) + 1;
         if (randomNumber === 69) {
           console.log('*sniff sniff*');
         }
-      }).fail((jqXhr, textStatus, errorThrown) => {
+
+        return response;
+      } catch (error) {
         showComponent('waiting');
-      }).always(() => {
-        activeRequest = false;
-      });
+        return null;
+      }
     }
 
     async function showComponent(component) {
@@ -81,6 +131,30 @@
       });
     }
 
+    async function connectToRocksmith() {
+      let steamUserDataPath = sessionStorage.getItem('steam_user_data_path');
+      let steamProfile = sessionStorage.getItem('steam_profile');
+      let rocksmithProfile = sessionStorage.getItem('rocksmith_profile');
+
+      if (steamUserDataPath === null || steamProfile === null || rocksmithProfile === null) {
+        steamUserDataPath = await api.storeGet('steam_user_data_path');
+        steamProfile = await api.storeGet('steam_profile');
+        rocksmithProfile = await api.storeGet('rocksmith_profile');
+
+        if (steamUserDataPath === null || steamProfile === null || rocksmithProfile === null) {
+          document.getElementById('error').innerHTML = '<p>Could not find Rocksmith user data. Check that your config settings are correct.</p>';
+          showComponent('error');
+          return false;
+        }
+
+        sessionStorage.setItem('steam_user_data_path', steamUserDataPath);
+        sessionStorage.setItem('steam_profile', steamProfile);
+        sessionStorage.setItem('rocksmith_profile', rocksmithProfile);
+      }
+
+      return true;
+    }
+
     async function connectToRocksniffer() {
       const rocksnifferHost = sessionStorage.getItem('rocksniffer_host');
       const rocksnifferPort = sessionStorage.getItem('rocksniffer_port');
@@ -89,8 +163,9 @@
       if (rocksnifferHost === null || rocksnifferPort === null) {
         const rocksnifferPath = await api.storeGet('rocksniffer_path');
         if (rocksnifferPath === null) {
+          document.getElementById('error').innerHTML = '<p>Could not find Rocksniffer. Check that your config settings are correct.</p>';
           showComponent('error');
-          return;
+          return false;
         }
 
         const addonConfigFile = await api.pathJoin(rocksnifferPath, 'config', 'addons.json');
@@ -107,12 +182,17 @@
         sessionStorage.setItem('rocksniffer_port', addonConfig['port']);
       }
 
-      setInterval(refresh, pollRate);
-      refresh();
+      return true;
     }
 
     async function main() {
-      await connectToRocksniffer();
+      const rocksmithConnected = await connectToRocksmith();
+      const rocksnifferConnected = await connectToRocksniffer();
+
+      if (rocksmithConnected && rocksnifferConnected) {
+        setInterval(refresh, pollRate);
+        refresh();
+      }
     }
 
     main();

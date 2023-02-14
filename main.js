@@ -15,6 +15,20 @@ const store = new Store();
 // Define Rocksmith app ID
 const rocksmithAppId = 221680;
 
+// Define a cache variable
+let cache = {};
+
+function cacheGet(key) {
+  if (key in cache) {
+    return cache[key];
+  }
+  return null;
+}
+
+function cacheSet(key, value) {
+  cache[key] = value;
+}
+
 // Initialize some app data
 function init() {
 
@@ -71,7 +85,7 @@ function getSteamProfiles(steamUserDataPath) {
             throw new Error(`\nInvalid format for config file '${config_file}'\n`);
           }
         } catch(error) {
-          console.log(error)
+          console.error(error)
         }
       }
     });
@@ -94,6 +108,35 @@ function getRocksmithProfiles(steamUserDataPath, steamProfile) {
   });
 
   return profiles;
+}
+
+// function checkForNewRocksmithProfileData(steamUserDataPath, steamProfile, rocksmithProfile) {
+//   const rocksmithProfilePath = path.join(steamUserDataPath, steamProfile.toString(), rocksmithAppId.toString(), 'remote', rocksmithProfile + '_PRFLDB');
+
+//   try {
+//     const stats = fs.statSync(rocksmithProfilePath);
+
+//     // If the file timestamp has not changed return false
+//     const rocksmithProfileTimestamp = cacheGet('rocksmith_profile_timestamp');
+//     if (rocksmithProfileTimestamp !== null) {
+//       if (stats.mtime.getTime() === rocksmithProfileTimestamp.getTime()) {
+//         return false;
+//       }
+//     }
+
+//     // Timestamps didn't match, cache the new timestamp and return true
+//     cacheSet('rocksmith_profile_timestamp', stats.mtime);
+//     return true;
+//   }
+//   catch (error) {
+//     console.error(error);
+//     return false;
+//   }
+// }
+
+function getRocksmithProfileData(steamUserDataPath, steamProfile, rocksmithProfile) {
+  const rocksmithProfilePath = path.join(steamUserDataPath, steamProfile.toString(), rocksmithAppId.toString(), 'remote', rocksmithProfile + '_PRFLDB');
+  return readRocksmithData(rocksmithProfilePath);
 }
 
 // Creates the main window
@@ -205,7 +248,15 @@ function createWindow() {
     return getRocksmithProfiles(steamUserDataPath, steamProfile);
   });
 
-  // Reads 
+  // // Check for new rocksmith profile data
+  // ipcMain.handle('check-for-new-rocksmith-profile-data', (event, steamUserDataPath, steamProfile, rocksmithProfile) => {
+  //   return checkForNewRocksmithProfileData(steamUserDataPath, steamProfile, rocksmithProfile);
+  // });
+
+  // Get Rocksmith profile data
+  ipcMain.handle('get-rocksmith-profile-data', (event, steamUserDataPath, steamProfile, rocksmithProfile) => {
+    return getRocksmithProfileData(steamUserDataPath, steamProfile, rocksmithProfile);
+  });
 
   win.loadFile('src/index.html');
 }

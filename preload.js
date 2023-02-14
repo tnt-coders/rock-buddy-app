@@ -15,5 +15,7 @@ contextBridge.exposeInMainWorld('api', {
   writeFile: async (file, contents) => ipcRenderer.invoke('write-file', file, contents),
   readRocksmithData: async (dataFile) => ipcRenderer.invoke('read-rocksmith-data', dataFile),
   getSteamProfiles: async (steamUserDataPath) => ipcRenderer.invoke('get-steam-profiles', steamUserDataPath),
-  getRocksmithProfiles: async (steamUserDataPath, steamProfile) => ipcRenderer.invoke('get-rocksmith-profiles', steamUserDataPath, steamProfile)
+  getRocksmithProfiles: async (steamUserDataPath, steamProfile) => ipcRenderer.invoke('get-rocksmith-profiles', steamUserDataPath, steamProfile),
+  //checkForNewRocksmithProfileData: async (steamUserDataPath, steamProfile, rocksmithProfile) => ipcRenderer.invoke('check-for-new-rocksmith-profile-data', steamUserDataPath, steamProfile, rocksmithProfile),
+  getRocksmithProfileData: async (steamUserDataPath, steamProfile, rocksmithProfile) => ipcRenderer.invoke('get-rocksmith-profile-data', steamUserDataPath, steamProfile, rocksmithProfile)
 });

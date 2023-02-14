@@ -57,9 +57,9 @@
 
       // If a profile is already saved, remember it
       let selectedProfile = await api.storeGet('steam_profile');
-      if (profileNames.length === 1) {
+      if (profileNames.length !== 0 && selectedProfile === null) {
         selectedProfile = steamProfiles[profileNames[0]];
-        api.storeSet('steam_profile', selectedProfile);
+        await api.storeSet('steam_profile', selectedProfile);
       }
 
       // Build the combo box
@@ -78,10 +78,10 @@
       });
 
       // Link the combo box selected option to the saved Steam profile
-      comboBox.addEventListener("change", () => {
+      comboBox.addEventListener("change", async () => {
         const selectedOption = comboBox.options[comboBox.selectedIndex];
         const selectedProfile = selectedOption.value;
-        api.storeSet('steam_profile', selectedProfile);
+        await api.storeSet('steam_profile', selectedProfile);
       });
     }
 
@@ -95,9 +95,9 @@
 
       // If a profile is already saved, remember it
       let selectedProfile = await api.storeGet('rocksmith_profile');
-      if (profileNames.length === 1) {
+      if (profileNames.length !== 0 && selectedProfile === null) {
         selectedProfile = rocksmithProfiles[profileNames[0]];
-        api.storeSet('rocksmith_profile', selectedProfile);
+        await api.storeSet('rocksmith_profile', selectedProfile);
       }
 
       // Build the combo box
@@ -116,10 +116,10 @@
       });
 
       // Link the combo box selected option to the saved Rocksmith profile
-      comboBox.addEventListener("change", () => {
+      comboBox.addEventListener("change", async () => {
         const selectedOption = comboBox.options[comboBox.selectedIndex];
         const selectedProfile = selectedOption.value;
-        api.storeSet('rocksmith_profile', selectedProfile);
+        await api.storeSet('rocksmith_profile', selectedProfile);
       });
     }
 
