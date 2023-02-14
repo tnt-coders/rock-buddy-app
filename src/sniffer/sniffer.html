@@ -48,14 +48,15 @@
       const rocksnifferData = await getRocksnifferData();
 
       if (rocksnifferData['success']) {
+        displayData(rocksnifferData);
 
         // If we are switching songs, perform a sync
         if (rocksnifferData['songDetails']['songID'] !== currentSong) {
           currentSong = rocksnifferData['songDetails']['songID'];
           await syncData(rocksnifferData);
         }
-        
-        displayData(rocksnifferData);
+
+        $('div.status').html('Sniffing...');
       }
       else {
         $('div.status').html('Navigate to a song in Rocksmith...');
@@ -68,11 +69,69 @@
 
     }
 
+    async function writeSongData(songData) {
+      const authData = JSON.parse(sessionStorage.getItem('auth_data'));
+      const host = await api.getHost();
+      const response = await post(host + '/api/data/sniffer_sync.php', {
+        auth_data: authData,
+        song_data: songData
+      });
+
+      if ('error' in response) {
+        api.error(response['error']);
+        return false;
+      }
+
+      console.log(response);
+      return true;
+    }
+
     async function syncData(rocksnifferData) {
       $('div.status').html('Syncing data...');
       const rocksmithData = await getRocksmithProfileData();
+      let songData = {};
       
-      $('div.status').html('Sniffing...');
+      // Get basic song metadata
+      songData['key'] = rocksnifferData['songDetails']['songID'];
+      songData['psarc_hash'] = rocksnifferData['songDetails']['psarcFileHash'];
+      songData['name'] = rocksnifferData['songDetails']['songName'];
+      songData['artist'] = rocksnifferData['songDetails']['artistName'];
+      songData['album'] = rocksnifferData['songDetails']['albumName'];
+      songData['year'] = rocksnifferData['songDetails']['albumYear'];
+
+      // Loop through each arrangement
+      songData['arrangements'] = {};
+      rocksnifferData['songDetails']['arrangements'].forEach((arrangement) => {
+        const hash = arrangement['arrangementID'];
+
+        let arrangementData = {};
+        arrangementData['name'] = arrangement['name'];
+        arrangementData['hash'] = hash;
+
+        const lasDataExists = rocksmithData['Stats']['Songs'].hasOwnProperty(hash);
+        const saDataExists = rocksmithData['SongsSA'].hasOwnProperty(hash);
+        arrangementData['play_count'] = 0;
+        if (lasDataExists) {
+          arrangementData['accuracy'] = rocksmithData['Stats']['Songs'][hash]['AccuracyGlobal'];
+          arrangementData['mastery'] = rocksmithData['Stats']['Songs'][hash]['MasteryPeak'];
+          arrangementData['streak'] = rocksmithData['Stats']['Songs'][hash]['Streak'];
+          arrangementData['las_play_count'] = rocksmithData['Stats']['Songs'][hash]['PlayedCount'];
+          arrangementData['play_count'] += arrangementData['las_play_count'];
+        }
+        if (saDataExists) {
+          arrangementData['scores'] = {};
+          arrangementData['scores']['easy'] = rocksmithData['SongsSA'][hash]['HighScores']['Easy'];
+          arrangementData['scores']['medium'] = rocksmithData['SongsSA'][hash]['HighScores']['Medium'];
+          arrangementData['scores']['hard'] = rocksmithData['SongsSA'][hash]['HighScores']['Hard'];
+          arrangementData['scores']['master'] = rocksmithData['SongsSA'][hash]['HighScores']['Master'];
+          arrangementData['sa_play_count'] = rocksmithData['SongsSA'][hash]['PlayCount'];
+          arrangementData['play_count'] += arrangementData['sa_play_count'];
+        }
+
+        songData['arrangements'][hash] = arrangementData;
+      });
+
+      await writeSongData(songData);
     }
 
     async function checkForNewRocksmithProfileData() {
