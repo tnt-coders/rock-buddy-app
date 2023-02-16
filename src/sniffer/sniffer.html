@@ -20,8 +20,13 @@
     <p>Waiting for Rocksniffer...</p>
   </div>
   <div id="connected" style="display: none;">
-    <div class="status">
-      Sniffing...
+    <div style="display: inline;">
+      <div style="display: inline;" class="status">
+        Sniffing...
+      </div>
+      <button id="snort" style="display: inline; float: right;" title="Force an immediate refresh of the data." onclick="snortData()">
+        Snort
+      </button>
     </div>
     <div class="data">
 
@@ -36,14 +41,21 @@
     'use strict';
     sessionUpdate();
 
-    const pollRate = 1000;
+    // Variables to control polling of Rocksniffer and the Rock Buddy server
+    const pollRate = 1000; // Rocksniffer poll rate
     let pollTime = 0; // Add delay to sync data to not overwhelm the server
     let requestActive = false;
     let currentSong = null;
     let sync = true;
 
+    // Allow the user to snort data immediately if they wish
+    const snortRate = 10000; // Rock Buddy server poll rate
+    let snort = false;
+    let lastSnort = snortRate; // Allow the user to snort immediately
+
     async function refresh() {
       pollTime += pollRate;
+      lastSnort += pollRate;
 
       if (requestActive) {
         console.warn('A request is already active, returning.');
@@ -57,19 +69,29 @@
         requestActive = false;
       }
       else if (rocksnifferData['success']) {
-        displayData(rocksnifferData);
+
+        if (snort === false && lastSnort >= snortRate) {
+          document.getElementById('snort').disabled = false;
+        }
 
         // If we are switching songs, don't keep syncing
         if (rocksnifferData['songDetails']['songID'] !== currentSong) {
           currentSong = rocksnifferData['songDetails']['songID'];
-          pollTime = 0;
           sync = true;
+          pollTime = 0;
+          lastSnort = snortRate; // Allow user to snort immediately
         }
 
-        // If we have not switched songs for 5 seconds perform a sync
-        else if (pollTime >= 5000 && sync === true) {
+        // If we have not switched songs for 10 seconds perform a sync and display the data
+        else if (snort === true || (pollTime >= snortRate && sync === true)) {
           sync = false; // Don't keep syncing indefinitely
+          snort = false; // Don't keep snorting indefinitely
+          document.getElementById('snort').disabled = true;
+          lastSnort = 0;
+
+          $('div.status').html('Snorting data...');
           await syncData(rocksnifferData);
+          await displayData(rocksnifferData);
         }
 
         $('div.status').html('Sniffing...');
@@ -79,6 +101,11 @@
       }
 
       requestActive = false;
+    }
+
+    async function snortData() {
+      snort = true;
+      document.getElementById('snort').disabled = true;
     }
 
     async function displayData(rocksnifferData) {
@@ -106,7 +133,6 @@
     }
 
     async function syncData(rocksnifferData) {
-      $('div.status').html('Syncing data...');
       const rocksmithData = await getRocksmithProfileData();
       let songData = {};
       
