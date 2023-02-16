@@ -33,11 +33,15 @@
     'use strict';
     sessionUpdate();
 
-    const pollRate = 900;
+    const pollRate = 1000;
+    let pollTime = 0; // Add delay to sync data to not overwhelm the server
     let requestActive = false;
     let currentSong = null;
-    
+    let sync = true;
+
     async function refresh() {
+      pollTime += pollRate;
+
       if (requestActive) {
         console.warn('A request is already active, returning.');
         return;
@@ -46,13 +50,22 @@
       requestActive = true;
 
       const rocksnifferData = await getRocksnifferData();
-
-      if (rocksnifferData['success']) {
+      if (rocksnifferData === null) {
+        requestActive = false;
+      }
+      else if (rocksnifferData['success']) {
         displayData(rocksnifferData);
 
-        // If we are switching songs, perform a sync
+        // If we are switching songs, don't keep syncing
         if (rocksnifferData['songDetails']['songID'] !== currentSong) {
           currentSong = rocksnifferData['songDetails']['songID'];
+          pollTime = 0;
+          sync = true;
+        }
+
+        // If we have not switched songs for 5 seconds perform a sync
+        else if (pollTime >= 5000 && sync === true) {
+          sync = false; // Don't keep syncing indefinitely
           await syncData(rocksnifferData);
         }
 
@@ -71,6 +84,9 @@
 
     async function writeSongData(songData) {
       const authData = JSON.parse(sessionStorage.getItem('auth_data'));
+
+      console.log(songData);
+
       const host = await api.getHost();
       const response = await post(host + '/api/data/sniffer_sync.php', {
         auth_data: authData,
@@ -92,40 +108,104 @@
       let songData = {};
       
       // Get basic song metadata
-      songData['key'] = rocksnifferData['songDetails']['songID'];
+      songData['song_key'] = rocksnifferData['songDetails']['songID'];
       songData['psarc_hash'] = rocksnifferData['songDetails']['psarcFileHash'];
-      songData['name'] = rocksnifferData['songDetails']['songName'];
+      songData['title'] = rocksnifferData['songDetails']['songName'];
       songData['artist'] = rocksnifferData['songDetails']['artistName'];
       songData['album'] = rocksnifferData['songDetails']['albumName'];
       songData['year'] = rocksnifferData['songDetails']['albumYear'];
 
       // Loop through each arrangement
       songData['arrangements'] = {};
+
+      // Get bonus and alt count by looping through once
+      let bonusCount = {};
+      let altCount = {};
+      rocksnifferData['songDetails']['arrangements'].forEach((arrangement) => {
+        const type = arrangement['type'];
+
+        // If it is a bonus arrangement build the appropriate name
+        if (arrangement['isBonusArrangement']) {
+          if (!bonusCount.hasOwnProperty(type)) {
+            bonusCount[type] = 0;
+          }
+          bonusCount[type]++;
+        }
+
+        // If it is an alt arrangement build the appropriate name
+        else if (arrangement['isAlternateArrangement']) {
+          if (!altCount.hasOwnProperty(type)) {
+            altCount[type] = 0;
+          }
+          altCount[type]++;
+        }
+      });
+
+      // Keep track of bonus and alt indexes to handle bonus and alt arrangement types
+      let bonusIndex = 1;
+      let altIndex = 1;
       rocksnifferData['songDetails']['arrangements'].forEach((arrangement) => {
         const hash = arrangement['arrangementID'];
 
         let arrangementData = {};
-        arrangementData['name'] = arrangement['name'];
+
+        // Special logic to handle bonus and alt arrangement types
+        const type = arrangement['type'];
+
+        // If it is a bonus arrangement build the appropriate name
+        if (arrangement['isBonusArrangement']) {
+          arrangementData['name'] = 'Bonus ' + type;
+
+          if (bonusCount[type] > 1) {
+            arrangementData['name'] += ' ' + bonusIndex;
+          }
+
+          bonusIndex++;
+        }
+
+        // If it is an alt arrangement build the appropriate name
+        else if (arrangement['isAlternateArrangement']) {
+          arrangementData['name'] = 'Alternate ' + type;
+
+          if (altCount[type] > 1) {
+            arrangementData['name'] += ' ' + altIndex;
+          }
+
+          altIndex++
+        }
+        else {
+          arrangementData['name'] = arrangement['type'];
+        }
+
         arrangementData['hash'] = hash;
 
         const lasDataExists = rocksmithData['Stats']['Songs'].hasOwnProperty(hash);
         const saDataExists = rocksmithData['SongsSA'].hasOwnProperty(hash);
-        arrangementData['play_count'] = 0;
         if (lasDataExists) {
           arrangementData['accuracy'] = rocksmithData['Stats']['Songs'][hash]['AccuracyGlobal'];
           arrangementData['mastery'] = rocksmithData['Stats']['Songs'][hash]['MasteryPeak'];
           arrangementData['streak'] = rocksmithData['Stats']['Songs'][hash]['Streak'];
+          arrangementData['las_last_played'] = rocksmithData['Stats']['Songs'][hash]['DateLAS'];
           arrangementData['las_play_count'] = rocksmithData['Stats']['Songs'][hash]['PlayedCount'];
-          arrangementData['play_count'] += arrangementData['las_play_count'];
         }
         if (saDataExists) {
           arrangementData['scores'] = {};
-          arrangementData['scores']['easy'] = rocksmithData['SongsSA'][hash]['HighScores']['Easy'];
-          arrangementData['scores']['medium'] = rocksmithData['SongsSA'][hash]['HighScores']['Medium'];
+          arrangementData['badges'] = {};
+          
+          // Scores
+          //arrangementData['scores']['easy'] = rocksmithData['SongsSA'][hash]['HighScores']['Easy'];
+          //arrangementData['scores']['medium'] = rocksmithData['SongsSA'][hash]['HighScores']['Medium'];
           arrangementData['scores']['hard'] = rocksmithData['SongsSA'][hash]['HighScores']['Hard'];
           arrangementData['scores']['master'] = rocksmithData['SongsSA'][hash]['HighScores']['Master'];
+
+          // Strikes
+          //arrangementData['badges']['easy'] = rocksmithData['SongsSA'][hash]['Badges']['Easy'];
+          //arrangementData['badges']['medium'] = rocksmithData['SongsSA'][hash]['Badges']['Medium'];
+          arrangementData['badges']['hard'] = rocksmithData['SongsSA'][hash]['Badges']['Hard'];
+          arrangementData['badges']['master'] = rocksmithData['SongsSA'][hash]['Badges']['Master'];
+
+          arrangementData['sa_last_played'] = rocksmithData['Stats']['Songs'][hash]['DateSA'];
           arrangementData['sa_play_count'] = rocksmithData['SongsSA'][hash]['PlayCount'];
-          arrangementData['play_count'] += arrangementData['sa_play_count'];
         }
 
         songData['arrangements'][hash] = arrangementData;
