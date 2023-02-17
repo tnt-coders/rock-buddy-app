@@ -10,7 +10,17 @@
     <a href="../account/account.html">Account</a>
     <a href="../config/config.html" style="float: right;">Config</a>
   </div>
-  <h1>Leaderboard Sniffer</h1>
+  <div style="display: flex; flex-direction: row; align-items: baseline; width: 100%;">
+    <h1>Leaderboard Sniffer</h1>
+    <div class="connected" style="margin-left: auto;">
+      <div class="status" style="display: inline-block;">
+        Sniffing...
+      </div>
+      <div style="display: inline-block;">
+        <button id="snort" title="Force an immediate refresh of the data." onclick="snortData()">Snort</button>
+      </div>
+    </div>
+  </div>
   <div class="loading">
     <p>Loading...</p>
   </div>
@@ -20,15 +30,6 @@
     <p>Waiting for Rocksniffer...</p>
   </div>
   <div class="connected" style="display: none;">
-    <div style="display: inline;">
-      <div style="display: inline;" class="status">
-        Sniffing...
-      </div>
-      <button id="snort" style="display: inline; float: right;" title="Force an immediate refresh of the data." onclick="snortData()">
-        Snort
-      </button>
-    </div>
-    <br><br>
     <div id="leaderboard_header" style="display: none;">
       <div style="display: flex; flex-direction: row; gap: 10px;">
         <div>
