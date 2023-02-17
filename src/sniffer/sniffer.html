@@ -11,15 +11,15 @@
     <a href="../config/config.html" style="float: right;">Config</a>
   </div>
   <h1>Leaderboard Sniffer</h1>
-  <div id="loading">
+  <div class="loading">
     <p>Loading...</p>
   </div>
-  <div id="error" style="display: none;">
+  <div class="error" style="display: none;">
   </div>
-  <div id="waiting" style="display: none;">
+  <div class="waiting" style="display: none;">
     <p>Waiting for Rocksniffer...</p>
   </div>
-  <div id="connected" style="display: none;">
+  <div class="connected" style="display: none;">
     <div style="display: inline;">
       <div style="display: inline;" class="status">
         Sniffing...
@@ -360,7 +360,7 @@
       //JSON query the addon service
       try {
         const response = await $.get("http://"+rocksnifferHost+":"+rocksnifferPort);
-        showComponent('connected');
+        showClass('connected');
 
         let randomNumber = Math.floor(Math.random() * 69) + 1;
         if (randomNumber === 69) {
@@ -369,26 +369,30 @@
 
         return response;
       } catch (error) {
-        showComponent('waiting');
+        showClass('waiting');
         return null;
       }
     }
 
-    async function showComponent(component) {
-      const components = {
-        loading: document.getElementById('loading'),
-        error: document.getElementById('error'),
-        waiting: document.getElementById('waiting'),
-        connected: document.getElementById('connected')
+    async function showClass(className) {
+      const classNames = {
+        loading: document.getElementsByClassName('loading'),
+        error: document.getElementsByClassName('error'),
+        waiting: document.getElementsByClassName('waiting'),
+        connected: document.getElementsByClassName('connected')
       };
 
-      const componentsKeys = Object.keys(components);
-      componentsKeys.forEach((c) => {
-        if (component === c) {
-          components[c].style.display = 'block';
+      const classNameKeys = Object.keys(classNames);
+      classNameKeys.forEach((c) => {
+        if (className === c) {
+          for (let i = 0; i < classNames[c].length; i++) {
+            classNames[c][i].style.display = 'block';
+          }
         }
         else {
-          components[c].style.display = 'none';
+          for (let i = 0; i < classNames[c].length; i++) {
+            classNames[c][i].style.display = 'none';
+          }
         }
       });
     }
@@ -405,7 +409,7 @@
 
         if (steamUserDataPath === null || steamProfile === null || rocksmithProfile === null) {
           document.getElementById('error').innerHTML = '<p>Could not find Rocksmith user data. Check that your config settings are correct.</p>';
-          showComponent('error');
+          showClass('error');
           return false;
         }
 
@@ -426,7 +430,7 @@
         const rocksnifferPath = await api.storeGet('rocksniffer_path');
         if (rocksnifferPath === null) {
           document.getElementById('error').innerHTML = '<p>Could not find Rocksniffer. Check that your config settings are correct.</p>';
-          showComponent('error');
+          showClass('error');
           return false;
         }
 
