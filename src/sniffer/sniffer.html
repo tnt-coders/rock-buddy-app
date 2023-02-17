@@ -330,7 +330,7 @@
       
       // Sort the available paths
       availablePaths.sort((a, b) => a['sort'].localeCompare(b['sort']));
-      let availablePathNames = availablePaths.map(obj => obj['path']);
+      const availablePathNames = availablePaths.map(obj => obj['name']);
 
       // If the selected path doesn't exist for this song, update it to one that does
       if (!availablePathNames.includes(selectedPath)) {
