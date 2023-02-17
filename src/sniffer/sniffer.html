@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta name="viewport" content="initial-scale=1, width=device-width" />
   <title>Rock Buddy</title>
 </head>
 <body>
@@ -12,7 +13,7 @@
   </div>
   <div style="display: flex; flex-direction: row; align-items: baseline; width: 100%;">
     <h1>Leaderboard Sniffer</h1>
-    <div class="connected" style="margin-left: auto;">
+    <div class="ready" style="margin-left: auto; display: none;">
       <div class="status" style="display: inline-block;">
         Sniffing...
       </div>
@@ -30,6 +31,9 @@
     <p>Waiting for Rocksniffer...</p>
   </div>
   <div class="connected" style="display: none;">
+    <p>Navigate to a song in Rocksmith to begin sniffing...</p>
+  </div>
+  <div class="ready" style="display: none;">
     <div id="leaderboard_header" style="display: none;">
       <div style="display: flex; flex-direction: row; gap: 10px;">
         <div>
@@ -120,6 +124,7 @@
         requestActive = false;
       }
       else if (rocksnifferData['success']) {
+        showClass('ready');
 
         if (snort === false && lastSnort >= snortRate) {
           document.getElementById('snort').disabled = false;
@@ -151,7 +156,7 @@
         $('div.status').html('Sniffing...');
       }
       else {
-        $('div.status').html('Navigate to a song in Rocksmith...');
+        showClass('connected');
       }
 
       requestActive = false;
@@ -380,7 +385,8 @@
         loading: document.getElementsByClassName('loading'),
         error: document.getElementsByClassName('error'),
         waiting: document.getElementsByClassName('waiting'),
-        connected: document.getElementsByClassName('connected')
+        connected: document.getElementsByClassName('connected'),
+        ready: document.getElementsByClassName('ready')
       };
 
       const classNameKeys = Object.keys(classNames);
