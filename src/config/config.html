@@ -81,7 +81,7 @@
       });
 
       // Link the combo box selected option to the saved Steam profile
-      comboBox.addEventListener("change", async () => {
+      comboBox.addEventListener('change', async () => {
         const selectedOption = comboBox.options[comboBox.selectedIndex];
         const selectedProfile = selectedOption.value;
         await api.storeSet('steam_profile', selectedProfile);
@@ -119,7 +119,7 @@
       });
 
       // Link the combo box selected option to the saved Rocksmith profile
-      comboBox.addEventListener("change", async () => {
+      comboBox.addEventListener('change', async () => {
         const selectedOption = comboBox.options[comboBox.selectedIndex];
         const selectedProfile = selectedOption.value;
         await api.storeSet('rocksmith_profile', selectedProfile);

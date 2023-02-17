@@ -28,8 +28,46 @@
         Snort
       </button>
     </div>
-    <div class="data">
+    <br><br>
+    <div id="leaderboard_header" style="display: none;">
+      <div style="display: flex; flex-direction: row; gap: 10px;">
+        <div>
+          <img id="album_art" width="75" height="75">
+        </div>
+        <div>
+          <div><strong>Artist:</strong> <span id="artist"></span></div>
+          <div><strong>Album:</strong> <span id="album"></span></div>
+          <div><strong>Title:</strong> <span id="title"></span></div>
+          <div><strong>Year:</strong> <span id="year"></span></div>
+        </div>
+      </div>
+      <br>
+      <div style="display: flex; flex-direction: row; gap: 5px;">
+        <label for="game_mode">Game Mode:</label>
+        <select id="game_mode" style="margin-right: 10px;">
+          <option value="las" selected>Learn A Song</option>
+          <option value="sa">Score Attack</option>
+        </select>
 
+        <label for="path">Path:</label>
+        <select id="path" style="margin-right: 10px;">
+          <option value="lead" selected>Lead</option>
+          <option value="rhythm">Rhythm</option>
+          <option value="bass">Bass</option>
+        </select>
+
+        <div id="score_attack" style="display: none;">
+          <label for="difficulty">Difficulty:</label>
+          <select id="difficulty" style="margin-right: 10px;">
+            <option value="hard" selected>Hard</option>
+            <option value="master">Master</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <br>
+    <div id="leaderboard_data" style="display: none;">
+      <p>And this is where I would put my score... <em>IF I HAD ONE!</em></p>
     </div>
   </div>
   <footer style="position: fixed; bottom: 0; width: 100%; text-align: center;">
@@ -40,6 +78,9 @@
   <script>
     'use strict';
     sessionUpdate();
+
+    // If the page is starting up we want to immediately pull data
+    let startup = true;
 
     // Variables to control polling of Rocksniffer and the Rock Buddy server
     const pollRate = 1000; // Rocksniffer poll rate
@@ -52,6 +93,15 @@
     const snortRate = 10000; // Rock Buddy server poll rate
     let snort = false;
     let lastSnort = snortRate; // Allow the user to snort immediately
+    let snorted = false; // Keep track if a snort has occurred for the current song
+
+    // TODO: store these so they persist between sessions
+    let selectedGameMode = 'las';
+    let selectedPath = 'lead';
+    let selectedDifficulty = 'hard';
+
+    // Store data globally so we can react to combo box changes quickly
+    let rocksnifferData = null;
 
     async function refresh() {
       pollTime += pollRate;
@@ -64,7 +114,7 @@
 
       requestActive = true;
 
-      const rocksnifferData = await getRocksnifferData();
+      rocksnifferData = await getRocksnifferData();
       if (rocksnifferData === null) {
         requestActive = false;
       }
@@ -80,18 +130,21 @@
           sync = true;
           pollTime = 0;
           lastSnort = snortRate; // Allow user to snort immediately
+          snorted = false;
         }
 
         // If we have not switched songs for 10 seconds perform a sync and display the data
-        else if (snort === true || (pollTime >= snortRate && sync === true)) {
+        else if (startup == true || snort === true || (pollTime >= snortRate && sync === true)) {
+          startup = false; // We have started now so set to false
           sync = false; // Don't keep syncing indefinitely
           snort = false; // Don't keep snorting indefinitely
           document.getElementById('snort').disabled = true;
           lastSnort = 0;
 
           $('div.status').html('Snorting data...');
-          await syncData(rocksnifferData);
-          await displayData(rocksnifferData);
+          snorted = true;
+          await syncData();
+          await displayData();
         }
 
         $('div.status').html('Sniffing...');
@@ -108,14 +161,8 @@
       document.getElementById('snort').disabled = true;
     }
 
-    async function displayData(rocksnifferData) {
-
-    }
-
-    async function writeSongData(songData) {
+    async function syncWithServer(songData) {
       const authData = JSON.parse(sessionStorage.getItem('auth_data'));
-
-      console.log(songData);
 
       const host = await api.getHost();
       const response = await post(host + '/api/data/sniffer_sync.php', {
@@ -125,14 +172,13 @@
 
       if ('error' in response) {
         api.error(response['error']);
-        return false;
+        return null;
       }
 
-      console.log(response);
-      return true;
+      return response;
     }
 
-    async function syncData(rocksnifferData) {
+    async function syncData() {
       const rocksmithData = await getRocksmithProfileData();
       let songData = {};
       
@@ -242,7 +288,53 @@
         songData['arrangements'][hash] = arrangementData;
       });
 
-      await writeSongData(songData);
+      await syncWithServer(songData);
+    }
+
+    async function getScoresLAS() {
+      const authData = JSON.parse(sessionStorage.getItem('auth_data'));
+
+      const host = await api.getHost();
+      const response = await post(host + '/api/data/get_scores_las.php', {
+        auth_data: authData,
+        song_key: rocksnifferData['songDetails']['songID'],
+        psarc_hash: rocksnifferData['songDetails']['psarcFileHash'],
+        path: selectedPath
+      });
+
+      if ('error' in response) {
+        api.error(response['error']);
+        return null;
+      }
+
+      return response;
+    }
+
+    async function displayData() {
+      // If snorting has not happened for the current song yet force a snort
+      // after the snort displayData will be called again by the refresh
+      if (!snorted) {
+        snortData();
+        return;
+      }
+
+      document.getElementById('album_art').src = 'data:image/jpeg;base64,' + rocksnifferData['songDetails']['albumArt'];
+      document.getElementById('artist').innerText = rocksnifferData['songDetails']['artistName'];
+      document.getElementById('title').innerText = rocksnifferData['songDetails']['songName'];
+      document.getElementById('album').innerText = rocksnifferData['songDetails']['albumName'];
+      document.getElementById('year').innerText = rocksnifferData['songDetails']['albumYear'];
+      document.getElementById('leaderboard_header').style.display = 'block';
+
+      if (selectedGameMode === 'las') {
+
+      }
+
+      document.getElementById('leaderboard_data').style.display = 'block';
+      // const serverData = await getServerData();
+      // if (serverData === null) {
+      //   $('div.leaderboard_data').html('Error retrieving leaderboard data.');
+      //   return;
+      // }
     }
 
     async function checkForNewRocksmithProfileData() {
@@ -358,6 +450,42 @@
     async function main() {
       const rocksmithConnected = await connectToRocksmith();
       const rocksnifferConnected = await connectToRocksniffer();
+
+      // Setup combo boxes
+      const gameModeComboBox = document.querySelector('#game_mode');
+
+      gameModeComboBox.addEventListener('change', async () => {
+        const selectedOption = gameModeComboBox.options[gameModeComboBox.selectedIndex];
+        selectedGameMode = selectedOption.value;
+
+        if (selectedGameMode === 'las') {
+          document.getElementById('score_attack').style.display = 'none';
+        }
+        else if (selectedGameMode == 'sa') {
+          document.getElementById('score_attack').style.display = 'block';
+        }
+
+        // Update the display (keep things feeling responsive)
+        await displayData();
+      });
+      
+      const pathComboBox = document.querySelector('#path');
+      pathComboBox.addEventListener('change', async () => {
+        const selectedOption = pathComboBox.options[pathComboBox.selectedIndex];
+        selectedPath = selectedOption.value;
+
+        // Update the display (keep things feeling responsive)
+        await displayData();
+      });
+      
+      const difficultyComboBox = document.querySelector('#difficulty');
+      difficultyComboBox.addEventListener('change', async () => {
+        const selectedOption = difficultyComboBox.options[difficultyComboBox.selectedIndex];
+        selectedDifficulty = selectedOption.value;
+
+        // Update the display (keep things feeling responsive)
+        await displayData();
+      });
 
       if (rocksmithConnected && rocksnifferConnected) {
         setInterval(refresh, pollRate);
