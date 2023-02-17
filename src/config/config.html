@@ -41,14 +41,20 @@
     'use strict';
     sessionUpdate();
 
+    const userId = JSON.parse(sessionStorage.getItem('auth_data'))['user_id'];
+
     async function getSteamUserDataPath() {
       const defaultPath = document.getElementById('steam_user_data_path').innerText;
 
       const steamUserDataPath = await api.getPath(defaultPath);
       if (steamUserDataPath !== null) {
         document.getElementById('steam_user_data_path').innerText = steamUserDataPath;
-        api.storeSet('steam_user_data_path', steamUserDataPath);
+        await api.storeSet('user_data.' + userId + '.steam_user_data_path', steamUserDataPath);
+        sessionStorage.setItem('steam_user_data_path', steamUserDataPath);
       }
+
+      // Recall the main function to populate the rest of the display
+      main();
     }
 
     async function getSteamProfiles() {
@@ -59,10 +65,11 @@
       const profileNames = Object.keys(steamProfiles);
 
       // If a profile is already saved, remember it
-      let selectedProfile = await api.storeGet('steam_profile');
+      let selectedProfile = await api.storeGet('user_data.' + userId + '.steam_profile');
       if (profileNames.length !== 0 && selectedProfile === null) {
         selectedProfile = steamProfiles[profileNames[0]];
-        await api.storeSet('steam_profile', selectedProfile);
+        await api.storeSet('user_data.' + userId + '.steam_profile', selectedProfile);
+        sessionStorage.setItem('steam_profile', selectedProfile);
       }
 
       // Build the combo box
@@ -84,23 +91,25 @@
       comboBox.addEventListener('change', async () => {
         const selectedOption = comboBox.options[comboBox.selectedIndex];
         const selectedProfile = selectedOption.value;
-        await api.storeSet('steam_profile', selectedProfile);
+        await api.storeSet('user_data.' + userId + '.steam_profile', selectedProfile);
+        sessionStorage.setItem('steam_profile', selectedProfile);
       });
     }
 
     async function getRocksmithProfiles() {
       const steamUserDataPath = document.getElementById('steam_user_data_path').innerText;
-      const steamProfile = await api.storeGet('steam_profile');
+      const steamProfile = await api.storeGet('user_data.' + userId + '.steam_profile');
 
       // Get all Rocksmith profiles on disk
       const rocksmithProfiles = await api.getRocksmithProfiles(steamUserDataPath, steamProfile);
       const profileNames = Object.keys(rocksmithProfiles);
 
       // If a profile is already saved, remember it
-      let selectedProfile = await api.storeGet('rocksmith_profile');
+      let selectedProfile = await api.storeGet('user_data.' + userId + '.rocksmith_profile');
       if (profileNames.length !== 0 && selectedProfile === null) {
         selectedProfile = rocksmithProfiles[profileNames[0]];
-        await api.storeSet('rocksmith_profile', selectedProfile);
+        await api.storeSet('user_data.' + userId + '.rocksmith_profile', selectedProfile);
+        sessionStorage.setItem('rocksmith_profile', selectedProfile);
       }
 
       // Build the combo box
@@ -122,7 +131,8 @@
       comboBox.addEventListener('change', async () => {
         const selectedOption = comboBox.options[comboBox.selectedIndex];
         const selectedProfile = selectedOption.value;
-        await api.storeSet('rocksmith_profile', selectedProfile);
+        await api.storeSet('user_data.' + userId + '.rocksmith_profile', selectedProfile);
+        sessionStorage.setItem('rocksmith_profile', selectedProfile);
       });
     }
 
@@ -130,15 +140,21 @@
       const rocksnifferPath = await api.getPath();
       if (rocksnifferPath !== null) {
         document.getElementById('rocksniffer_path').innerText = rocksnifferPath;
-        api.storeSet('rocksniffer_path', rocksnifferPath);
+        api.storeSet('user_data.' + userId + '.rocksniffer_path', rocksnifferPath);
+        sessionStorage.setItem('rocksniffer_path', rocksnifferPath);
       }
     }
 
     async function main() {
       // Populate Steam user data path if there is a default set
-      const steamUserDataPath = await api.storeGet('steam_user_data_path');
+      let steamUserDataPath = await api.storeGet('user_data.' + userId + '.steam_user_data_path');
+      if (steamUserDataPath === null) {
+        steamUserDataPath = await api.storeGet('default_steam_user_data_path');
+        api.storeSet('user_data.' + userId + '.steam_user_data_path', steamUserDataPath);
+      }
       if (steamUserDataPath !== null) {
         document.getElementById('steam_user_data_path').innerText = steamUserDataPath;
+        sessionStorage.setItem('steam_user_data_path', steamUserDataPath);
       }
 
       // Populate the combo box for Steam profiles
@@ -148,7 +164,7 @@
       await getRocksmithProfiles();
 
       // Populate Rocksniffer path if there is a default set
-      const rocksnifferPath = await api.storeGet('rocksniffer_path');
+      const rocksnifferPath = await api.storeGet('user_data.' + userId + '.rocksniffer_path');
       if (rocksnifferPath !== null) {
         document.getElementById('rocksniffer_path').innerText = rocksnifferPath;
       }

@@ -33,13 +33,13 @@ function cacheSet(key, value) {
 function init() {
 
   // Set Steam user data path to the system default location
-  const steamUserDataPath = store.get('steam_user_data_path');
+  const steamUserDataPath = store.get('default_steam_user_data_path');
   if (steamUserDataPath === undefined) {
     if (process.platform === 'win32') {
-      store.set('steam_user_data_path', 'C:\\Program Files (x86)\\Steam\\userdata');
+      store.set('default_steam_user_data_path', 'C:\\Program Files (x86)\\Steam\\userdata');
     }
     else if (process.platform === 'darwin') {
-      store.set('steam_user_data_path', '~/Library/Application Support/Steam/userdata');
+      store.set('default_steam_user_data_path', '~/Library/Application Support/Steam/userdata');
     }
   }
 }

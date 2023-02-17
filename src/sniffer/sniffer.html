@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Rock Buddy</title>
+  <title>Rock Buddy (Alpha)</title>
 </head>
 <body>
   <div>
@@ -24,7 +24,7 @@
   <div class="loading">
     <p>Loading...</p>
   </div>
-  <div class="error" style="display: none;">
+  <div id="error" class="error" style="display: none;">
   </div>
   <div class="waiting" style="display: none;">
     <p>Waiting for Rocksniffer...</p>
@@ -79,6 +79,8 @@
   <script>
     'use strict';
     sessionUpdate();
+
+    const userId = JSON.parse(sessionStorage.getItem('auth_data'))['user_id'];
 
     // If the page is starting up we want to immediately pull data
     let startup = true;
@@ -325,8 +327,6 @@
 
         songData['arrangements'][hash] = arrangementData;
       });
-
-      console.log(availablePaths);
       
       // Sort the available paths
       availablePaths.sort((a, b) => a['sort'].localeCompare(b['sort']));
@@ -363,7 +363,7 @@
         auth_data: authData,
         song_key: rocksnifferData['songDetails']['songID'],
         psarc_hash: rocksnifferData['songDetails']['psarcFileHash'],
-        path: selectedPath
+        arrangement: selectedPath
       });
 
       if ('error' in response) {
@@ -391,10 +391,22 @@
 
       const leaderboardData = document.getElementById('leaderboard_data');
       if (selectedGameMode === 'las') {        
-        const scoresLas = getScoresLAS();
+        const scoresLAS = await getScoresLAS();
+        if (scoresLAS === null) {
+          // An error has occurred
+          return;
+        }
+
+        if (scoresLAS.length === 0) {
+          leaderboardData.innerHTML = '';
+          leaderboardData.appendChild(document.createTextNode('No scores found.'));
+          leaderboardData.style.display = 'block';
+          return;
+        }
 
         // Create table element
         const table = document.createElement('table');
+        table.border = 1;
         table.style.width = '100%';
 
         // Create header row
@@ -402,12 +414,39 @@
 
         const headers = ['Username', 'Last Played', 'Play Count', 'Streak', 'Mastery', 'Accuracy'];
         headers.forEach((header) => {
-          let headerCell = document.createElement('th');
+          const headerCell = document.createElement('th');
+          headerCell.style.fontFamily = "Roboto Mono, monospace";
           headerCell.appendChild(document.createTextNode(header));
           headerRow.appendChild(headerCell);
         })
 
         table.appendChild(headerRow);
+
+        // Create data rows
+        const columns = ['username', 'last_played', 'play_count', 'streak', 'mastery', 'accuracy'];
+        const columnsAlign = ['left', 'left', 'right', 'right', 'right', 'right'];
+        scoresLAS.forEach((row) => {
+          const dataRow = document.createElement('tr');
+
+          // Populate data for each column
+          let index = 0;
+          columns.forEach((column) => {
+            const dataCell = document.createElement('td');
+            dataCell.style.fontFamily = "Roboto Mono, monospace";
+            if (column === 'mastery' || column === 'accuracy') {
+              const percentage = (row[column] * 100).toFixed(2) + '%';
+              dataCell.appendChild(document.createTextNode(percentage));
+            }
+            else {
+              dataCell.appendChild(document.createTextNode(row[column]));
+            }
+            dataCell.style.textAlign = columnsAlign[index++];
+            dataRow.appendChild(dataCell);
+          });
+
+          // Add the row to the table
+          table.appendChild(dataRow);
+        })
 
         leaderboardData.innerHTML = '';
         leaderboardData.appendChild(table);
@@ -421,13 +460,6 @@
         leaderboardData.appendChild(data);
         leaderboardData.style.display = 'block';
       }
-
-      
-      // const serverData = await getServerData();
-      // if (serverData === null) {
-      //   $('div.leaderboard_data').html('Error retrieving leaderboard data.');
-      //   return;
-      // }
     }
 
     async function checkForNewRocksmithProfileData() {
@@ -497,9 +529,9 @@
       let rocksmithProfile = sessionStorage.getItem('rocksmith_profile');
 
       if (steamUserDataPath === null || steamProfile === null || rocksmithProfile === null) {
-        steamUserDataPath = await api.storeGet('steam_user_data_path');
-        steamProfile = await api.storeGet('steam_profile');
-        rocksmithProfile = await api.storeGet('rocksmith_profile');
+        steamUserDataPath = await api.storeGet('user_data.' + userId + '.steam_user_data_path');
+        steamProfile = await api.storeGet('user_data.' + userId + '.steam_profile');
+        rocksmithProfile = await api.storeGet('user_data.' + userId + '.rocksmith_profile');
 
         if (steamUserDataPath === null || steamProfile === null || rocksmithProfile === null) {
           document.getElementById('error').innerHTML = '<p>Could not find Rocksmith user data. Check that your config settings are correct.</p>';
@@ -521,7 +553,7 @@
 
       // If we don't have the host and port, get it
       if (rocksnifferHost === null || rocksnifferPort === null) {
-        const rocksnifferPath = await api.storeGet('rocksniffer_path');
+        const rocksnifferPath = await api.storeGet('user_data.' + userId + '.rocksniffer_path');
         if (rocksnifferPath === null) {
           document.getElementById('error').innerHTML = '<p>Could not find Rocksniffer. Check that your config settings are correct.</p>';
           showClass('error');

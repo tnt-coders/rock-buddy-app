@@ -13,7 +13,7 @@
     'use strict';
     sessionUpdate();
 
-    sessionStorage.removeItem('auth_data');
+    sessionStorage.clear();
     api.storeDelete('auth_data');
     window.location.href = './login.html';
   </script>
