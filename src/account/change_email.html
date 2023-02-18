@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <link rel="stylesheet" href="../css/login.css">
+  <link rel="stylesheet" href="../css/formcard.css">
+  <link rel="stylesheet" href="../css/footer.css">
   <title>Rock Buddy (alpha test)</title>
 </head>
 <body>
+  <div class="card">
   <h1>Change Email</h1>
   <form>
     <label for="new_email">New Email:</label><br>
@@ -11,11 +15,14 @@
     <label for="password">Password:</label><br>
     <input id="password" type="password" name="password">
     <p style="color: red;">Warning: Your account will need to be reactivated using the new email.</p>
-    <input type="submit" value="Submit" onclick="changeEmail(event)"><br><br>
+    <input class="btn-primary"  type="submit" value="Submit" onclick="changeEmail(event)"><br><br>
   </form>
   <a href="#" onclick="back()">Cancel</a>
-  <footer style="position: fixed; bottom: 0; width: 100%; text-align: center;">
-    <div>Created by TNTMusicStudios - tntmusicstudios2018@gmail.com</div>
+  </div>
+  <footer>
+    <p>
+      Copyright &copy; 2023, All Rights Reserved <a href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
+    </p>
   </footer>
   <script src="../common/functions.js"></script>
   <script>

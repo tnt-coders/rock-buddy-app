@@ -1,17 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <link rel="stylesheet" href="../css/activation.css">
+  <link rel="stylesheet" href="../css/footer.css">
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js"></script>
   <title>Rock Buddy (alpha test)</title>
 </head>
 <body>
-  <h1>Account Activation</h1>
-  <p style="display: inline;">An activation email has been sent to <div id="email" style="display: inline;"></div>.
-  If you do not see an email within a few minutes, <a href="#" onclick="resendActivationEmail()">click here</a> to request a new one.</p>
-  <p>If you accidentally used the wrong email address, <a href="./change_email.html">click here</a> to change it.</p>
-  <p>After activating your account, <a href="#" onclick="redirectToHomepage()">click here</a> to be redirected to the homepage.</p>
-  <a href="./logout.html">Logout</a>
-  <footer style="position: fixed; bottom: 0; width: 100%; text-align: center;">
-    <div>Created by TNTMusicStudios - tntmusicstudios2018@gmail.com</div>
+    <div class="card">
+      <h1>Account Activation</h1>
+      <p>An activation email has been sent to <span id="email"></span>. If you do not see an email within a few minutes, <a href="#" onclick="resendActivationEmail()">click here</a> to request a new one.</p>
+      <p>If you accidentally used the wrong email address, <a href="./change_email.html">click here</a> to change it.</p>
+      <p>After activating your account, <a href="#" onclick="redirectToHomepage()">click here</a> to be redirected to the homepage.</p>
+      <a href="./logout.html">Logout</a>
+    </div>
+    <div class="buddycard">
+      <center><img src="../../images/buddy.png" alt="rockbuddy" class="rockbuddy"></center>
+    </div>
+  <footer>
+    <p>
+      Copyright &copy; 2023, All Rights Reserved <a href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
+    </p>
   </footer>
   <script src="../common/functions.js"></script>
   <script>
@@ -52,6 +61,21 @@
     }
 
     main();
+  </script>
+  <script>
+    VanillaTilt.init(document.querySelectorAll(".card"), {
+  max: 5,
+  speed: 1000,
+  transition: true,
+})
+    </script>
+
+<script>
+  VanillaTilt.init(document.querySelectorAll(".buddycard"), {
+max: 15,
+speed: 1000,
+transition: true,
+})
   </script>
 </body>
 </html>

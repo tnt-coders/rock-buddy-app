@@ -1,24 +1,44 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <link rel="stylesheet" href="../css/login.css">
+  <link rel="stylesheet" href="../css/formcard.css">
+  <link rel="stylesheet" href="../css/footer.css">
   <title>Rock Buddy (alpha test)</title>
 </head>
 <body>
+  <div class="card">
   <h1>Sign Up</h1>
   <form>
+    
+    <div class="grid-container">
+      <div>
     <label for="username">Username:</label><br>
     <input id="username" type="text" name="username"><br><br>
-    <label for="email">Email:</label><br>
-    <input id="email" type="text" name="email"><br><br>
-    <label for="password">Password:</label><br>
-    <input id="password" type="password" name="password"><br><br>
-    <label for="confirm_password">Confirm Password:</label><br>
-    <input id="confirm_password" type="password" name="confirm_password"><br><br>
-    <input type="submit" value="Submit" onclick="signUp(event)"><br><br>
+  </div>
+      <div>
+        <label for="email">Email:</label><br>
+        <input id="email" type="text" name="email"><br><br>
+      </div>
+      <div>
+        <label for="password">Password:</label><br>
+        <input id="password" type="password" name="password"><br><br>
+      </div>
+      <div>
+        <label for="confirm_password">Confirm Password:</label><br>
+        <input id="confirm_password" type="password" name="confirm_password"><br><br>
+      </div>
+    </div>
+    
+    <input class="btn-primary"  type="submit" value="Submit" onclick="signUp(event)"><br><br>
   </form>
+  
   <p>Already have an account? <a href="login.html">Login</a></p>
-  <footer style="position: fixed; bottom: 0; width: 100%; text-align: center;">
-    <div>Created by TNTMusicStudios - tntmusicstudios2018@gmail.com</div>
+  </div>
+  <footer>
+    <p>
+      Copyright &copy; 2023, All Rights Reserved <a href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
+    </p>
   </footer>
   <script src="../common/functions.js"></script>
   <script>

@@ -1,20 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <link rel="stylesheet" href="../css/login.css">
+  <link rel="stylesheet" href="../css/formcard.css">
+  <link rel="stylesheet" href="../css/footer.css">
   <title>Rock Buddy (alpha test)</title>
 </head>
 <body>
+  <div class="card">
   <h1>Login</h1>
   <form>
     <label for="username_or_email">Username or Email:</label><br>
     <input id="username_or_email" type="text" name="username_or_email"><br><br>
     <label for="password">Password:</label><br>
     <input id="password" type="password" name="password"><br><br>
-    <input type="submit" value="Submit" onclick="login(event)"><br><br>
+    <input class="btn-primary" type="submit" value="Submit" onclick="login(event)"><br><br>
   </form>
   <p>Don't have an account? <a href="sign_up.html">Sign Up</a></p>
-  <footer style="position: fixed; bottom: 0; width: 100%; text-align: center;">
-    <div>Created by TNTMusicStudios - tntmusicstudios2018@gmail.com</div>
+  </div>
+  <footer>
+    <p>
+      Copyright &copy; 2023, All Rights Reserved <a href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
+    </p>
   </footer>
   <script src="../common/functions.js"></script>
   <script>
