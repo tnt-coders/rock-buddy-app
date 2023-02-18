@@ -44,6 +44,10 @@
           <div><strong>Title:</strong> <span id="title"></span></div>
           <div><strong>Year:</strong> <span id="year"></span></div>
         </div>
+        <div>
+          <div><strong>Version:</strong> <span id="version"></span></div>
+          <div><strong>Author:</strong> <span id="author"></span></div>
+        </div>
       </div>
       <br>
       <div style="display: flex; flex-direction: row; gap: 5px;">
@@ -393,6 +397,8 @@
       document.getElementById('title').innerText = rocksnifferData['songDetails']['songName'];
       document.getElementById('album').innerText = rocksnifferData['songDetails']['albumName'];
       document.getElementById('year').innerText = rocksnifferData['songDetails']['albumYear'];
+      document.getElementById('version').innerText = rocksnifferData['songDetails']['toolkit']['version'];
+      document.getElementById('author').innerText = rocksnifferData['songDetails']['toolkit']['author'];
       document.getElementById('leaderboard_header').style.display = 'block';
 
       const leaderboardData = document.getElementById('leaderboard_data');
