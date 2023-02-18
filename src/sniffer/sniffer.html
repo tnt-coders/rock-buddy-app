@@ -304,7 +304,7 @@
         const saDataExists = rocksmithData['SongsSA'].hasOwnProperty(hash);
         if (lasDataExists) {
           arrangementData['mastery'] = rocksmithData['Stats']['Songs'][hash]['MasteryPeak'];
-          arrangementData['accuracy'] = rocksmithData['Stats']['Songs'][hash]['AccuracyGlobal'];
+          arrangementData['last_accuracy'] = rocksmithData['Stats']['Songs'][hash]['AccuracyGlobal'];
           arrangementData['streak'] = rocksmithData['Stats']['Songs'][hash]['Streak'];
           arrangementData['las_last_played'] = rocksmithData['Stats']['Songs'][hash]['DateLAS'];
           arrangementData['las_play_count'] = rocksmithData['Stats']['Songs'][hash]['PlayedCount'];
@@ -418,7 +418,7 @@
         // Create header row
         const headerRow = document.createElement('tr');
 
-        const headers = ['Username', 'Last Played', 'Play Count', 'Streak', 'Mastery', 'Accuracy'];
+        const headers = ['Username', 'Last Played', 'Play Count', 'Streak', 'Last Accuracy', 'Mastery'];
         headers.forEach((header) => {
           const headerCell = document.createElement('th');
           headerCell.style.fontFamily = "Roboto Mono, monospace";
@@ -429,7 +429,7 @@
         table.appendChild(headerRow);
 
         // Create data rows
-        const columns = ['username', 'last_played', 'play_count', 'streak', 'mastery', 'accuracy'];
+        const columns = ['username', 'last_played', 'play_count', 'streak', 'last_accuracy', 'mastery'];
         const columnsAlign = ['left', 'left', 'right', 'right', 'right', 'right'];
         scoresLAS.forEach((row) => {
           const dataRow = document.createElement('tr');
@@ -439,7 +439,7 @@
           columns.forEach((column) => {
             const dataCell = document.createElement('td');
             dataCell.style.fontFamily = "Roboto Mono, monospace";
-            if (column === 'mastery' || column === 'accuracy') {
+            if (column === 'mastery' || column === 'last_accuracy') {
               const percentage = (row[column] * 100).toFixed(2) + '%';
               dataCell.appendChild(document.createTextNode(percentage));
             }
