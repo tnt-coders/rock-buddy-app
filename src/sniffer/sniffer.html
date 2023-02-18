@@ -128,6 +128,12 @@
           document.getElementById('snort').disabled = false;
         }
 
+        // If user data file is updated, trigger a snort
+        const steamUserDataPath = sessionStorage.getItem('steam_user_data_path');
+        const steamProfile = sessionStorage.getItem('steam_profile');
+        const rocksmithProfile = sessionStorage.getItem('rocksmith_profile');
+        const newData = await api.checkForNewRocksmithProfileData(steamUserDataPath, steamProfile, rocksmithProfile);
+
         // If we are switching songs, don't keep syncing
         if (rocksnifferData['songDetails']['songID'] !== currentSong) {
           currentSong = rocksnifferData['songDetails']['songID'];
@@ -138,7 +144,7 @@
         }
 
         // If we have not switched songs for 10 seconds perform a sync and display the data
-        else if (startup == true || snort === true || (pollTime >= snortRate && sync === true)) {
+        else if (startup === true || newData === true || snort === true || (pollTime >= snortRate && sync === true)) {
           startup = false; // We have started now so set to false
           sync = false; // Don't keep syncing indefinitely
           snort = false; // Don't keep snorting indefinitely
