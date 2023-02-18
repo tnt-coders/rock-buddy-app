@@ -15,9 +15,22 @@ function back() {
     window.location.href = previousPage;
     return;
   }
-} 
+}
+
+async function getVersion() {
+  let version = sessionStorage.getItem('version');
+  if (version === null) {
+    version = await api.getVersion();
+    sessionStorage.setItem('version', version);
+  }
+
+  return version;
+}
 
 async function post(url, data) {
+  // Add version number to the data
+  data['version'] = await getVersion();
+
   try {
     const response = await fetch(url, {
       method: 'POST',

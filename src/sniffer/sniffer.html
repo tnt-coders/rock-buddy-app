@@ -297,8 +297,8 @@
         const lasDataExists = rocksmithData['Stats']['Songs'].hasOwnProperty(hash);
         const saDataExists = rocksmithData['SongsSA'].hasOwnProperty(hash);
         if (lasDataExists) {
-          arrangementData['accuracy'] = rocksmithData['Stats']['Songs'][hash]['AccuracyGlobal'];
           arrangementData['mastery'] = rocksmithData['Stats']['Songs'][hash]['MasteryPeak'];
+          arrangementData['accuracy'] = rocksmithData['Stats']['Songs'][hash]['AccuracyGlobal'];
           arrangementData['streak'] = rocksmithData['Stats']['Songs'][hash]['Streak'];
           arrangementData['las_last_played'] = rocksmithData['Stats']['Songs'][hash]['DateLAS'];
           arrangementData['las_play_count'] = rocksmithData['Stats']['Songs'][hash]['PlayedCount'];
