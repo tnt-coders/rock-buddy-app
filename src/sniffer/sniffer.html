@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
   <link rel="stylesheet" href="../css/footer.css">
+  <link rel="stylesheet" href="../css/sniffer.css">
+  <link rel="stylesheet" href="../css/sniffercard.css">
   <title>Rock Buddy (alpha test)</title>
 </head>
 <body>
@@ -18,7 +20,7 @@
         Sniffing...
       </div>
       <div style="display: inline-block;">
-        <button id="snort" title="Force an immediate refresh of the data." onclick="snortData()">Snort</button>
+        <button class="btn-primary" id="snort" title="Force an immediate refresh of the data." onclick="snortData()">Snort 👃</button>
       </div>
     </div>
   </div>
@@ -37,7 +39,7 @@
     <div id="leaderboard_header" style="display: none;">
       <div style="display: flex; flex-direction: row; gap: 10px;">
         <div>
-          <img id="album_art" width="75" height="75">
+          <img class="coveralbum" id="album_art" width="75" height="75">
         </div>
         <div>
           <div><strong>Artist:</strong> <span id="artist"></span></div>
@@ -52,13 +54,13 @@
       </div>
       <br>
       <div style="display: flex; flex-direction: row; gap: 5px;">
-        <label for="game_mode">Game Mode:</label>
+        <label style="margin-top: 10px;" for="game_mode">Game Mode:</label>
         <select id="game_mode" style="margin-right: 10px;">
           <option value="las" selected>Learn A Song</option>
           <option value="sa">Score Attack</option>
         </select>
 
-        <label for="path">Path:</label>
+        <label style="margin-top: 10px;" for="path">Path:</label>
         <select id="path" style="margin-right: 10px;">
         </select>
 
