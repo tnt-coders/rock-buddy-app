@@ -109,6 +109,8 @@
 
     // Store data globally so we can react to combo box changes quickly
     let rocksnifferData = null;
+    let previousRocksnifferData = null;
+    let previousSongData = null;
 
     async function refresh() {
       pollTime += pollRate;
@@ -139,16 +141,24 @@
         const newData = await api.checkForNewRocksmithProfileData(steamUserDataPath, steamProfile, rocksmithProfile);
 
         // If we are switching songs, don't keep syncing
+        let previousSong = false;
         if (rocksnifferData['songDetails']['songID'] !== currentSong) {
-          currentSong = rocksnifferData['songDetails']['songID'];
           sync = true;
           pollTime = 0;
           lastSnort = snortRate; // Allow user to snort immediately
           snorted = false;
+
+          // If new data is detected right as a song is switching, snort the previous song data
+          if (newData && previousSongData !== null) {
+            previousSong = true;
+          }
+          else {
+            currentSong = rocksnifferData['songDetails']['songID'];
+          }
         }
 
         // If we have not switched songs for 10 seconds perform a sync and display the data
-        else if (startup === true || newData === true || snort === true || (pollTime >= snortRate && sync === true)) {
+        if (startup === true || newData === true || snort === true || (pollTime >= snortRate && sync === true)) {
           startup = false; // We have started now so set to false
           sync = false; // Don't keep syncing indefinitely
           snort = false; // Don't keep snorting indefinitely
@@ -157,9 +167,11 @@
 
           $('div.status').html('Snorting data...');
           snorted = true;
-          await syncData();
-          await displayData();
+          await syncData(previousSong);
+          await displayData(previousSong);
         }
+
+        previousRocksnifferData = rocksnifferData;
 
         $('div.status').html('Sniffing...');
       }
@@ -277,17 +289,26 @@
       return response;
     }
 
-    async function syncData() {
+    async function syncData(previousSong=false) {
+      let snifferData = null;
+      if (previousSong) {
+        snifferData = previousRocksnifferData;
+      }
+      else {
+        snifferData = rocksnifferData;
+      }
+
       const rocksmithData = await getRocksmithProfileData();
+
       let songData = {};
       
       // Get basic song metadata
-      songData['song_key'] = rocksnifferData['songDetails']['songID'];
-      songData['psarc_hash'] = rocksnifferData['songDetails']['psarcFileHash'];
-      songData['title'] = rocksnifferData['songDetails']['songName'];
-      songData['artist'] = rocksnifferData['songDetails']['artistName'];
-      songData['album'] = rocksnifferData['songDetails']['albumName'];
-      songData['year'] = rocksnifferData['songDetails']['albumYear'];
+      songData['song_key'] = snifferData['songDetails']['songID'];
+      songData['psarc_hash'] = snifferData['songDetails']['psarcFileHash'];
+      songData['title'] = snifferData['songDetails']['songName'];
+      songData['artist'] = snifferData['songDetails']['artistName'];
+      songData['album'] = snifferData['songDetails']['albumName'];
+      songData['year'] = snifferData['songDetails']['albumYear'];
 
       // Loop through each arrangement
       songData['arrangements'] = {};
@@ -296,7 +317,7 @@
       const availablePaths = getAvailablePaths();
 
       let index = 0;
-      rocksnifferData['songDetails']['arrangements'].forEach((arrangement) => {
+      snifferData['songDetails']['arrangements'].forEach((arrangement) => {
         const hash = arrangement['arrangementID'];
 
         let arrangementData = {};
@@ -363,16 +384,18 @@
       });
 
       await syncWithServer(songData);
+
+      previousSongData = songData;
     }
 
-    async function getScoresLAS() {
+    async function getScoresLAS(snifferData) {
       const authData = JSON.parse(sessionStorage.getItem('auth_data'));
 
       const host = await api.getHost();
       const response = await post(host + '/api/data/get_scores_las.php', {
         auth_data: authData,
-        song_key: rocksnifferData['songDetails']['songID'],
-        psarc_hash: rocksnifferData['songDetails']['psarcFileHash'],
+        song_key: snifferData['songDetails']['songID'],
+        psarc_hash: snifferData['songDetails']['psarcFileHash'],
         arrangement: selectedPath
       });
 
@@ -384,7 +407,15 @@
       return response;
     }
 
-    async function displayData() {
+    async function displayData(previousSong=false) {
+      let snifferData = null;
+      if (previousSong) {
+        snifferData = previousRocksnifferData;
+      }
+      else {
+        snifferData = rocksnifferData;
+      }
+
       // If snorting has not happened for the current song yet force a snort
       // after the snort displayData will be called again by the refresh
       if (!snorted) {
@@ -392,18 +423,18 @@
         return;
       }
 
-      document.getElementById('album_art').src = 'data:image/jpeg;base64,' + rocksnifferData['songDetails']['albumArt'];
-      document.getElementById('artist').innerText = rocksnifferData['songDetails']['artistName'];
-      document.getElementById('title').innerText = rocksnifferData['songDetails']['songName'];
-      document.getElementById('album').innerText = rocksnifferData['songDetails']['albumName'];
-      document.getElementById('year').innerText = rocksnifferData['songDetails']['albumYear'];
-      document.getElementById('version').innerText = rocksnifferData['songDetails']['toolkit']['version'];
-      document.getElementById('author').innerText = rocksnifferData['songDetails']['toolkit']['author'];
+      document.getElementById('album_art').src = 'data:image/jpeg;base64,' + snifferData['songDetails']['albumArt'];
+      document.getElementById('artist').innerText = snifferData['songDetails']['artistName'];
+      document.getElementById('title').innerText = snifferData['songDetails']['songName'];
+      document.getElementById('album').innerText = snifferData['songDetails']['albumName'];
+      document.getElementById('year').innerText = snifferData['songDetails']['albumYear'];
+      document.getElementById('version').innerText = snifferData['songDetails']['toolkit']['version'];
+      document.getElementById('author').innerText = snifferData['songDetails']['toolkit']['author'];
       document.getElementById('leaderboard_header').style.display = 'block';
 
       const leaderboardData = document.getElementById('leaderboard_data');
       if (selectedGameMode === 'las') {        
-        const scoresLAS = await getScoresLAS();
+        const scoresLAS = await getScoresLAS(snifferData);
         if (scoresLAS === null) {
           // An error has occurred
           return;
