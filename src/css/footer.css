@@ -36,3 +36,19 @@ body {
 
 body p,h2,h1,h3 { color:white;}
 body a { color:#3c97bf;}
+
+.team-mem{
+  opacity: 0.6;
+
+}
+
+
+
+footer .copyright {
+  float: center;
+}
+
+footer .team-mem {
+  float: right;
+  margin-top: -20px;
+}

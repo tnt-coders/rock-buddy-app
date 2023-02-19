@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="../css/activation.css">
+  <link rel="stylesheet" href="../css/footer.css">
+  <link rel="stylesheet" href="../css/team.css">
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js"></script>
+  <title>Rock Buddy (alpha test) Team Members</title>
+</head>
+<body>
+    <div class="card">
+      <h1>Team Members</h1> 
+<center>
+  <ul class="list-team-members">
+    <li>
+       <a target="_blank" href="https://www.twitch.tv/tntmusicstudios">
+         <img src="./../../images/TNT.png" />
+         <span class="member-title">TNTMusicStudios</span>
+         <span class="member-title-hover">Founder/ Lead Developer</span>
+      </a>
+    </li>
+    <li>
+      <a target="_blank" href="https://www.twitch.tv/recontastic">
+        <img src="./../../images/recon.png" />
+         <span class="member-title">Recontastic</span>
+         <span class="member-title-hover">UI Designer/ Rubber Ducky</span>
+      </a>
+    </li>
+    
+  </ul> <a href="#" onclick="history.back()">Go back</a>
+  </center>
+    </div>
+  <footer>
+    <p>
+      Copyright &copy; 2023, All Rights Reserved <a href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
+    </p>
+  </footer>
+  <script src="../common/functions.js"></script>
+  <script>
+    VanillaTilt.init(document.querySelectorAll(".card"), {
+  max: 5,
+  speed: 1000,
+  transition: true,
+})
+    </script>
+
+<script>
+  VanillaTilt.init(document.querySelectorAll(".buddycard"), {
+max: 15,
+speed: 1000,
+transition: true,
+})
+  </script>
+</body>
+</html>
