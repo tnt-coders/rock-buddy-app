@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <link rel="stylesheet" href="../css/login.css">
+  <link rel="stylesheet" href="../css/footer.css">
+  <link rel="stylesheet" href="../css/formcard.css">
   <title>Rock Buddy (alpha test)</title>
 </head>
 <body>
+  <div class="card">
   <h1>Change Username</h1>
   <form>
     <label for="new_username">New Username:</label><br>
@@ -11,9 +15,10 @@
     <label for="password">Password:</label><br>
     <input id="password" type="password" name="password">
     <p style="color: red;">Warning: You can only change your username once every 30 days.</p>
-    <input type="submit" value="Submit" onclick="changeUsername(event)"><br><br>
+    <input class="btn-primary" type="submit" value="Submit" onclick="changeUsername(event)"><br><br>
   </form>
   <a href="#" onclick="back()">Cancel</a>
+  </div>
   <footer>
     <p>
       <div class="copyright">
