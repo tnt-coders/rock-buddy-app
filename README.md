@@ -10,8 +10,7 @@
 
   <h3 align="center">Rock Buddy App</h3>
 
-  <p align="center">
-    An awesome README template to jumpstart your projects!
+  <p align="center">Are you ready to get to the top of the leaderboard?
     <br />
     <a href="https://github.com/tnt-coders/rock-buddy-app/releases">Download</a>
     ·
