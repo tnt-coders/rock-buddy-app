@@ -62,3 +62,13 @@ table {
 	gap: 16px;
   }
   
+    
+#streamer-color{
+	display:none;
+
+}
+
+#streamer-color-name{
+	display:none;
+
+}

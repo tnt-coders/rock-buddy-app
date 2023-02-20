@@ -16,6 +16,9 @@
       <option value="dark">Dark theme</option>
       <option value="streamer">streamer theme</option>
     </select>
+    <label id="streamer-color-name"  for="streamer-color">Background Color:</label>
+<input type="color" id="streamer-color" name="streamer-color" onchange="setStreamerColor()">
+
     
     <a href="../config/config.html" style="float: right;">Config</a>
     
@@ -212,27 +215,57 @@
 
     main();
   </script>
-  <script>
-    function setTheme() {
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const theme = localStorage.getItem("theme");
+    if (theme) {
       const themeSelect = document.getElementById("theme-select");
-      const theme = themeSelect.value;
-
+      themeSelect.value = theme;
+  
       const themeLink = document.getElementById("theme");
       themeLink.href = `../css/${theme}-theme.css`;
-
-      localStorage.setItem("theme", theme);
     }
+  
+    if (theme === "streamer") {
+      const streamerColor = localStorage.getItem("streamer-color");
+      if (streamerColor) {
+        const streamerColorInput = document.getElementById("streamer-color");
+        streamerColorInput.value = streamerColor;
+        setStreamerColor();
+      }
+    }
+  });
+  
+  function setTheme() {
+  const themeSelect = document.getElementById("theme-select");
+  const theme = themeSelect.value;
+  const themeLink = document.getElementById("theme");
 
-document.addEventListener("DOMContentLoaded", function() {
-  const theme = localStorage.getItem("theme");
-  if (theme) {
-    const themeSelect = document.getElementById("theme-select");
-    themeSelect.value = theme;
-
-    const themeLink = document.getElementById("theme");
-    themeLink.href = `../css/${theme}-theme.css`;
+  if (theme === "streamer") {
+    const streamerColorInput = document.getElementById("streamer-color");
+    const streamerColor = streamerColorInput.value;
+    document.body.style.background = streamerColor;
+    localStorage.setItem("streamer-color", streamerColor);
+  } else {
+    document.body.style.background = null;
+    localStorage.removeItem("streamer-color");
   }
-});
 
-    </script>
+  themeLink.href = `../css/${theme}-theme.css`;
+  localStorage.setItem("theme", theme);
+}
+
+  
+  function setStreamerColor() {
+    const theme = localStorage.getItem("theme");
+    if (theme === "streamer") {
+      const streamerColorInput = document.getElementById("streamer-color");
+      const streamerColor = streamerColorInput.value;
+  
+      document.body.style.background = streamerColor;
+  
+      localStorage.setItem("streamer-color", streamerColor);
+    }
+  }
+  </script>
 </body>

@@ -52,29 +52,62 @@
     'use strict';
     sessionUpdate();
   </script>
-  <script>
-  function setTheme() {
-    const themeSelect = document.getElementById("theme-select");
-    const theme = themeSelect.value;
-
-    const themeLink = document.getElementById("theme");
-    themeLink.href = `../css/${theme}-theme.css`;
-
-    localStorage.setItem("theme", theme);
-  }
-
+<script>
   document.addEventListener("DOMContentLoaded", function() {
     const theme = localStorage.getItem("theme");
     if (theme) {
       const themeSelect = document.getElementById("theme-select");
       themeSelect.value = theme;
-
+  
       const themeLink = document.getElementById("theme");
       themeLink.href = `../css/${theme}-theme.css`;
     }
+  
+    if (theme === "streamer") {
+      const streamerColor = localStorage.getItem("streamer-color");
+      if (streamerColor) {
+        const streamerColorInput = document.getElementById("streamer-color");
+        streamerColorInput.value = streamerColor;
+        setStreamerColor();
+      }
+    }
   });
-</script>
+  
+  function setTheme() {
+  const themeSelect = document.getElementById("theme-select");
+  const theme = themeSelect.value;
+  const themeLink = document.getElementById("theme");
 
+  if (theme === "streamer") {
+    const streamerColorInput = document.getElementById("streamer-color");
+    const streamerColor = streamerColorInput.value;
+    document.body.style.background = streamerColor;
+    localStorage.setItem("streamer-color", streamerColor);
+  } else {
+    document.body.style.background = null;
+    localStorage.removeItem("streamer-color");
+  }
+
+  themeLink.href = `../css/${theme}-theme.css`;
+  localStorage.setItem("theme", theme);
+}
+
+  
+  function setStreamerColor() {
+    const theme = localStorage.getItem("theme");
+    if (theme === "streamer") {
+      const streamerColorInput = document.getElementById("streamer-color");
+      const streamerColor = streamerColorInput.value;
+  
+      document.body.style.background = streamerColor;
+  
+      localStorage.setItem("streamer-color", streamerColor);
+    }
+  }
+  </script>
+
+<label style="display: none;"  id="streamer-color-name"  for="streamer-color">Streamer Color:</label>
+<input style="display: none;"  type="color" id="streamer-color" name="streamer-color" onchange="setStreamerColor()">
 <select style="display: none;" id="theme-select" onchange="setTheme()">
   <option value="light">Light theme</option>
   <option value="dark">Dark theme</option>
