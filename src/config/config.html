@@ -13,23 +13,23 @@
     <a href="../sniffer/sniffer.html">Sniffer</a> |
     <a href="../search/search.html">Search</a> |
     <a href="../account/account.html">Account</a>
-
-    <label id="streamer-color-name" for="streamer-color">Background Color:</label>
-    <input type="color" id="streamer-color" name="streamer-color" onchange="setStreamerColor()">
-
-    <label id="streamer-text-color-name" for="streamer-text-color">Text Color:</label>
-    <input class="colortext" type="color" id="streamer-text-color" name="streamer-text-color"
-      onchange="setStreamerTextColor()">
     <a href="../config/config.html" style="float: right;">Config</a>
 
   </div>
 
   <div style="display: flex; flex-direction: row; align-items: center; width: 100%;">
     <h2 style="display: inline;">Config</h2>
+    <label style="margin-left: auto;" id="streamer-color-name" for="streamer-color">Background Color:</label>
+    <input type="color" id="streamer-color" name="streamer-color" onchange="setStreamerColor()">
+
+    <label id="streamer-text-color-name" for="streamer-text-color">Text Color:</label>
+    <input class="colortext" type="color" id="streamer-text-color" name="streamer-text-color"
+      onchange="setStreamerTextColor()">
     <select id="theme-select" style="display: inline; margin-left: auto;" onchange="setTheme()">
       <option value="light">Light theme</option>
       <option value="dark">Dark theme</option>
-      <option value="streamer">Streamer theme</option>
+      <option value="classic">Retro theme</option>
+      <!-- <option value="streamer">Streamer theme</option> -->
     </select>
   </div>
 
