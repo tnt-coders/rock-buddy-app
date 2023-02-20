@@ -1,0 +1,70 @@
+@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
+/*  footer   */
+footer {
+  background-color: #222;
+  color: #fff;
+  font-size: 14px;
+  bottom: 0;
+  position: fixed;
+  left: 0;
+  right: 0;
+  text-align: center;
+  z-index: 999;
+}
+
+footer p {
+  margin: 10px 0;
+  font-family: sans-serif;
+}
+
+footer a {
+  color: #3c97bf;
+  text-decoration: none;
+  margin-right: 5px;
+}
+
+.team-mem {
+  opacity: 0.6;
+
+}
+
+footer .copyright {
+  float: center;
+}
+
+footer .team-mem {
+  float: right;
+  margin-top: -20px;
+}
+
+/*  Easter Egg CSS   */
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.modal img {
+  display: block;
+  margin: 0 auto;
+  max-width: 80%;
+  max-height: 80%;
+}
+
+.close {
+  color: #fff;
+  position: absolute;
+  top: 10px;
+  right: 25px;
+  font-size: 35px;
+  font-weight: bold;
+  cursor: pointer;
+}

@@ -60,7 +60,7 @@ function readRocksmithData(dataFile) {
     const text = unzipped.toString('utf8').slice(0, -1);
 
     return JSON.parse(text);
-  } catch(error) {
+  } catch (error) {
     console.error(error);
     return null;
   }
@@ -84,13 +84,13 @@ function getSteamProfiles(steamUserDataPath) {
           } else {
             throw new Error(`\nInvalid format for config file '${config_file}'\n`);
           }
-        } catch(error) {
+        } catch (error) {
           console.error(error)
         }
       }
     });
     return profiles;
-  } catch(error) {
+  } catch (error) {
     console.error(error);
     return {};
   }
@@ -217,7 +217,7 @@ function createWindow() {
 
     return result.filePaths[0];
   });
-  
+
   ipcMain.handle('path-join', async (event, ...args) => {
     return path.join(...args);
   });
@@ -226,7 +226,7 @@ function createWindow() {
   ipcMain.handle('read-file', (event, file) => {
     try {
       return fs.readFileSync(file, 'utf-8');
-    } catch(error) {
+    } catch (error) {
       console.error(error);
       return null;
     }

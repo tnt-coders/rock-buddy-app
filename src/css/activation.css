@@ -1,0 +1,25 @@
+.card {
+  background-color: #222;
+  color: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  width: 80%;
+  margin: 0 auto;
+  text-align: center;
+  box-shadow: 0 30px 60px 0 rgba(0, 0, 0, 0.4);
+
+}
+
+.buddycard img {
+  width: 250px;
+}
+
+.card a {
+  color: #3c97bf;
+}
+
+html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}

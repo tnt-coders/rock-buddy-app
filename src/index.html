@@ -1,21 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+  <link rel="stylesheet" href="./css/activation.css">
+  <link rel="stylesheet" href="./css/footer.css">
   <title>Rock Buddy (alpha test)</title>
+  <style>
+    body {
+      color: white;
+      font-family: 'Open Sans', sans-serif;
+      background: #18181b;
+    }
+  </style>
 </head>
+
 <body>
-  <p>Loading...</p>
-  <footer style="position: fixed; bottom: 0; width: 100%; text-align: center;">
-    <div>Created by TNTMusicStudios - tntmusicstudios2018@gmail.com</div>
+  <h1>Loading...</h1>
+  <div class="buddycard">
+    <center><img src="./../images/buddy.png" alt="rockbuddy" class="rockbuddy"></center>
+  </div>
+  <footer>
+    <p>
+    <div class="copyright">
+      Copyright &copy; 2023, All Rights Reserved <a class="tntrocks"
+        href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
+    </div>
+    <div class="team-mem">
+      <a href="./../team.html">team</a>
+    </div>
+    </p>
+    <div id="modal" class="modal">
+      <span class="close">&times;</span>
+      <center>
+        <h3>You Found Boulder Bro Rock Buddys Big Brother!</h3>
+      </center>
+      <img src="./../images/boulderbuddy.png" alt="you found him!">
+    </div>
+    <script>
+      const pressed = [];
+      const secretCode = 'ArrowUpArrowUpArrowDownArrowDownArrowLeftArrowRightArrowLeftArrowRightba';
+      const modal = document.getElementById('modal');
+      const closeBtn = document.querySelector('.close');
+
+      window.addEventListener('keyup', (e) => {
+        pressed.push(e.key);
+        pressed.splice(-secretCode.length - 1, pressed.length - secretCode.length);
+        if (pressed.join('').includes(secretCode)) {
+          modal.style.display = 'block';
+        }
+      });
+
+      closeBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+    </script>
   </footer>
   <script src="common/functions.js"></script>
   <script>
     'use strict';
     sessionUpdate();
-    
+
     async function main() {
       const auth = await checkAuthentication()
-      if(!auth) {
+      if (!auth) {
         // Authentication failed - navigate to login
         window.location.href = './auth/login.html';
         return;
@@ -27,7 +74,7 @@
       if (!activated) {
         // Verification failed - redirect to account activation
         window.location.href = './account/activation.html'
-        return; 
+        return;
       }
 
       // Authentication successful - proceed
@@ -38,4 +85,5 @@
     main();
   </script>
 </body>
+
 </html>

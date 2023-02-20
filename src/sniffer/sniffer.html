@@ -1,23 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+  <link rel="stylesheet" href="../css/footer.css">
+  <link rel="stylesheet" href="../css/sniffer.css">
+  <link rel="stylesheet" href="../css/dark-theme.css" id="theme">
   <title>Rock Buddy (alpha test)</title>
 </head>
+
 <body>
-  <div>
+  <div class="navtop">
     <a href="../sniffer/sniffer.html">Sniffer</a> |
     <a href="../search/search.html">Search</a> |
     <a href="../account/account.html">Account</a>
     <a href="../config/config.html" style="float: right;">Config</a>
   </div>
-  <div style="display: flex; flex-direction: row; align-items: baseline; width: 100%;">
+  <div style="display: flex; flex-direction: row; align-items: center; width: 100%;">
     <h1>Leaderboard Sniffer</h1>
     <div class="ready" style="margin-left: auto; display: none;">
       <div class="status" style="display: inline-block;">
         Sniffing...
       </div>
       <div style="display: inline-block;">
-        <button id="snort" title="Force an immediate refresh of the data." onclick="snortData()">Snort</button>
+        <button id="snort" title="Force an immediate refresh of the data." onclick="snortData()">Snort </button>
       </div>
     </div>
   </div>
@@ -36,7 +41,7 @@
     <div id="leaderboard_header" style="display: none;">
       <div style="display: flex; flex-direction: row; gap: 10px;">
         <div>
-          <img id="album_art" width="75" height="75">
+          <img class="coveralbum" id="album_art" width="75" height="75">
         </div>
         <div>
           <div><strong>Artist:</strong> <span id="artist"></span></div>
@@ -51,13 +56,13 @@
       </div>
       <br>
       <div style="display: flex; flex-direction: row; gap: 5px;">
-        <label for="game_mode">Game Mode:</label>
+        <label style="margin-top: 10px;" for="game_mode">Game Mode:</label>
         <select id="game_mode" style="margin-right: 10px;">
           <option value="las" selected>Learn A Song</option>
           <option value="sa">Score Attack</option>
         </select>
 
-        <label for="path">Path:</label>
+        <label style="margin-top: 10px;" for="path">Path:</label>
         <select id="path" style="margin-right: 10px;">
         </select>
 
@@ -75,8 +80,41 @@
       <p>And this is where I would put my score... <em>IF I HAD ONE!</em></p>
     </div>
   </div>
-  <footer style="position: fixed; bottom: 0; width: 100%; text-align: center;">
-    <div>Created by TNTMusicStudios - tntmusicstudios2018@gmail.com</div>
+  <div id="modal" class="modal">
+    <span class="close">&times;</span>
+    <center>
+      <h3>You Found Boulder Bro Rock Buddys Big Brother!</h3>
+    </center>
+    <img src="./../../images/boulderbuddy.png" alt="you found him!">
+  </div>
+  <script>
+    const pressed = [];
+    const secretCode = 'ArrowUpArrowUpArrowDownArrowDownArrowLeftArrowRightArrowLeftArrowRightba';
+    const modal = document.getElementById('modal');
+    const closeBtn = document.querySelector('.close');
+
+    window.addEventListener('keyup', (e) => {
+      pressed.push(e.key);
+      pressed.splice(-secretCode.length - 1, pressed.length - secretCode.length);
+      if (pressed.join('').includes(secretCode)) {
+        modal.style.display = 'block';
+      }
+    });
+
+    closeBtn.addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+  </script>
+  <footer>
+    <p>
+    <div class="copyright">
+      Copyright &copy; 2023, All Rights Reserved <a class="tntrocks"
+        href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
+    </div>
+    <div class="team-mem">
+      <a href="./../team.html">team</a>
+    </div>
+    </p>
   </footer>
   <script src="../common/functions.js"></script>
   <script src="../../node_modules/jquery/dist/jquery.min.js"></script>
@@ -289,7 +327,7 @@
       return response;
     }
 
-    async function syncData(previousSong=false) {
+    async function syncData(previousSong = false) {
       let snifferData = null;
       if (previousSong) {
         snifferData = previousRocksnifferData;
@@ -301,7 +339,7 @@
       const rocksmithData = await getRocksmithProfileData();
 
       let songData = {};
-      
+
       // Get basic song metadata
       songData['song_key'] = snifferData['songDetails']['songID'];
       songData['psarc_hash'] = snifferData['songDetails']['psarcFileHash'];
@@ -337,7 +375,7 @@
         if (saDataExists) {
           arrangementData['scores'] = {};
           arrangementData['badges'] = {};
-          
+
           // Scores
           // Keep easy and medium commented out in case we want to add them later
           //arrangementData['scores']['easy'] = rocksmithData['SongsSA'][hash]['HighScores']['Easy'];
@@ -358,7 +396,7 @@
 
         songData['arrangements'][hash] = arrangementData;
       });
-      
+
       // Sort the available paths
       availablePaths.sort((a, b) => a['sort'].localeCompare(b['sort']));
       const availablePathNames = availablePaths.map(obj => obj['name']);
@@ -407,7 +445,7 @@
       return response;
     }
 
-    async function displayData(previousSong=false) {
+    async function displayData(previousSong = false) {
       let snifferData = null;
       if (previousSong) {
         snifferData = previousRocksnifferData;
@@ -433,7 +471,7 @@
       document.getElementById('leaderboard_header').style.display = 'block';
 
       const leaderboardData = document.getElementById('leaderboard_data');
-      if (selectedGameMode === 'las') {        
+      if (selectedGameMode === 'las') {
         const scoresLAS = await getScoresLAS(snifferData);
         if (scoresLAS === null) {
           // An error has occurred
@@ -527,7 +565,7 @@
 
       //JSON query the addon service
       try {
-        const response = await $.get("http://"+rocksnifferHost+":"+rocksnifferPort);
+        const response = await $.get("http://" + rocksnifferHost + ":" + rocksnifferPort);
         showClass('connected');
 
         let randomNumber = Math.floor(Math.random() * 69) + 1;
@@ -641,7 +679,7 @@
         // Update the display (keep things feeling responsive)
         await displayData();
       });
-      
+
       const pathComboBox = document.querySelector('#path');
       pathComboBox.addEventListener('change', async () => {
         const selectedOption = pathComboBox.options[pathComboBox.selectedIndex];
@@ -650,7 +688,7 @@
         // Update the display (keep things feeling responsive)
         await displayData();
       });
-      
+
       const difficultyComboBox = document.querySelector('#difficulty');
       difficultyComboBox.addEventListener('change', async () => {
         const selectedOption = difficultyComboBox.options[difficultyComboBox.selectedIndex];
@@ -668,5 +706,104 @@
 
     main();
   </script>
+  <script>
+    document.documentElement.style.setProperty('--streamer-color', '#FFF');
+    document.documentElement.style.setProperty('--streamer-text-color', '#e66b07');
+
+    document.addEventListener("DOMContentLoaded", function () {
+      const theme = localStorage.getItem("theme");
+      if (theme) {
+        const themeSelect = document.getElementById("theme-select");
+        themeSelect.value = theme;
+
+        const themeLink = document.getElementById("theme");
+        themeLink.href = `../css/${theme}-theme.css`;
+      }
+
+      if (theme === "streamer") {
+        const streamerColor = localStorage.getItem("streamer-color");
+        if (streamerColor) {
+          const streamerColorInput = document.getElementById("streamer-color");
+          streamerColorInput.value = streamerColor;
+          setStreamerColor();
+        }
+
+        const streamerTextColor = localStorage.getItem("streamer-text-color");
+        if (streamerTextColor) {
+          const streamerTextColorInput = document.getElementById("streamer-text-color");
+          streamerTextColorInput.value = streamerTextColor;
+          setStreamerTextColor();
+        }
+      }
+    });
+
+    function setTheme() {
+      const themeSelect = document.getElementById("theme-select");
+      const theme = themeSelect.value;
+      const themeLink = document.getElementById("theme");
+
+      if (theme === "streamer") {
+        const streamerColorInput = document.getElementById("streamer-color");
+        const streamerColor = streamerColorInput.value;
+        document.body.style.background = streamerColor;
+        localStorage.setItem("streamer-color", streamerColor);
+
+        const streamerTextColorInput = document.getElementById("streamer-text-color");
+        const streamerTextColor = streamerTextColorInput.value;
+        document.body.style.color = streamerTextColor;
+        localStorage.setItem("streamer-text-color", streamerTextColor);
+      } else {
+        document.body.style.background = null;
+        localStorage.removeItem("streamer-color");
+        document.body.style.color = null;
+        localStorage.removeItem("streamer-text-color");
+      }
+
+      themeLink.href = `../css/${theme}-theme.css`;
+      localStorage.setItem("theme", theme);
+    }
+
+    function setStreamerColor() {
+      const theme = localStorage.getItem("theme");
+      if (theme === "streamer") {
+        const streamerColorInput = document.getElementById("streamer-color");
+        const streamerColor = streamerColorInput.value;
+
+        document.body.style.background = streamerColor;
+        document.documentElement.style.setProperty('--streamer-color', streamerColor);
+
+        localStorage.setItem("streamer-color", streamerColor);
+      }
+    }
+
+    function setStreamerTextColor() {
+      const theme = localStorage.getItem("theme");
+      if (theme === "streamer") {
+        const streamerTextColorInput = document.getElementById("streamer-text-color");
+        const streamerTextColor = streamerTextColorInput.value;
+
+        document.body.style.color = streamerTextColor;
+        document.documentElement.style.setProperty('--streamer-text-color', streamerTextColor);
+
+        localStorage.setItem("streamer-text-color", streamerTextColor);
+      }
+    }
+
+  </script>
+
+
+  <select style="display: none;" id="theme-select" onchange="setTheme()">
+    <option value="light">Light theme</option>
+    <option value="dark">Dark theme</option>
+    <option value="streamer">Streamer theme</option>
+  </select>
+
+  <label style="display: none;" id="streamer-color-name" for="streamer-color">Background Color:</label>
+  <input style="display: none;" type="color" id="streamer-color" name="streamer-color" onchange="setStreamerColor()">
+
+  <label style="display: none;" id="streamer-text-color-name" for="streamer-text-color">Text Color:</label>
+  <input style="display: none;" class="colortext" type="color" id="streamer-text-color" name="streamer-text-color"
+    onchange="setStreamerTextColor()">
 </body>
+
 </html>
