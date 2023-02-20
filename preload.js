@@ -8,7 +8,7 @@ contextBridge.exposeInMainWorld('api', {
   getHost: async () => ipcRenderer.invoke('get-host'),
   storeGet: async (key) => ipcRenderer.invoke('store-get', key),
   storeSet: async (key, value) => ipcRenderer.invoke('store-set', key, value),
-  storeDelete: async (key) => ipcRenderer.invoke('delete-auth-data', key),
+  storeDelete: async (key) => ipcRenderer.invoke('store-delete', key),
   getPath: async (defaultPath) => ipcRenderer.invoke('get-path', defaultPath),
   pathJoin: async (...args) => ipcRenderer.invoke('path-join', ...args),
   readFile: async (file) => ipcRenderer.invoke('read-file', file),
