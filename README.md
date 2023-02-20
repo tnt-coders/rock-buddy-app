@@ -4,7 +4,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/othneildrew/Best-README-Template">
+  <a href="https://github.com/tnt-coders/rock-buddy-app/">
     <img src="images/buddy.png" alt="Logo" width="80" height="80">
   </a>
 
