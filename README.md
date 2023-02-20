@@ -1,5 +1,6 @@
 
 
+<a name="readme-top"></a>
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
@@ -83,7 +84,7 @@ TnTMusicStudios - - tntmusicstudios2018@gmail.com
 <!-- TeAM -->
 ## Team
 
-TnTMusicStudios - Founder / Lead Developer
+TnTMusicStudios - Founder / Lead Developer<br /><br />
 Recontastic - UI Design / Rubber Ducky
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
