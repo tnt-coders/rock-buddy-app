@@ -4,6 +4,7 @@
   <link rel="stylesheet" href="../css/login.css">
   <link rel="stylesheet" href="../css/footer.css">
   <link rel="stylesheet" href="../css/formcard.css">
+  <link rel="stylesheet" href="../css/dark-theme.css" id="theme">
   <title>Rock Buddy (alpha test)</title>
 </head>
 <body>
@@ -22,7 +23,7 @@
   <footer>
     <p>
       <div class="copyright">
-        Copyright &copy; 2023, All Rights Reserved <a href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
+        Copyright &copy; 2023, All Rights Reserved <a class="tntrocks" href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
       </div>
       <div class="team-mem">
         <a href="./../account/team.html">team</a>
@@ -76,5 +77,33 @@
       back();
       return;
     }
-  </script>
+  </script> 
+<script>
+  function setTheme() {
+    const themeSelect = document.getElementById("theme-select");
+    const theme = themeSelect.value;
+
+    const themeLink = document.getElementById("theme");
+    themeLink.href = `../css/${theme}-theme.css`;
+
+    localStorage.setItem("theme", theme);
+  }
+
+  document.addEventListener("DOMContentLoaded", function() {
+    const theme = localStorage.getItem("theme");
+    if (theme) {
+      const themeSelect = document.getElementById("theme-select");
+      themeSelect.value = theme;
+
+      const themeLink = document.getElementById("theme");
+      themeLink.href = `../css/${theme}-theme.css`;
+    }
+  });
+</script>
+
+<select style="display: none;" id="theme-select" onchange="setTheme()">
+  <option value="light">Light theme</option>
+  <option value="dark">Dark theme</option>
+  <option value="streamer">streamer theme</option>
+</select>
 </body>

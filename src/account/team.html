@@ -5,6 +5,7 @@
   <link rel="stylesheet" href="../css/footer.css">
   <link rel="stylesheet" href="../css/team.css">
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js"></script>
+  <link rel="stylesheet" href="../css/dark-theme.css" id="theme">
   <title>Rock Buddy (alpha test) Team Members</title>
 </head>
 <body>
@@ -55,7 +56,7 @@
       </script>
   <footer>
     <p>
-      Copyright &copy; 2023, All Rights Reserved <a href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
+      Copyright &copy; 2023, All Rights Reserved <a class="tntrocks" href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
     </p>
   </footer>
   <script src="../common/functions.js"></script>
@@ -73,6 +74,34 @@ max: 15,
 speed: 1000,
 transition: true,
 })
-  </script>
+  </script> 
+<script>
+  function setTheme() {
+    const themeSelect = document.getElementById("theme-select");
+    const theme = themeSelect.value;
+
+    const themeLink = document.getElementById("theme");
+    themeLink.href = `../css/${theme}-theme.css`;
+
+    localStorage.setItem("theme", theme);
+  }
+
+  document.addEventListener("DOMContentLoaded", function() {
+    const theme = localStorage.getItem("theme");
+    if (theme) {
+      const themeSelect = document.getElementById("theme-select");
+      themeSelect.value = theme;
+
+      const themeLink = document.getElementById("theme");
+      themeLink.href = `../css/${theme}-theme.css`;
+    }
+  });
+</script>
+
+<select style="display: none;" id="theme-select" onchange="setTheme()">
+  <option value="light">Light theme</option>
+  <option value="dark">Dark theme</option>
+  <option value="streamer">streamer theme</option>
+</select>
 </body>
 </html>
