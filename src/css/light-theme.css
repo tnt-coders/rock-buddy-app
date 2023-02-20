@@ -1,83 +1,90 @@
 @import url(https://fonts.googleapis.com/css?family=Open+Sans);
 
-  /*  Head nav */
+/*  Head nav */
 
-  .navtop{
-	background-color:#2222225b;
-	border-radius:12px;
-	padding:1%;
-  }
+.navtop {
+  background-color: #2222225b;
+  border-radius: 12px;
+  padding: 1%;
+}
 
 
-  table tr {
-	-webkit-transition: background 0.3s, box-shadow 0.3s;
-	-moz-transition: background 0.3s, box-shadow 0.3s;
-	transition: background 0.3s, box-shadow 0.3s;
-	background: #336ca63f;
+table tr {
+  -webkit-transition: background 0.3s, box-shadow 0.3s;
+  -moz-transition: background 0.3s, box-shadow 0.3s;
+  transition: background 0.3s, box-shadow 0.3s;
+  background: #336ca63f;
 }
 
 table tr:hover {
-	background: rgba(35, 27, 80, 0.062);
-	box-shadow: inset 0 -1px rgba(0,0,0,0.25), inset 0 1px rgba(0,0,0,0.25);
+  background: rgba(35, 27, 80, 0.062);
+  box-shadow: inset 0 -1px rgba(0, 0, 0, 0.25), inset 0 1px rgba(0, 0, 0, 0.25);
 }
 
 table {
-	width: 100%;
-	max-width: 100%;
-  }
-  
-  table th, table td {
-	white-space: normal;
-  }
-  
-  table th {
-	word-wrap: break-word;
-  }
-  
-  table td {
-	word-break: break-all;
-  }
-  
+  width: 100%;
+  max-width: 100%;
+}
+
+table th,
+table td {
+  white-space: normal;
+}
+
+table th {
+  word-wrap: break-word;
+}
+
+table td {
+  word-break: break-all;
+}
+
 .card {
-	background-color: #222;
-	color: #fff;
-	padding: 20px;
-	border-radius: 5px;
-	width: 80%;
-	margin: 0 auto;
-	text-align: center;
-    box-shadow: 0 30px 60px 0 rgba(0, 0, 0, 0.4);
+  background-color: #222;
+  color: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  width: 80%;
+  margin: 0 auto;
+  text-align: center;
+  box-shadow: 0 30px 60px 0 rgba(0, 0, 0, 0.4);
 
-  }
+}
 
-  .card a {
-	color: #3c97bf;
-  }
-  
-.card h1 { color: #fff; text-shadow: 0 0 10px rgba(0,0,0,0.3); letter-spacing:1px; text-align:center; }
+.card a {
+  color: #3c97bf;
+}
+
+.card h1 {
+  color: #fff;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  letter-spacing: 1px;
+  text-align: center;
+}
 
 .grid-container {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 16px;
-  }
-  
-    
-#streamer-color{
-	display:none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+
+#streamer-color {
+  display: none;
 
 }
 
-#streamer-color-name{
-	display:none;
+#streamer-color-name {
+  display: none;
 
 }
 
-#streamer-text-color-name{
-	display:none;
+#streamer-text-color-name {
+  display: none;
 
 }
-#streamer-text-color{
-	display:none;
+
+#streamer-text-color {
+  display: none;
 
 }

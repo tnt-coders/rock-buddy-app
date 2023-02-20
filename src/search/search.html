@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <link rel="stylesheet" href="../css/footer.css">
   <link rel="stylesheet" href="../css/dark-theme.css" id="theme">
   <title>Rock Buddy (alpha test)</title>
 </head>
+
 <body>
   <div class="navtop">
     <a href="../sniffer/sniffer.html">Sniffer</a> |
@@ -16,24 +18,27 @@
   <p>This page is a work in progress...</p>
   <footer>
     <p>
-      <div class="copyright">
-        Copyright &copy; 2023, All Rights Reserved <a class="tntrocks" href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
-      </div>
-      <div class="team-mem">
-        <a href="./../account/team.html">team</a>
-      </div>
+    <div class="copyright">
+      Copyright &copy; 2023, All Rights Reserved <a class="tntrocks"
+        href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
+    </div>
+    <div class="team-mem">
+      <a href="./../team.html">team</a>
+    </div>
     </p>
     <div id="modal" class="modal">
       <span class="close">&times;</span>
-      <center><h3>You Found Boulder Bro Rock Buddys Big Brother!</h3></center>
+      <center>
+        <h3>You Found Boulder Bro Rock Buddys Big Brother!</h3>
+      </center>
       <img src="./../../images/boulderbuddy.png" alt="you found him!">
-    </div>  
+    </div>
     <script>
       const pressed = [];
       const secretCode = 'ArrowUpArrowUpArrowDownArrowDownArrowLeftArrowRightArrowLeftArrowRightba';
       const modal = document.getElementById('modal');
       const closeBtn = document.querySelector('.close');
-  
+
       window.addEventListener('keyup', (e) => {
         pressed.push(e.key);
         pressed.splice(-secretCode.length - 1, pressed.length - secretCode.length);
@@ -41,112 +46,113 @@
           modal.style.display = 'block';
         }
       });
-  
+
       closeBtn.addEventListener('click', () => {
         modal.style.display = 'none';
       });
-      </script>
-  </footer>  
+    </script>
+  </footer>
   <script src="../common/functions.js"></script>
   <script>
     'use strict';
     sessionUpdate();
   </script>
-<script>
-  document.documentElement.style.setProperty('--streamer-color', '#FFF');
-  document.documentElement.style.setProperty('--streamer-text-color', '#e66b07');
-  
-  document.addEventListener("DOMContentLoaded", function() {
-    const theme = localStorage.getItem("theme");
-    if (theme) {
+  <script>
+    document.documentElement.style.setProperty('--streamer-color', '#FFF');
+    document.documentElement.style.setProperty('--streamer-text-color', '#e66b07');
+
+    document.addEventListener("DOMContentLoaded", function () {
+      const theme = localStorage.getItem("theme");
+      if (theme) {
+        const themeSelect = document.getElementById("theme-select");
+        themeSelect.value = theme;
+
+        const themeLink = document.getElementById("theme");
+        themeLink.href = `../css/${theme}-theme.css`;
+      }
+
+      if (theme === "streamer") {
+        const streamerColor = localStorage.getItem("streamer-color");
+        if (streamerColor) {
+          const streamerColorInput = document.getElementById("streamer-color");
+          streamerColorInput.value = streamerColor;
+          setStreamerColor();
+        }
+
+        const streamerTextColor = localStorage.getItem("streamer-text-color");
+        if (streamerTextColor) {
+          const streamerTextColorInput = document.getElementById("streamer-text-color");
+          streamerTextColorInput.value = streamerTextColor;
+          setStreamerTextColor();
+        }
+      }
+    });
+
+    function setTheme() {
       const themeSelect = document.getElementById("theme-select");
-      themeSelect.value = theme;
-  
+      const theme = themeSelect.value;
       const themeLink = document.getElementById("theme");
-      themeLink.href = `../css/${theme}-theme.css`;
-    }
-  
-    if (theme === "streamer") {
-      const streamerColor = localStorage.getItem("streamer-color");
-      if (streamerColor) {
+
+      if (theme === "streamer") {
         const streamerColorInput = document.getElementById("streamer-color");
-        streamerColorInput.value = streamerColor;
-        setStreamerColor();
-      }
-  
-      const streamerTextColor = localStorage.getItem("streamer-text-color");
-      if (streamerTextColor) {
+        const streamerColor = streamerColorInput.value;
+        document.body.style.background = streamerColor;
+        localStorage.setItem("streamer-color", streamerColor);
+
         const streamerTextColorInput = document.getElementById("streamer-text-color");
-        streamerTextColorInput.value = streamerTextColor;
-        setStreamerTextColor();
+        const streamerTextColor = streamerTextColorInput.value;
+        document.body.style.color = streamerTextColor;
+        localStorage.setItem("streamer-text-color", streamerTextColor);
+      } else {
+        document.body.style.background = null;
+        localStorage.removeItem("streamer-color");
+        document.body.style.color = null;
+        localStorage.removeItem("streamer-text-color");
+      }
+
+      themeLink.href = `../css/${theme}-theme.css`;
+      localStorage.setItem("theme", theme);
+    }
+
+    function setStreamerColor() {
+      const theme = localStorage.getItem("theme");
+      if (theme === "streamer") {
+        const streamerColorInput = document.getElementById("streamer-color");
+        const streamerColor = streamerColorInput.value;
+
+        document.body.style.background = streamerColor;
+        document.documentElement.style.setProperty('--streamer-color', streamerColor);
+
+        localStorage.setItem("streamer-color", streamerColor);
       }
     }
-  });
-  
-  function setTheme() {
-    const themeSelect = document.getElementById("theme-select");
-    const theme = themeSelect.value;
-    const themeLink = document.getElementById("theme");
-  
-    if (theme === "streamer") {
-      const streamerColorInput = document.getElementById("streamer-color");
-      const streamerColor = streamerColorInput.value;
-      document.body.style.background = streamerColor;
-      localStorage.setItem("streamer-color", streamerColor);
-  
-      const streamerTextColorInput = document.getElementById("streamer-text-color");
-      const streamerTextColor = streamerTextColorInput.value;
-      document.body.style.color = streamerTextColor;
-      localStorage.setItem("streamer-text-color", streamerTextColor);
-    } else {
-      document.body.style.background = null;
-      localStorage.removeItem("streamer-color");
-      document.body.style.color = null;
-      localStorage.removeItem("streamer-text-color");
+
+    function setStreamerTextColor() {
+      const theme = localStorage.getItem("theme");
+      if (theme === "streamer") {
+        const streamerTextColorInput = document.getElementById("streamer-text-color");
+        const streamerTextColor = streamerTextColorInput.value;
+
+        document.body.style.color = streamerTextColor;
+        document.documentElement.style.setProperty('--streamer-text-color', streamerTextColor);
+
+        localStorage.setItem("streamer-text-color", streamerTextColor);
+      }
     }
-  
-    themeLink.href = `../css/${theme}-theme.css`;
-    localStorage.setItem("theme", theme);
-  }
-  
-  function setStreamerColor() {
-    const theme = localStorage.getItem("theme");
-    if (theme === "streamer") {
-      const streamerColorInput = document.getElementById("streamer-color");
-      const streamerColor = streamerColorInput.value;
-  
-      document.body.style.background = streamerColor;
-      document.documentElement.style.setProperty('--streamer-color', streamerColor);
-  
-      localStorage.setItem("streamer-color", streamerColor);
-    }
-  }
-  
-  function setStreamerTextColor() {
-    const theme = localStorage.getItem("theme");
-    if (theme === "streamer") {
-      const streamerTextColorInput = document.getElementById("streamer-text-color");
-      const streamerTextColor = streamerTextColorInput.value;
-  
-      document.body.style.color = streamerTextColor;
-      document.documentElement.style.setProperty('--streamer-text-color', streamerTextColor);
-  
-      localStorage.setItem("streamer-text-color", streamerTextColor);
-    }
-  }
-  
-    </script>
+
+  </script>
 
 
-<select style="display: none;"   id="theme-select" onchange="setTheme()">
-  <option value="light">Light theme</option>
-  <option value="dark">Dark theme</option>
-  <option value="streamer">Streamer theme</option>
-</select>
+  <select style="display: none;" id="theme-select" onchange="setTheme()">
+    <option value="light">Light theme</option>
+    <option value="dark">Dark theme</option>
+    <option value="streamer">Streamer theme</option>
+  </select>
 
-<label style="display: none;"   id="streamer-color-name" for="streamer-color">Background Color:</label>
-<input style="display: none;"    type="color" id="streamer-color" name="streamer-color" onchange="setStreamerColor()">
+  <label style="display: none;" id="streamer-color-name" for="streamer-color">Background Color:</label>
+  <input style="display: none;" type="color" id="streamer-color" name="streamer-color" onchange="setStreamerColor()">
 
-<label style="display: none;"   id="streamer-text-color-name" for="streamer-text-color">Text Color:</label>
-<input style="display: none;"   class="colortext" type="color" id="streamer-text-color" name="streamer-text-color" onchange="setStreamerTextColor()">
+  <label style="display: none;" id="streamer-text-color-name" for="streamer-text-color">Text Color:</label>
+  <input style="display: none;" class="colortext" type="color" id="streamer-text-color" name="streamer-text-color"
+    onchange="setStreamerTextColor()">
 </body>

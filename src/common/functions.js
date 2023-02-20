@@ -175,10 +175,10 @@ function validatePassword(password, confirmPassword) {
   const numbers = /[0-9]/g;
   const specialChars = /[^\w]/g;
   if (!upperCase.test(password)
-   || !lowerCase.test(password)
-   || !numbers.test(password)
-   || !specialChars.test(password)
-   || password.length < 8) {
+    || !lowerCase.test(password)
+    || !numbers.test(password)
+    || !specialChars.test(password)
+    || password.length < 8) {
     api.error("Password must contain:\n"
       + "1 uppercase letter,\n"
       + "1 lowercase letter,\n"

@@ -1,62 +1,71 @@
 .list-team-members {
-	max-width: 1000px;
-	padding: 0px;
-	margin: 0px auto;
-  }
-  .list-team-members li {
-	padding: 0px;
-	margin: 20px;
-	text-align: center;
-	list-style-type: none;
-	display: inline-block;
-	transition-duration: .3s;
-  }
-  .list-team-members li a {
-	position: relative;
-	text-decoration: none;
-	display: inline-block;
-	color: #FF7A28;
-	transition-duration: .3s;
-  }
-  .list-team-members li a:hover {
-	transform: scale(1.1, 1.1);
-  }
-  .list-team-members li a:after {
-	content: "";
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	height: 200px;
-	width: 200px;
-	background-color: rgba(255,122,40,.2);
-	border-radius: 50%;
-	opacity: 0;
-	transition-duration: .3s;
-  }
-  .list-team-members li a:hover:after {
-	opacity: 1;
-  }
-  .list-team-members li img {
-	object-fit: cover;
-	object-position: center center;
-	height: 200px;
-	width: 200px;
-	border-radius: 50%;
-	transition-duration: .3s;
-  }
-  .list-team-members li .member-title {
-	display: block;
-	margin-bottom: 10px;
-  }
-  .list-team-members li .member-title-hover {
-	text-align: center;
-	transition-duration: .3s;
-	padding: 5px 10px;
-	background: #FF7A28;
-	color: #FFFFFF;
-	z-index: 2;
-  }
-  .list-team-members li a:hover .member-title-hover {
-	opacity: 1;
-	top: 90px;
-  }
+  max-width: 1000px;
+  padding: 0px;
+  margin: 0px auto;
+}
+
+.list-team-members li {
+  padding: 0px;
+  margin: 20px;
+  text-align: center;
+  list-style-type: none;
+  display: inline-block;
+  transition-duration: .3s;
+}
+
+.list-team-members li a {
+  position: relative;
+  text-decoration: none;
+  display: inline-block;
+  color: #FF7A28;
+  transition-duration: .3s;
+}
+
+.list-team-members li a:hover {
+  transform: scale(1.1, 1.1);
+}
+
+.list-team-members li a:after {
+  content: "";
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  height: 200px;
+  width: 200px;
+  background-color: rgba(255, 122, 40, .2);
+  border-radius: 50%;
+  opacity: 0;
+  transition-duration: .3s;
+}
+
+.list-team-members li a:hover:after {
+  opacity: 1;
+}
+
+.list-team-members li img {
+  object-fit: cover;
+  object-position: center center;
+  height: 200px;
+  width: 200px;
+  border-radius: 50%;
+  transition-duration: .3s;
+}
+
+.list-team-members li .member-title {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.list-team-members li .member-title-hover {
+  text-align: center;
+  transition-duration: .3s;
+  padding: 5px 10px;
+  background: #FF7A28;
+  color: #FFFFFF;
+  z-index: 2;
+}
+
+.list-team-members li a:hover .member-title-hover {
+  opacity: 1;
+  top: 90px;
+}
