@@ -14,10 +14,14 @@
     <select id="theme-select" onchange="setTheme()">
       <option value="light">Light theme</option>
       <option value="dark">Dark theme</option>
-      <option value="streamer">streamer theme</option>
+      <option value="streamer">Streamer theme</option>
     </select>
-    <label id="streamer-color-name"  for="streamer-color">Background Color:</label>
-<input type="color" id="streamer-color" name="streamer-color" onchange="setStreamerColor()">
+    
+    <label id="streamer-color-name" for="streamer-color">Background Color:</label>
+    <input type="color" id="streamer-color" name="streamer-color" onchange="setStreamerColor()">
+    
+    <label id="streamer-text-color-name" for="streamer-text-color">Text Color:</label>
+    <input class="colortext" type="color" id="streamer-text-color" name="streamer-text-color" onchange="setStreamerTextColor()">
 
     
     <a href="../config/config.html" style="float: right;">Config</a>
@@ -216,27 +220,37 @@
     main();
   </script>
 <script>
-  document.addEventListener("DOMContentLoaded", function() {
-    const theme = localStorage.getItem("theme");
-    if (theme) {
-      const themeSelect = document.getElementById("theme-select");
-      themeSelect.value = theme;
-  
-      const themeLink = document.getElementById("theme");
-      themeLink.href = `../css/${theme}-theme.css`;
+document.documentElement.style.setProperty('--streamer-color', '#FFF');
+document.documentElement.style.setProperty('--streamer-text-color', '#e66b07');
+
+document.addEventListener("DOMContentLoaded", function() {
+  const theme = localStorage.getItem("theme");
+  if (theme) {
+    const themeSelect = document.getElementById("theme-select");
+    themeSelect.value = theme;
+
+    const themeLink = document.getElementById("theme");
+    themeLink.href = `../css/${theme}-theme.css`;
+  }
+
+  if (theme === "streamer") {
+    const streamerColor = localStorage.getItem("streamer-color");
+    if (streamerColor) {
+      const streamerColorInput = document.getElementById("streamer-color");
+      streamerColorInput.value = streamerColor;
+      setStreamerColor();
     }
-  
-    if (theme === "streamer") {
-      const streamerColor = localStorage.getItem("streamer-color");
-      if (streamerColor) {
-        const streamerColorInput = document.getElementById("streamer-color");
-        streamerColorInput.value = streamerColor;
-        setStreamerColor();
-      }
+
+    const streamerTextColor = localStorage.getItem("streamer-text-color");
+    if (streamerTextColor) {
+      const streamerTextColorInput = document.getElementById("streamer-text-color");
+      streamerTextColorInput.value = streamerTextColor;
+      setStreamerTextColor();
     }
-  });
-  
-  function setTheme() {
+  }
+});
+
+function setTheme() {
   const themeSelect = document.getElementById("theme-select");
   const theme = themeSelect.value;
   const themeLink = document.getElementById("theme");
@@ -246,26 +260,47 @@
     const streamerColor = streamerColorInput.value;
     document.body.style.background = streamerColor;
     localStorage.setItem("streamer-color", streamerColor);
+
+    const streamerTextColorInput = document.getElementById("streamer-text-color");
+    const streamerTextColor = streamerTextColorInput.value;
+    document.body.style.color = streamerTextColor;
+    localStorage.setItem("streamer-text-color", streamerTextColor);
   } else {
     document.body.style.background = null;
     localStorage.removeItem("streamer-color");
+    document.body.style.color = null;
+    localStorage.removeItem("streamer-text-color");
   }
 
   themeLink.href = `../css/${theme}-theme.css`;
   localStorage.setItem("theme", theme);
 }
 
-  
-  function setStreamerColor() {
-    const theme = localStorage.getItem("theme");
-    if (theme === "streamer") {
-      const streamerColorInput = document.getElementById("streamer-color");
-      const streamerColor = streamerColorInput.value;
-  
-      document.body.style.background = streamerColor;
-  
-      localStorage.setItem("streamer-color", streamerColor);
-    }
+function setStreamerColor() {
+  const theme = localStorage.getItem("theme");
+  if (theme === "streamer") {
+    const streamerColorInput = document.getElementById("streamer-color");
+    const streamerColor = streamerColorInput.value;
+
+    document.body.style.background = streamerColor;
+    document.documentElement.style.setProperty('--streamer-color', streamerColor);
+
+    localStorage.setItem("streamer-color", streamerColor);
   }
+}
+
+function setStreamerTextColor() {
+  const theme = localStorage.getItem("theme");
+  if (theme === "streamer") {
+    const streamerTextColorInput = document.getElementById("streamer-text-color");
+    const streamerTextColor = streamerTextColorInput.value;
+
+    document.body.style.color = streamerTextColor;
+    document.documentElement.style.setProperty('--streamer-text-color', streamerTextColor);
+
+    localStorage.setItem("streamer-text-color", streamerTextColor);
+  }
+}
+
   </script>
 </body>

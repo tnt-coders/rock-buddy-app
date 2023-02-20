@@ -84,24 +84,13 @@ input {
 	transition: box-shadow .5s ease;
 }
 
-#difficulty{  
-	margin-bottom: 0px; 
-	background: #142442a6;
-	border: none;
-	outline: none;
-	padding: 1px;
-	font-size: 13px;
-	color: #6eb6de;
-	text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
-	border: 1px solid rgba(0,0,0,0.3);
-	border-radius: 4px;
-	box-shadow: inset 0 -5px 45px rgba(100,100,100,0.2), 0 1px 1px rgba(255,255,255,0.2);
-	-webkit-transition: box-shadow .5s ease;
-	-moz-transition: box-shadow .5s ease;
-	-o-transition: box-shadow .5s ease;
-	-ms-transition: box-shadow .5s ease;
-	transition: box-shadow .5s ease;
-}
+#score_attack {
+	display: flex;
+	flex-direction: row;
+	gap: 5px;
+  }
+  
+
 select {  
 	margin-bottom: 0px; 
 	background: #142442a6;
@@ -190,6 +179,15 @@ table {
 }
 
 #streamer-color-name{
+	display:none;
+
+}
+
+#streamer-text-color-name{
+	display:none;
+
+}
+#streamer-text-color{
 	display:none;
 
 }
