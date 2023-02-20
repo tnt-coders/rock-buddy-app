@@ -312,6 +312,10 @@ select {
   transition: box-shadow .5s ease;
 }
 
+option {
+  background-color: #17111f;
+}
+
 label {
   color: white;
 }
