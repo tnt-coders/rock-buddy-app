@@ -10,17 +10,19 @@
 </head>
 
 <body>
-  <div class="card">
-    <h1>Login</h1>
-    <form>
-      <label for="username_or_email">Username or Email:</label><br>
-      <input id="username_or_email" type="text" name="username_or_email"><br><br>
-      <label for="password">Password:</label><br>
-      <input id="password" type="password" name="password"><br>
-      <a href="reset_password.html" onclick="resetPassword(event)">Forgot Password</a><br><br>
-      <input class="btn-primary" type="submit" value="Submit" onclick="login(event)"><br><br>
-    </form>
-    <p>Don't have an account? <a href="sign_up.html">Sign Up</a></p>
+  <div style="display: flex; justify-content: center; align-items: center; height: 80vh;">
+    <div class="card">
+      <h1>Login</h1>
+      <form>
+        <label for="username_or_email">Username or Email:</label><br>
+        <input id="username_or_email" type="text" name="username_or_email"><br><br>
+        <label for="password">Password:</label><br>
+        <input id="password" type="password" name="password"><br>
+        <a href="reset_password.html" onclick="resetPassword(event)">Forgot Password</a><br><br>
+        <input class="btn-primary" type="submit" value="Submit" onclick="login(event)"><br><br>
+      </form>
+      <p>Don't have an account? <a href="sign_up.html">Sign Up</a></p>
+    </div>
   </div>
 
   <div id="modal" class="modal">
@@ -51,8 +53,7 @@
   <footer>
     <p>
     <div class="copyright">
-      Copyright &copy; 2023 <a class="tntrocks"
-        href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
+      Copyright &copy; 2023 <a class="tntrocks" href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
     </div>
     <div class="team-mem">
       <a href="./../team.html">Team</a>
