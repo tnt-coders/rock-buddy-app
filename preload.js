@@ -13,6 +13,7 @@ contextBridge.exposeInMainWorld('api', {
   pathJoin: async (...args) => ipcRenderer.invoke('path-join', ...args),
   readFile: async (file) => ipcRenderer.invoke('read-file', file),
   writeFile: async (file, contents) => ipcRenderer.invoke('write-file', file, contents),
+  semverGte: async (version1, version2) => ipcRenderer.invoke('semver-gte', version1, version2),
   readRocksmithData: async (dataFile) => ipcRenderer.invoke('read-rocksmith-data', dataFile),
   getSteamProfiles: async (steamUserDataPath) => ipcRenderer.invoke('get-steam-profiles', steamUserDataPath),
   getRocksmithProfiles: async (steamUserDataPath, steamProfile) => ipcRenderer.invoke('get-rocksmith-profiles', steamUserDataPath, steamProfile),

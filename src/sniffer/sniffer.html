@@ -647,6 +647,16 @@
           return false;
         }
 
+        // Check that the provided Rocksniffer version is compatible
+        const versionFile = await api.pathJoin(rocksnifferPath, 'version.txt');
+        const version = await api.readFile(versionFile);
+        const requiredVersion = 'v0.4.1';
+        if (!await api.semverGte(version, requiredVersion)) {
+          document.getElementById('error').innerHTML = '<p>Unsupported Rocksniffer version. Please update Rocksniffer to at least ' + requiredVersion + '.</p>';
+          showClass('error');
+          return false;
+        }
+
         const addonConfigFile = await api.pathJoin(rocksnifferPath, 'config', 'addons.json');
         const addonConfig = JSON.parse(await api.readFile(addonConfigFile));
 

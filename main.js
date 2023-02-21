@@ -239,6 +239,12 @@ function createWindow() {
     fs.writeFileSync(file, contents);
   });
 
+  // Semver check
+  ipcMain.handle('semver-gte', (event, version1, version2) => {
+    const semver = require('semver');
+    return semver.gte(version1, version2);
+  })
+
   // Reads an encrypted Rocksmith data file and returns the contents
   ipcMain.handle('read-rocksmith-data', (event, dataFile) => {
     return readRocksmithData(dataFile);
