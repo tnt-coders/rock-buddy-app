@@ -197,7 +197,7 @@ function validatePassword(password, confirmPassword) {
   // Check password length
   if (password.length < 8 || password.length > 255) {
     api.error('Password must be between 8 and 255 characters.');
-    return;
+    return false;
   }
 
   // Password and confirm password must match
