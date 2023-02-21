@@ -5,7 +5,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/tnt-coders/rock-buddy-app/">
-    <img src="images/buddy.png" alt="Logo" width="80" height="80">
+    <img src="images/rock-buddy.png" alt="Logo" width="80" height="80">
   </a>
 
   <h3 align="center">Rock Buddy App</h3>
