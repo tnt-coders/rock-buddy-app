@@ -238,7 +238,7 @@ h3 {
 }
 
 body a {
-  color: #a26ede;
+  color: #a26ede!important;
 }
 
 
@@ -312,10 +312,6 @@ select {
   transition: box-shadow .5s ease;
 }
 
-option {
-  background-color: #17111f;
-}
-
 label {
   color: white;
 }
@@ -357,11 +353,20 @@ table td {
   word-break: break-all;
 }
 
+.grid-container {
+  display: grid;
+  margin-top: -15px;
+}
+
+
+
+
+
 
 .card {
   background-color: #222;
   color: #fff;
-  padding: 20px;
+  padding: 2px;
   border-radius: 5px;
   width: 80%;
   margin: 0 auto;
@@ -371,7 +376,7 @@ table td {
 }
 
 .card a {
-  color: #a26ede;
+  color: #6819da;
 }
 
 .card h1 {
@@ -380,14 +385,6 @@ table td {
   letter-spacing: 1px;
   text-align: center;
 }
-
-.grid-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-
 
 #streamer-color {
   display: none;
