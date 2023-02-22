@@ -8,7 +8,7 @@
     <img src="images/rock-buddy.png" alt="Logo" width="80" height="80">
   </a>
 
-  <h3 align="center">Rock Buddy App</h3>
+  <h3 align="center">Rock Buddy</h3>
 
   <p align="center">Are you ready to get to the top of the leaderboard?
     <br />
