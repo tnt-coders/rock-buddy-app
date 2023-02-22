@@ -146,7 +146,7 @@
 
     // TODO: store these so they persist between sessions
     let selectedGameMode = 'las';
-    let selectedPath = 'lead';
+    let selectedPath = null;
     let selectedDifficulty = 'hard';
 
     // Store data globally so we can react to combo box changes quickly
@@ -208,11 +208,13 @@
           document.getElementById('snort').disabled = true;
           lastSnort = 0;
 
+          selectedPath = await getPreferredPath();
+
           $('div.status').html('Snorting data...');
           await syncData(previousSong);
           
           snorted = true;
-          
+
           await displayData(previousSong);
         }
 
@@ -236,7 +238,7 @@
               const arrangementName = songData['arrangements'][arrangementHash]['name'];
               
               const pathComboBox = document.querySelector('#path');
-              pathComboBox.value = arrangementName;
+              pathComboBox.value = arrangementName.toLowerCase();
 
               let event = new Event('change');
               pathComboBox.dispatchEvent(event);
@@ -433,7 +435,7 @@
 
       // Sort the available paths
       availablePaths.sort((a, b) => a['sort'].localeCompare(b['sort']));
-      const availablePathNames = availablePaths.map(obj => obj['name']);
+      const availablePathNames = availablePaths.map(obj => obj['name'].toLowerCase());
 
       // If the selected path doesn't exist for this song, update it to one that does
       if (!availablePathNames.includes(selectedPath)) {
@@ -446,9 +448,9 @@
       availablePaths.forEach((path) => {
         const option = document.createElement('option');
         option.text = path['name'];
-        option.value = path['name'];
+        option.value = path['name'].toLowerCase();
 
-        if (option.text === selectedPath) {
+        if (option.value === selectedPath) {
           option.selected = true;
         }
 
@@ -706,6 +708,21 @@
       }
 
       return true;
+    }
+
+    async function getPreferredPath() {
+      let preferredPath = sessionStorage.getItem('preferred_path');
+      if (preferredPath === null) {
+        preferredPath = await api.storeGet('user_data.' + userId + '.preferred_path');
+
+        if (preferredPath === null) {
+          preferredPath = 'lead';
+        }
+
+        sessionStorage.setItem('preferred_path', preferredPath);
+      }
+
+      return preferredPath;      
     }
 
     async function main() {

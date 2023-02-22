@@ -14,249 +14,289 @@
     <a href="../search/search.html">Search</a> |
     <a href="../account/account.html">Account</a>
     <a href="../config/config.html" style="float: right;">Config</a>
-
   </div>
 
   <div style="display: flex; flex-direction: row; align-items: center; width: 100%;">
     <h1 style="display: inline;">Config</h1>
-    <label style="margin-left: auto;" id="streamer-color-name" for="streamer-color">Background Color:</label>
-    <input type="color" id="streamer-color" name="streamer-color" onchange="setStreamerColor()">
+    <label style="margin-left: auto; margin-right: 10px;" id="streamer-color-name" for="streamer-color">Background Color:</label>
+    <input style="margin-right: 20px;" type="color" id="streamer-color" name="streamer-color" onchange="setStreamerColor()">
 
-    <label id="streamer-text-color-name" for="streamer-text-color">Text Color:</label>
+    <label style="margin-right: 10px;" id="streamer-text-color-name" for="streamer-text-color">Text Color:</label>
     <input class="colortext" type="color" id="streamer-text-color" name="streamer-text-color"
       onchange="setStreamerTextColor()">
-    <select id="theme-select" style="display: inline; margin-left: auto;" onchange="setTheme()">
-      <option value="light">Light theme</option>
-      <option value="dark">Dark theme</option>
-      <option value="classic">Retro theme</option>
-      <option value="streamer">Streamer theme</option> 
+    <label for="theme-select" style="margin-left: auto;">Theme:</label>
+    <select id="theme-select" style="margin-left: 10px;" onchange="setTheme()">
+      <option value="light">Light</option>
+      <option value="dark">Dark</option>
+      <option value="classic">Retro</option>
+      <option value="streamer">Custom</option>
     </select>
   </div>
+  <h3 style="margin-top: 0px;">Preferences</h3>
+  <div id="preferences"></div>
+  <div style="display: flex; flex-direction:column; gap: 10px;">
+    <div style="display: flex; flex-direction: row; align-items: center; width: 100%;">
+      <label for="preferred_path" style="margin-right: 10px;">Preferred Path:</label>
+      <select id="preferred_path" style="margin-right: 10px;">
+        <option value="lead" selected>Lead</option>
+        <option value="rhythm">Rhythm</option>
+        <option value="bass">Bass</option>
+      </select>
+    </div>
+  </div>
+  <hr>
+  <h3>Steam User Data Path</h3>
+  <div id="steam_user_data_path" style="display: inline;">[none selected]</div>
+  <div style="display: inline; float: right;">
+    <button class="btn-primary" onclick="getSteamUserDataPath()">Browse</button>
+  </div>
+  <hr>
+  <h3>Steam Profile</h3>
+  <select id="steam_profile">
+  </select>
+  <hr>
+  <h3>Rocksmith Profile</h3>
+  <select id="rocksmith_profile">
+  </select>
+  <hr>
+  <h3>Rocksniffer Path</h3>
+  <div id="rocksniffer_path" style="display: inline;">[none selected]</div>
+  <div style="display: inline; float: right;">
+    <button class="btn-primary" onclick="getRocksnifferPath()">Browse</button>
+  </div>
+  <hr>
+  <div id="modal" class="modal">
+    <span class="close">&times;</span>
+    <center>
+      <h3>You found Boulder Bro, Rock Buddy's big brother!</h3>
+    </center>
+    <img src="./../../images/boulder-bro.png" alt="you found him!">
+  </div>
+  <script>
+    const pressed = [];
+    const secretCode = 'ArrowUpArrowUpArrowDownArrowDownArrowLeftArrowRightArrowLeftArrowRightba';
+    const modal = document.getElementById('modal');
+    const closeBtn = document.querySelector('.close');
 
-  <h3 style="margin-top: 0;">Steam User Data Path</h3>
-    <div id="steam_user_data_path" style="display: inline;">[none selected]</div>
-    <div style="display: inline; float: right;">
-      <button class="btn-primary" onclick="getSteamUserDataPath()">Browse</button>
-    </div>
-    <hr>
-    <h3>Steam Profile</h3>
-    <select id="steam_profile">
-    </select>
-    <hr>
-    <h3>Rocksmith Profile</h3>
-    <select id="rocksmith_profile">
-    </select>
-    <hr>
-    <h3>Rocksniffer Path</h3>
-    <div id="rocksniffer_path" style="display: inline;">[none selected]</div>
-    <div style="display: inline; float: right;">
-      <button class="btn-primary" onclick="getRocksnifferPath()">Browse</button>
-    </div>
-    <hr>
-    <div id="modal" class="modal">
-      <span class="close">&times;</span>
-      <center>
-        <h3>You found Boulder Bro, Rock Buddy's big brother!</h3>
-      </center>
-      <img src="./../../images/boulder-bro.png" alt="you found him!">
-    </div>
-    <script>
-      const pressed = [];
-      const secretCode = 'ArrowUpArrowUpArrowDownArrowDownArrowLeftArrowRightArrowLeftArrowRightba';
-      const modal = document.getElementById('modal');
-      const closeBtn = document.querySelector('.close');
+    window.addEventListener('keyup', (e) => {
+      pressed.push(e.key);
+      pressed.splice(-secretCode.length - 1, pressed.length - secretCode.length);
+      if (pressed.join('').includes(secretCode)) {
+        modal.style.display = 'block';
+      }
+    });
 
-      window.addEventListener('keyup', (e) => {
-        pressed.push(e.key);
-        pressed.splice(-secretCode.length - 1, pressed.length - secretCode.length);
-        if (pressed.join('').includes(secretCode)) {
-          modal.style.display = 'block';
-        }
+    closeBtn.addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+  </script>
+  <footer>
+    <p>
+    <div class="copyright">
+      Copyright &copy; 2023 <a class="tntrocks" href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
+    </div>
+    <div class="team-mem">
+      <a href="./../team.html">Team</a>
+    </div>
+    </p>
+  </footer>
+  <script src="../common/functions.js"></script>
+  <script>
+    'use strict';
+    sessionUpdate();
+
+    const userId = JSON.parse(sessionStorage.getItem('auth_data'))['user_id'];
+
+    async function getPreferences() {
+      const preferredPath = await api.storeGet('user_data.' + userId + '.preferred_path');
+
+      // Update the combo box
+      const comboBox = document.querySelector('#preferred_path');
+
+      // Link the combo box selected option to the saved Rocksmith profile
+      comboBox.addEventListener('change', async () => {
+        const selectedOption = comboBox.options[comboBox.selectedIndex];
+        const selectedPath = selectedOption.value;
+        await api.storeSet('user_data.' + userId + '.preferred_path', selectedPath);
+        sessionStorage.setItem('preferred_path', selectedPath);
       });
 
-      closeBtn.addEventListener('click', () => {
-        modal.style.display = 'none';
+      // Update the combo box with the preferred value
+      if (preferredPath !== null) {
+        comboBox.value = preferredPath;
+
+        let event = new Event('change');
+        comboBox.dispatchEvent(event);
+      }
+    }
+
+    async function getSteamUserDataPath() {
+      const defaultPath = document.getElementById('steam_user_data_path').innerText;
+
+      const steamUserDataPath = await api.getPath(defaultPath);
+      if (steamUserDataPath !== null) {
+        document.getElementById('steam_user_data_path').innerText = steamUserDataPath;
+        await api.storeSet('user_data.' + userId + '.steam_user_data_path', steamUserDataPath);
+        sessionStorage.setItem('steam_user_data_path', steamUserDataPath);
+      }
+
+      // Recall the main function to populate the rest of the display
+      main();
+    }
+
+    async function getSteamProfiles() {
+      const steamUserDataPath = document.getElementById('steam_user_data_path').innerText;
+
+      // Get all Steam profiles on disk
+      const steamProfiles = await api.getSteamProfiles(steamUserDataPath);
+      const profileNames = Object.keys(steamProfiles);
+
+      // If a profile is already saved, remember it
+      let selectedProfile = await api.storeGet('user_data.' + userId + '.steam_profile');
+      if (profileNames.length !== 0 && selectedProfile === null) {
+        selectedProfile = steamProfiles[profileNames[0]];
+        await api.storeSet('user_data.' + userId + '.steam_profile', selectedProfile);
+        sessionStorage.setItem('steam_profile', selectedProfile);
+      }
+
+      // Build the combo box
+      const comboBox = document.querySelector('#steam_profile');
+      profileNames.forEach((profileName) => {
+        const option = document.createElement('option');
+        option.text = profileName;
+        option.value = steamProfiles[profileName];
+
+        // Set the selected profile to the saved profile if there is one
+        if (steamProfiles[profileName] === selectedProfile) {
+          option.selected = true;
+        }
+
+        comboBox.appendChild(option);
       });
-    </script>
-    <footer>
-      <p>
-      <div class="copyright">
-        Copyright &copy; 2023 <a class="tntrocks"
-          href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
-      </div>
-      <div class="team-mem">
-        <a href="./../team.html">Team</a>
-      </div>
-      </p>
-    </footer>
-    <script src="../common/functions.js"></script>
-    <script>
-      'use strict';
-      sessionUpdate();
 
-      const userId = JSON.parse(sessionStorage.getItem('auth_data'))['user_id'];
-
-      async function getSteamUserDataPath() {
-        const defaultPath = document.getElementById('steam_user_data_path').innerText;
-
-        const steamUserDataPath = await api.getPath(defaultPath);
-        if (steamUserDataPath !== null) {
-          document.getElementById('steam_user_data_path').innerText = steamUserDataPath;
-          await api.storeSet('user_data.' + userId + '.steam_user_data_path', steamUserDataPath);
-          sessionStorage.setItem('steam_user_data_path', steamUserDataPath);
-        }
-
-        // Recall the main function to populate the rest of the display
-        main();
-      }
-
-      async function getSteamProfiles() {
-        const steamUserDataPath = document.getElementById('steam_user_data_path').innerText;
-
-        // Get all Steam profiles on disk
-        const steamProfiles = await api.getSteamProfiles(steamUserDataPath);
-        const profileNames = Object.keys(steamProfiles);
-
-        // If a profile is already saved, remember it
-        let selectedProfile = await api.storeGet('user_data.' + userId + '.steam_profile');
-        if (profileNames.length !== 0 && selectedProfile === null) {
-          selectedProfile = steamProfiles[profileNames[0]];
-          await api.storeSet('user_data.' + userId + '.steam_profile', selectedProfile);
-          sessionStorage.setItem('steam_profile', selectedProfile);
-        }
-
-        // Build the combo box
-        const comboBox = document.querySelector('#steam_profile');
-        profileNames.forEach((profileName) => {
-          const option = document.createElement('option');
-          option.text = profileName;
-          option.value = steamProfiles[profileName];
-
-          // Set the selected profile to the saved profile if there is one
-          if (steamProfiles[profileName] === selectedProfile) {
-            option.selected = true;
-          }
-
-          comboBox.appendChild(option);
-        });
-
-        // Link the combo box selected option to the saved Steam profile
-        comboBox.addEventListener('change', async () => {
-          const selectedOption = comboBox.options[comboBox.selectedIndex];
-          const selectedProfile = selectedOption.value;
-          await api.storeSet('user_data.' + userId + '.steam_profile', selectedProfile);
-          sessionStorage.setItem('steam_profile', selectedProfile);
-        });
-      }
-
-      async function getRocksmithProfiles() {
-        const steamUserDataPath = document.getElementById('steam_user_data_path').innerText;
-        const steamProfile = await api.storeGet('user_data.' + userId + '.steam_profile');
-
-        // Get all Rocksmith profiles on disk
-        const rocksmithProfiles = await api.getRocksmithProfiles(steamUserDataPath, steamProfile);
-        const profileNames = Object.keys(rocksmithProfiles);
-
-        // If a profile is already saved, remember it
-        let selectedProfile = await api.storeGet('user_data.' + userId + '.rocksmith_profile');
-        if (profileNames.length !== 0 && selectedProfile === null) {
-          selectedProfile = rocksmithProfiles[profileNames[0]];
-          await api.storeSet('user_data.' + userId + '.rocksmith_profile', selectedProfile);
-          sessionStorage.setItem('rocksmith_profile', selectedProfile);
-        }
-
-        // Build the combo box
-        const comboBox = document.querySelector('#rocksmith_profile');
-        profileNames.forEach((profileName) => {
-          const option = document.createElement('option');
-          option.text = profileName;
-          option.value = rocksmithProfiles[profileName];
-
-          // Set the selected profile to the saved profile if there is one
-          if (rocksmithProfiles[profileName] === selectedProfile) {
-            option.selected = true;
-          }
-
-          comboBox.appendChild(option);
-        });
-
-        // Link the combo box selected option to the saved Rocksmith profile
-        comboBox.addEventListener('change', async () => {
-          const selectedOption = comboBox.options[comboBox.selectedIndex];
-          const selectedProfile = selectedOption.value;
-          await api.storeSet('user_data.' + userId + '.rocksmith_profile', selectedProfile);
-          sessionStorage.setItem('rocksmith_profile', selectedProfile);
-        });
-      }
-
-      async function getRocksnifferPath() {
-        const rocksnifferPath = await api.getPath();
-        if (rocksnifferPath !== null) {
-          document.getElementById('rocksniffer_path').innerText = rocksnifferPath;
-          api.storeSet('user_data.' + userId + '.rocksniffer_path', rocksnifferPath);
-          sessionStorage.setItem('rocksniffer_path', rocksnifferPath);
-        }
-      }
-
-      async function main() {
-        // Populate Steam user data path if there is a default set
-        let steamUserDataPath = await api.storeGet('user_data.' + userId + '.steam_user_data_path');
-        if (steamUserDataPath === null) {
-          steamUserDataPath = await api.storeGet('default_steam_user_data_path');
-          api.storeSet('user_data.' + userId + '.steam_user_data_path', steamUserDataPath);
-        }
-        if (steamUserDataPath !== null) {
-          document.getElementById('steam_user_data_path').innerText = steamUserDataPath;
-          sessionStorage.setItem('steam_user_data_path', steamUserDataPath);
-        }
-
-        // Populate the combo box for Steam profiles
-        await getSteamProfiles();
+      // Link the combo box selected option to the saved Steam profile
+      comboBox.addEventListener('change', async () => {
+        const selectedOption = comboBox.options[comboBox.selectedIndex];
+        const selectedProfile = selectedOption.value;
+        await api.storeSet('user_data.' + userId + '.steam_profile', selectedProfile);
+        sessionStorage.setItem('steam_profile', selectedProfile);
 
         // Populate the combo box for Rocksmith profiles
         await getRocksmithProfiles();
+      });
+    }
 
-        // Populate Rocksniffer path if there is a default set
-        const rocksnifferPath = await api.storeGet('user_data.' + userId + '.rocksniffer_path');
-        if (rocksnifferPath !== null) {
-          document.getElementById('rocksniffer_path').innerText = rocksnifferPath;
-        }
+    async function getRocksmithProfiles() {
+      const steamUserDataPath = document.getElementById('steam_user_data_path').innerText;
+      const steamProfile = await api.storeGet('user_data.' + userId + '.steam_profile');
+
+      // Get all Rocksmith profiles on disk
+      const rocksmithProfiles = await api.getRocksmithProfiles(steamUserDataPath, steamProfile);
+      const profileNames = Object.keys(rocksmithProfiles);
+
+      // If a profile is already saved, remember it
+      let selectedProfile = await api.storeGet('user_data.' + userId + '.rocksmith_profile');
+      if (profileNames.length !== 0 && selectedProfile === null) {
+        selectedProfile = rocksmithProfiles[profileNames[0]];
+        await api.storeSet('user_data.' + userId + '.rocksmith_profile', selectedProfile);
+        sessionStorage.setItem('rocksmith_profile', selectedProfile);
       }
 
-      main();
-    </script>
-    <script>
-      document.documentElement.style.setProperty('--streamer-color', '#FFF');
-      document.documentElement.style.setProperty('--streamer-text-color', '#000');
+      // Build the combo box
+      const comboBox = document.querySelector('#rocksmith_profile');
+      profileNames.forEach((profileName) => {
+        const option = document.createElement('option');
+        option.text = profileName;
+        option.value = rocksmithProfiles[profileName];
 
-      document.addEventListener("DOMContentLoaded", function () {
-        const theme = localStorage.getItem("theme");
-        if (theme) {
-          const themeSelect = document.getElementById("theme-select");
-          themeSelect.value = theme;
-
-          const themeLink = document.getElementById("theme");
-          themeLink.href = `../css/${theme}-theme.css`;
+        // Set the selected profile to the saved profile if there is one
+        if (rocksmithProfiles[profileName] === selectedProfile) {
+          option.selected = true;
         }
 
-        if (theme === "streamer") {
-          const streamerColor = localStorage.getItem("streamer-color");
-          if (streamerColor) {
-            const streamerColorInput = document.getElementById("streamer-color");
-            streamerColorInput.value = streamerColor;
-            setStreamerColor();
-          }
-
-          const streamerTextColor = localStorage.getItem("streamer-text-color");
-          if (streamerTextColor) {
-            const streamerTextColorInput = document.getElementById("streamer-text-color");
-            streamerTextColorInput.value = streamerTextColor;
-            setStreamerTextColor();
-          }
-        }
+        comboBox.appendChild(option);
       });
 
-      function setTheme() {
+      // Link the combo box selected option to the saved Rocksmith profile
+      comboBox.addEventListener('change', async () => {
+        const selectedOption = comboBox.options[comboBox.selectedIndex];
+        const selectedProfile = selectedOption.value;
+        await api.storeSet('user_data.' + userId + '.rocksmith_profile', selectedProfile);
+        sessionStorage.setItem('rocksmith_profile', selectedProfile);
+      });
+    }
+
+    async function getRocksnifferPath() {
+      const rocksnifferPath = await api.getPath();
+      if (rocksnifferPath !== null) {
+        document.getElementById('rocksniffer_path').innerText = rocksnifferPath;
+        api.storeSet('user_data.' + userId + '.rocksniffer_path', rocksnifferPath);
+        sessionStorage.setItem('rocksniffer_path', rocksnifferPath);
+      }
+    }
+
+    async function main() {
+      // Get preferences
+      await getPreferences();
+
+      // Populate Steam user data path if there is a default set
+      let steamUserDataPath = await api.storeGet('user_data.' + userId + '.steam_user_data_path');
+      if (steamUserDataPath === null) {
+        steamUserDataPath = await api.storeGet('default_steam_user_data_path');
+        api.storeSet('user_data.' + userId + '.steam_user_data_path', steamUserDataPath);
+      }
+      if (steamUserDataPath !== null) {
+        document.getElementById('steam_user_data_path').innerText = steamUserDataPath;
+        sessionStorage.setItem('steam_user_data_path', steamUserDataPath);
+      }
+
+      // Populate the combo box for Steam profiles
+      await getSteamProfiles();
+
+      // Populate the combo box for Rocksmith profiles
+      await getRocksmithProfiles();
+
+      // Populate Rocksniffer path if there is a default set
+      const rocksnifferPath = await api.storeGet('user_data.' + userId + '.rocksniffer_path');
+      if (rocksnifferPath !== null) {
+        document.getElementById('rocksniffer_path').innerText = rocksnifferPath;
+      }
+    }
+
+    main();
+  </script>
+  <script>
+    document.documentElement.style.setProperty('--streamer-color', '#FFF');
+    document.documentElement.style.setProperty('--streamer-text-color', '#000');
+
+    document.addEventListener("DOMContentLoaded", function () {
+      const theme = localStorage.getItem("theme");
+      if (theme) {
+        const themeSelect = document.getElementById("theme-select");
+        themeSelect.value = theme;
+
+        const themeLink = document.getElementById("theme");
+        themeLink.href = `../css/${theme}-theme.css`;
+      }
+
+      if (theme === "streamer") {
+        const streamerColor = localStorage.getItem("streamer-color");
+        if (streamerColor) {
+          const streamerColorInput = document.getElementById("streamer-color");
+          streamerColorInput.value = streamerColor;
+          setStreamerColor();
+        }
+
+        const streamerTextColor = localStorage.getItem("streamer-text-color");
+        if (streamerTextColor) {
+          const streamerTextColorInput = document.getElementById("streamer-text-color");
+          streamerTextColorInput.value = streamerTextColor;
+          setStreamerTextColor();
+        }
+      }
+    });
+
+    function setTheme() {
       const themeSelect = document.getElementById("theme-select");
       const theme = themeSelect.value;
       const themeLink = document.getElementById("theme");
@@ -279,31 +319,31 @@
       localStorage.setItem("theme", theme);
     }
 
-      function setStreamerColor() {
-        const theme = localStorage.getItem("theme");
-        if (theme === "streamer") {
-          const streamerColorInput = document.getElementById("streamer-color");
-          const streamerColor = streamerColorInput.value;
+    function setStreamerColor() {
+      const theme = localStorage.getItem("theme");
+      if (theme === "streamer") {
+        const streamerColorInput = document.getElementById("streamer-color");
+        const streamerColor = streamerColorInput.value;
 
-          document.body.style.background = streamerColor;
-          document.documentElement.style.setProperty('--streamer-color', streamerColor);
+        document.body.style.background = streamerColor;
+        document.documentElement.style.setProperty('--streamer-color', streamerColor);
 
-          localStorage.setItem("streamer-color", streamerColor);
-        }
+        localStorage.setItem("streamer-color", streamerColor);
       }
+    }
 
-      function setStreamerTextColor() {
-        const theme = localStorage.getItem("theme");
-        if (theme === "streamer") {
-          const streamerTextColorInput = document.getElementById("streamer-text-color");
-          const streamerTextColor = streamerTextColorInput.value;
+    function setStreamerTextColor() {
+      const theme = localStorage.getItem("theme");
+      if (theme === "streamer") {
+        const streamerTextColorInput = document.getElementById("streamer-text-color");
+        const streamerTextColor = streamerTextColorInput.value;
 
-          document.body.style.color = streamerTextColor;
-          document.documentElement.style.setProperty('--streamer-text-color', streamerTextColor);
+        document.body.style.color = streamerTextColor;
+        document.documentElement.style.setProperty('--streamer-text-color', streamerTextColor);
 
-          localStorage.setItem("streamer-text-color", streamerTextColor);
-        }
+        localStorage.setItem("streamer-text-color", streamerTextColor);
       }
+    }
 
-    </script>
+  </script>
 </body>
