@@ -41,17 +41,27 @@
     <div id="leaderboard_header" style="display: none;">
       <div style="display: flex; flex-direction: row; gap: 10px;">
         <div>
-          <img class="coveralbum" id="album_art" width="75" height="75">
+          <img class="coveralbum" id="album_art">
         </div>
-        <div>
-          <div><strong>Artist:</strong> <span id="artist"></span></div>
-          <div><strong>Album:</strong> <span id="album"></span></div>
-          <div><strong>Title:</strong> <span id="title"></span></div>
-          <div><strong>Year:</strong> <span id="year"></span></div>
+        <div style="display: flex; flex-direction: column;">
+          <div><strong>Title:</strong></div>
+          <div><strong>Artist:</strong></div>
+          <div><strong>Album:</strong></div>
+          <div><strong>Year:</strong></span></div>
         </div>
-        <div>
-          <div><strong>Version:</strong> <span id="version"></span></div>
-          <div><strong>Author:</strong> <span id="author"></span></div>
+        <div style="display: flex; flex-direction: column; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+          <span id="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
+          <span id="artist" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
+          <span id="album" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
+          <span id="year" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
+        </div>
+        <div style="display: flex; flex-direction: column;">
+          <div><strong>Version:</strong></div>
+          <div><strong>Author:</strong></div>
+        </div>
+        <div style="display: flex; flex-direction: column; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+          <span id="version" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
+          <span id="author" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
         </div>
       </div>
       <br>
