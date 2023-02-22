@@ -56,13 +56,13 @@
       </div>
       <br>
       <div style="display: flex; flex-direction: row; gap: 5px;">
-        <label style="margin-top: 10px;" for="game_mode">Game Mode:</label>
+        <label for="game_mode">Game Mode:</label>
         <select id="game_mode" style="margin-right: 10px;">
           <option value="las" selected>Learn A Song</option>
           <option value="sa">Score Attack</option>
         </select>
 
-        <label style="margin-top: 10px;" for="path">Path:</label>
+        <label for="path">Path:</label>
         <select id="path" style="margin-right: 10px;">
         </select>
 
@@ -72,6 +72,10 @@
             <option value="hard" selected>Hard</option>
             <option value="master">Master</option>
           </select>
+        </div>
+
+        <div id="stats_las" style="margin-left: auto; margin-right: 10px; display: none;">
+          <div>Accuracy: <span id="accuracy">100.00%</span></div>
         </div>
       </div>
     </div>
@@ -148,6 +152,7 @@
     // Store data globally so we can react to combo box changes quickly
     let rocksnifferData = null;
     let previousRocksnifferData = null;
+    let songData = null;
     let previousSongData = null;
 
     async function refresh() {
@@ -204,14 +209,43 @@
           lastSnort = 0;
 
           $('div.status').html('Snorting data...');
-          snorted = true;
           await syncData(previousSong);
+          
+          snorted = true;
+          
           await displayData(previousSong);
         }
 
         previousRocksnifferData = rocksnifferData;
 
         $('div.status').html('Sniffing...');
+
+        // If a song is active in learn a song, display stats_las
+        if (selectedGameMode === 'las' && (rocksnifferData['memoryReadout']['gameStage'] === 'las_game' || rocksnifferData['memoryReadout']['gameStage'] === 'nonstopplaygame')) {
+          document.getElementById('stats_las').style.display = 'block';
+
+          const accuracy = rocksnifferData['memoryReadout']['noteData']['Accuracy'];
+          document.getElementById('accuracy').innerText = accuracy.toFixed(2) + '%';
+
+          // Follow the correct arrangment with Rocksniffer
+          const arrangementHash = rocksnifferData['memoryReadout']['arrangementID'];
+          if (songData !== null && snorted === true) {
+
+            // It takes a second for the arrangement ID to update so check that it exists for the current song
+            if (songData['arrangements'].hasOwnProperty(arrangementHash)) {
+              const arrangementName = songData['arrangements'][arrangementHash]['name'];
+              
+              const pathComboBox = document.querySelector('#path');
+              pathComboBox.value = arrangementName;
+
+              let event = new Event('change');
+              pathComboBox.dispatchEvent(event);
+            }
+          }
+        }
+        else {
+          document.getElementById('stats_las').style.display = 'none';
+        }
       }
       else {
         showClass('connected');
@@ -338,7 +372,7 @@
 
       const rocksmithData = await getRocksmithProfileData();
 
-      let songData = {};
+      songData = {};
 
       // Get basic song metadata
       songData['song_key'] = snifferData['songDetails']['songID'];
@@ -352,7 +386,7 @@
       songData['arrangements'] = {};
 
       // Get available paths for song
-      const availablePaths = getAvailablePaths();
+      let availablePaths = getAvailablePaths();
 
       let index = 0;
       snifferData['songDetails']['arrangements'].forEach((arrangement) => {
@@ -414,7 +448,7 @@
         option.text = path['name'];
         option.value = path['name'];
 
-        if (option.value === selectedPath) {
+        if (option.text === selectedPath) {
           option.selected = true;
         }
 
@@ -689,6 +723,7 @@
           document.getElementById('score_attack').style.display = 'none';
         }
         else if (selectedGameMode == 'sa') {
+          document.getElementById('stats_las').style.display = 'none';
           document.getElementById('score_attack').style.display = 'block';
         }
 
