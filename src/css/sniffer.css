@@ -1,8 +1,8 @@
 /*** effect round to square ***/
 
 .coveralbum {
-  width: 88px;
-  height: 88px;
+  width: 100px;
+  height: 100px;
   -moz-border-radius: 50%;
   -webkit-border-radius: 50%;
   -o-border-radius: 50%;

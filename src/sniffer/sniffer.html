@@ -43,26 +43,24 @@
         <div>
           <img class="coveralbum" id="album_art">
         </div>
-        <div style="display: flex; flex-direction: column;">
-          <div><strong>Title:</strong></div>
-          <div><strong>Artist:</strong></div>
-          <div><strong>Album:</strong></div>
-          <div><strong>Year:</strong></span></div>
-        </div>
         <div style="display: flex; flex-direction: column; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-          <span id="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
-          <span id="artist" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
-          <span id="album" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
-          <span id="year" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
+          <h4 id="artist" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 2px;"></h4>
+          <h4 id="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 2px;"></h4>
+          <h4 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 2px;">
+            <span id="album"></span> (<span id="year"></span>)
+          </h4>
+          <div style="font-size: small; margin-left: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            <em>Version <span id="version"></span> - <span id="author"></span></em>
+          </div>
         </div>
-        <div style="display: flex; flex-direction: column;">
+        <!-- <div style="display: flex; flex-direction: column;">
           <div><strong>Version:</strong></div>
           <div><strong>Author:</strong></div>
         </div>
         <div style="display: flex; flex-direction: column; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
           <span id="version" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
           <span id="author" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
-        </div>
+        </div> -->
       </div>
       <br>
       <div style="display: flex; flex-direction: row; gap: 5px;">
