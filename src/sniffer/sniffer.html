@@ -62,7 +62,7 @@
             <div class="circle" id="live_feed_icon" style="margin-right: 10px;"></div>
             <div>Live Feed</div>
           </div>
-          <div id="stats_las" style="display:flex; flex-direction: column; margin-left: auto;">
+          <div id="stats_las" style="display:flex; flex-direction: column; margin-left: auto; display: none;">
             <div style="display:flex; flex-direction: row; margin-left: auto;">
               <span style="margin-right: 10px;">Accuracy:</span><span id="notes_hit">0</span>/<span id="total_notes">0</span>&nbsp;(<span id="accuracy" >NaN</span>)
             </div>
@@ -199,6 +199,11 @@
         // If we are switching songs, don't keep syncing
         let previousSong = false;
         if (rocksnifferData['songDetails']['songID'] !== currentSong) {
+
+          // When the song changes we are not in a song
+          document.getElementById('live_feed_icon').style.backgroundColor = 'red';
+          document.getElementById('stats_las').style.display = 'none';
+
           sync = true;
           pollTime = 0;
           lastSnort = snortRate; // Allow user to snort immediately
@@ -273,7 +278,6 @@
         }
         else {
           document.getElementById('live_feed_icon').style.backgroundColor = 'red';
-          document.getElementById('stats_las').style.display = 'none';
         }
       }
       else {
