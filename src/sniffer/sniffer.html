@@ -150,6 +150,7 @@
     let requestActive = false;
     let currentSong = null;
     let sync = true;
+    let countDown = 10;
 
     // Allow the user to snort data immediately if they wish
     const snortRate = 10000; // Rock Buddy server poll rate
@@ -199,6 +200,7 @@
         // If we are switching songs, don't keep syncing
         let previousSong = false;
         if (rocksnifferData['songDetails']['songID'] !== currentSong) {
+          countDown = 10; // Reset countdown on song change
 
           // When the song changes we are not in a song
           document.getElementById('live_feed_icon').style.backgroundColor = 'red';
@@ -211,7 +213,9 @@
 
           // If new data is detected right as a song is switching, snort the previous song data
           if (newData && previousSongData !== null) {
-            previousSong = true;
+            await syncData(true);
+            requestActive = false;
+            return;
           }
           else {
             currentSong = rocksnifferData['songDetails']['songID'];
@@ -226,19 +230,36 @@
           document.getElementById('snort').disabled = true;
           lastSnort = 0;
 
+          const leaderboardData = document.getElementById('leaderboard_data');
+          leaderboardData.innerHTML = '';
+          const snortText = document.createElement('em');
+          snortText.textContent = '*Snort*';
+          leaderboardData.appendChild(snortText);
+          leaderboardData.style.display = 'block';
+
           selectedPath = await getPreferredPath();
 
           $('div.status').html('Snorting data...');
-          await syncData(previousSong);
 
+          await syncData();
           snorted = true;
+          countDown = 10; // Reset countdown
+          await displayRocsnifferData();
 
-          await displayData(previousSong);
+          await displayLeaderboardData();
+        }
+        else if (pollTime < snortRate && sync === true) {
+          const leaderboardData = document.getElementById('leaderboard_data');
+          leaderboardData.innerHTML = '';
+          leaderboardData.appendChild(document.createTextNode('Snorting data in ' + countDown--));
+          leaderboardData.style.display = 'block';
         }
 
         previousRocksnifferData = rocksnifferData;
 
         $('div.status').html('Sniffing...');
+
+        displayRocsnifferData();
 
         // If a song is active in learn a song, display stats_las
         if (selectedGameMode === 'las' && (rocksnifferData['memoryReadout']['gameStage'] === 'las_game' || rocksnifferData['memoryReadout']['gameStage'] === 'nonstopplaygame')) {
@@ -490,7 +511,9 @@
 
       await syncWithServer(songData);
 
-      previousSongData = songData;
+      if (!previousSong) {
+        previousSongData = songData;
+      }
     }
 
     async function getScoresLAS(snifferData) {
@@ -512,14 +535,18 @@
       return response;
     }
 
-    async function displayData(previousSong = false) {
-      let snifferData = null;
-      if (previousSong) {
-        snifferData = previousRocksnifferData;
-      }
-      else {
-        snifferData = rocksnifferData;
-      }
+    async function displayRocsnifferData() {
+      document.getElementById('album_art').src = 'data:image/jpeg;base64,' + rocksnifferData['songDetails']['albumArt'];
+      document.getElementById('artist').innerText = rocksnifferData['songDetails']['artistName'];
+      document.getElementById('title').innerText = rocksnifferData['songDetails']['songName'];
+      document.getElementById('album').innerText = rocksnifferData['songDetails']['albumName'];
+      document.getElementById('year').innerText = rocksnifferData['songDetails']['albumYear'];
+      document.getElementById('version').innerText = rocksnifferData['songDetails']['toolkit']['version'];
+      document.getElementById('author').innerText = rocksnifferData['songDetails']['toolkit']['author'];
+      document.getElementById('leaderboard_header').style.display = 'block';
+    }
+
+    async function displayLeaderboardData() {
 
       // If snorting has not happened for the current song yet force a snort
       // after the snort displayData will be called again by the refresh
@@ -528,18 +555,9 @@
         return;
       }
 
-      document.getElementById('album_art').src = 'data:image/jpeg;base64,' + snifferData['songDetails']['albumArt'];
-      document.getElementById('artist').innerText = snifferData['songDetails']['artistName'];
-      document.getElementById('title').innerText = snifferData['songDetails']['songName'];
-      document.getElementById('album').innerText = snifferData['songDetails']['albumName'];
-      document.getElementById('year').innerText = snifferData['songDetails']['albumYear'];
-      document.getElementById('version').innerText = snifferData['songDetails']['toolkit']['version'];
-      document.getElementById('author').innerText = snifferData['songDetails']['toolkit']['author'];
-      document.getElementById('leaderboard_header').style.display = 'block';
-
       const leaderboardData = document.getElementById('leaderboard_data');
       if (selectedGameMode === 'las') {
-        const scoresLAS = await getScoresLAS(snifferData);
+        const scoresLAS = await getScoresLAS(rocksnifferData);
         if (scoresLAS === null) {
           // An error has occurred
           return;
@@ -776,7 +794,7 @@
         }
 
         // Update the display (keep things feeling responsive)
-        await displayData();
+        await displayLeaderboardData();
       });
 
       const pathComboBox = document.querySelector('#path');
@@ -785,7 +803,7 @@
         selectedPath = selectedOption.value;
 
         // Update the display (keep things feeling responsive)
-        await displayData();
+        await displayLeaderboardData();
       });
 
       const difficultyComboBox = document.querySelector('#difficulty');
@@ -794,7 +812,7 @@
         selectedDifficulty = selectedOption.value;
 
         // Update the display (keep things feeling responsive)
-        await displayData();
+        await displayLeaderboardData();
       });
 
       if (rocksmithConnected && rocksnifferConnected) {
