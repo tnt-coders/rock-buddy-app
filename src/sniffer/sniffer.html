@@ -39,28 +39,38 @@
   </div>
   <div class="ready" style="display: none;">
     <div id="leaderboard_header" style="display: none;">
-      <div style="display: flex; flex-direction: row; gap: 10px;">
-        <div>
-          <img class="coveralbum" id="album_art">
-        </div>
-        <div style="display: flex; flex-direction: column; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-          <h4 id="artist" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 2px;"></h4>
-          <h4 id="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 2px;"></h4>
-          <h4 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 2px;">
-            <span id="album"></span> (<span id="year"></span>)
-          </h4>
-          <div style="font-size: small; margin-left: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-            <em>Version <span id="version"></span> - <span id="author"></span></em>
+      <div style="display: flex; flex-direction: row; width: 100%;">
+        <div style="display: flex; flex-direction: row; gap: 10px; width: 50%">
+          <div>
+            <img class="coveralbum" id="album_art">
+          </div>
+          <div
+            style="display: flex; flex-direction: column; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            <h4 id="artist" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 2px;"></h4>
+            <h4 id="title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 2px;"></h4>
+            <h4 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 2px;">
+              <span id="album"></span> (<span id="year"></span>)
+            </h4>
+            <div
+              style="font-size: small; margin-left: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              <em>Version <span id="version"></span> - <span id="author"></span></em>
+            </div>
           </div>
         </div>
-        <!-- <div style="display: flex; flex-direction: column;">
-          <div><strong>Version:</strong></div>
-          <div><strong>Author:</strong></div>
+        <div class="live-data" style="display: flex; flex-direction: row; width: 50%">
+          <div style="display:flex; flex-direction: row; width: 50%; align-items: center; align-self: flex-start;">
+            <div class="circle" id="live_feed_icon" style="margin-right: 10px;"></div>
+            <div>Live Feed</div>
+          </div>
+          <div id="stats_las" style="display:flex; flex-direction: column; margin-left: auto;">
+            <div style="display:flex; flex-direction: row; margin-left: auto;">
+              <span style="margin-right: 10px;">Accuracy:</span><span id="notes_hit">0</span>/<span id="total_notes">0</span>&nbsp;(<span id="accuracy" >NaN</span>)
+            </div>
+            <div style="display:flex; flex-direction: row; margin-left: auto;">
+              <span style="margin-left: auto; margin-right: 10px;">Streak:</span><span id="streak">0</span>/<span id="highest_streak"></span>
+            </div>
+          </div>
         </div>
-        <div style="display: flex; flex-direction: column; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-          <span id="version" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
-          <span id="author" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
-        </div> -->
       </div>
       <br>
       <div style="display: flex; flex-direction: row; gap: 5px;">
@@ -80,10 +90,6 @@
             <option value="hard" selected>Hard</option>
             <option value="master">Master</option>
           </select>
-        </div>
-
-        <div id="stats_las" style="margin-left: auto; margin-right: 10px; display: none;">
-          <div>Accuracy: <span id="accuracy">100.00%</span></div>
         </div>
       </div>
     </div>
@@ -120,8 +126,7 @@
   <footer>
     <p>
     <div class="copyright">
-      Copyright &copy; 2023 <a class="tntrocks"
-        href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
+      Copyright &copy; 2023 <a class="tntrocks" href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
     </div>
     <div class="team-mem">
       <a href="./../team.html">Team</a>
@@ -220,7 +225,7 @@
 
           $('div.status').html('Snorting data...');
           await syncData(previousSong);
-          
+
           snorted = true;
 
           await displayData(previousSong);
@@ -233,9 +238,22 @@
         // If a song is active in learn a song, display stats_las
         if (selectedGameMode === 'las' && (rocksnifferData['memoryReadout']['gameStage'] === 'las_game' || rocksnifferData['memoryReadout']['gameStage'] === 'nonstopplaygame')) {
           document.getElementById('stats_las').style.display = 'block';
+          document.getElementById('live_feed_icon').style.backgroundColor = 'green';
+
+          const notesHit = rocksnifferData['memoryReadout']['noteData']['TotalNotesHit'];
+          document.getElementById('notes_hit').innerText = notesHit;
+
+          const totalNotes = rocksnifferData['memoryReadout']['noteData']['TotalNotes'];
+          document.getElementById('total_notes').innerText = totalNotes;
 
           const accuracy = rocksnifferData['memoryReadout']['noteData']['Accuracy'];
           document.getElementById('accuracy').innerText = accuracy.toFixed(2) + '%';
+
+          const streak = rocksnifferData['memoryReadout']['noteData']['CurrentHitStreak'];
+          document.getElementById('streak').innerText = streak;
+
+          const highestStreak = rocksnifferData['memoryReadout']['noteData']['HighestHitStreak'];
+          document.getElementById('highest_streak').innerText = highestStreak;
 
           // Follow the correct arrangment with Rocksniffer
           const arrangementHash = rocksnifferData['memoryReadout']['arrangementID'];
@@ -244,7 +262,7 @@
             // It takes a second for the arrangement ID to update so check that it exists for the current song
             if (songData['arrangements'].hasOwnProperty(arrangementHash)) {
               const arrangementName = songData['arrangements'][arrangementHash]['name'];
-              
+
               const pathComboBox = document.querySelector('#path');
               pathComboBox.value = arrangementName.toLowerCase();
 
@@ -254,6 +272,7 @@
           }
         }
         else {
+          document.getElementById('live_feed_icon').style.backgroundColor = 'red';
           document.getElementById('stats_las').style.display = 'none';
         }
       }
@@ -550,7 +569,7 @@
         // Create data rows
         const columns = ['rank', 'username', 'last_played', 'last_accuracy', 'play_count', 'streak', 'mastery'];
         const columnsAlign = ['right', 'left', 'left', 'right', 'right', 'right', 'right'];
-        
+
         // Keep track of rank
         let rank = 1;
         scoresLAS.forEach((row) => {
@@ -730,7 +749,7 @@
         sessionStorage.setItem('preferred_path', preferredPath);
       }
 
-      return preferredPath;      
+      return preferredPath;
     }
 
     async function main() {
