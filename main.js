@@ -1,5 +1,6 @@
 const { app, BrowserWindow, dialog, ipcMain } = require('electron');
 const Store = require('electron-store');
+const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const aesjs = require('aes-js');
@@ -148,12 +149,44 @@ function createWindow() {
     height: 768,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
+      backgroundThrottling: false
     },
     icon: path.join(__dirname, 'images', 'favicon.ico')
   });
 
   // Hide the menu bar
   win.setMenuBarVisibility(false);
+
+  let serverResponse = null;
+
+  // Start an HTTP server within your Electron app
+  const server = http.createServer((req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    serverResponse = res; // store the response object for later updates
+  });
+
+  // Serve the content of your Electron window via the HTTP server
+  server.listen(8080, 'localhost', () => {
+    console.log('Server running on http://localhost:8080');
+  });
+
+  // Use the webContents object to send updates from your Electron app to the web page
+  setInterval(() => {
+    win.webContents.capturePage().then((image) => {
+      if (serverResponse !== null) {
+        serverResponse.write(image.toDataURL());
+        serverResponse.end();
+      }
+    }).catch((error) => {
+      console.error(error);
+      if (serverResponse !== null) {
+        serverResponse.end();
+      }
+    });
+  }, 1000);
 
   ipcMain.on('info', (event, message) => {
     dialog.showMessageBox({
@@ -218,6 +251,15 @@ function createWindow() {
     }
 
     return result.filePaths[0];
+  });
+
+  // Check if a directory exists
+  ipcMain.handle('directory-exists', async (event, path) => {
+    try {
+      return fs.statSync(path).isDirectory();
+    } catch {
+      return false;
+    }
   });
 
   ipcMain.handle('path-join', async (event, ...args) => {

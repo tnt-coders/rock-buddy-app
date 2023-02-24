@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('api', {
   storeSet: async (key, value) => ipcRenderer.invoke('store-set', key, value),
   storeDelete: async (key) => ipcRenderer.invoke('store-delete', key),
   getPath: async (defaultPath) => ipcRenderer.invoke('get-path', defaultPath),
+  directoryExists: async(path) => ipcRenderer.invoke('directory-exists', path),
   pathJoin: async (...args) => ipcRenderer.invoke('path-join', ...args),
   readFile: async (file) => ipcRenderer.invoke('read-file', file),
   writeFile: async (file, contents) => ipcRenderer.invoke('write-file', file, contents),

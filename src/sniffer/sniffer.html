@@ -724,22 +724,30 @@
       const rocksnifferPort = sessionStorage.getItem('rocksniffer_port');
 
       // If we don't have the host and port, get it
+      let notFound = false;
       if (rocksnifferHost === null || rocksnifferPort === null) {
         const rocksnifferPath = await api.storeGet('user_data.' + userId + '.rocksniffer_path');
         if (rocksnifferPath === null) {
+          notFound = true;
+        }
+        
+        if (!await api.directoryExists(rocksnifferPath)) {
+          notFound = true;
+        }
+
+        if (notFound) {
           document.getElementById('error').innerHTML = '<p>Could not find Rocksniffer. Check that your config settings are correct.</p>';
           showClass('error');
           return false;
         }
 
         // Check that the provided Rocksniffer version is compatible
-        const versionFile = await api.pathJoin(rocksnifferPath, 'version.txt');
-        const version = await api.readFile(versionFile);
+        const regex = /RockSniffer\s(\d+\.\d+\.\d+)$/i;
+        const match = regex.exec(rocksnifferPath);
+        const version = match ? match[1] : null;
         const requiredVersion = 'v0.4.1';
-        if (!await api.semverGte(version, requiredVersion)) {
-          document.getElementById('error').innerHTML = '<p>Unsupported Rocksniffer version. Please update Rocksniffer to at least ' + requiredVersion + '.</p>';
-          showClass('error');
-          return false;
+        if (version === null || !await api.semverGte(version, requiredVersion)) {
+          await api.warning("Rocksniffer version could not be verified.\n\nLeaderboard sniffer may not function as expected.");
         }
 
         const addonConfigFile = await api.pathJoin(rocksnifferPath, 'config', 'addons.json');
