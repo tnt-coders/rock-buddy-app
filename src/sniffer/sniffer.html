@@ -9,13 +9,13 @@
 </head>
 
 <body>
-  <div class="navtop">
+  <div class="navtop" style="min-width: 800px;">
     <a href="../sniffer/sniffer.html">Sniffer</a> |
     <a href="../search/search.html">Search</a> |
     <a href="../account/account.html">Account</a>
     <a href="../config/config.html" style="float: right;">Config</a>
   </div>
-  <div style="display: flex; flex-direction: row; align-items: center; width: 100%;">
+  <div style="display: flex; flex-direction: row; align-items: center; width: 100%; min-width: 800px;">
     <h1>Leaderboard Sniffer</h1>
     <div class="ready" style="margin-left: auto; display: none;">
       <div class="status" style="display: inline-block;">
@@ -40,7 +40,7 @@
   <div class="ready" style="display: none;">
     <div id="leaderboard_header" style="display: none;">
       <div style="display: flex; flex-direction: row; width: 100%;">
-        <div style="display: flex; flex-direction: row; gap: 10px; width: 50%">
+        <div style="display: flex; flex-direction: row; gap: 10px; width: 50%; min-width: 400px;">
           <div>
             <img class="coveralbum" id="album_art">
           </div>
@@ -57,7 +57,7 @@
             </div>
           </div>
         </div>
-        <div class="live-data" style="display: flex; flex-direction: row; width: 50%">
+        <div class="live-data" style="display: flex; flex-direction: row; width: 50%; min-width: 400px;">
           <div style="display:flex; flex-direction: row; width: 50%; align-items: center; align-self: flex-start;">
             <div class="circle" id="live_feed_icon" style="margin-right: 10px;"></div>
             <div><b>Live Feed</b></div>
@@ -98,7 +98,7 @@
       </div>
     </div>
     <br>
-    <div id="leaderboard_data" style="display: none;">
+    <div id="leaderboard_data" style="display: none; min-width: 800px;">
       <p>And this is where I would put my score... <em>IF I HAD ONE!</em></p>
     </div>
   </div>
