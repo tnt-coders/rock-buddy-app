@@ -18,14 +18,14 @@
       <center>
         <ul class="list-team-members">
           <li>
-            <a target="_blank" href="https://www.twitch.tv/tntmusicstudios">
+            <a href="#" onclick="openTwitchTNT()">
               <img src="./../images/TNT.png" />
               <span class="member-title">TNTMusicStudios</span>
               <span class="member-title-hover">Founder/ Lead Developer</span>
             </a>
           </li>
           <li>
-            <a target="_blank" href="https://www.twitch.tv/recontastic">
+            <a href="#" onclick="openTwitchRecon()">
               <img src="./../images/recon.png" />
               <span class="member-title">Recontastic</span>
               <span class="member-title-hover">UI Designer/ Rubber Ducky</span>
@@ -44,6 +44,15 @@
     <img src="./../images/boulder-bro.png" alt="you found him!">
   </div>
   <script>
+
+    function openTwitchTNT() {
+      api.openExternalLink('https://www.twitch.tv/tntmusicstudios');
+    }
+
+    function openTwitchRecon() {
+      api.openExternalLink('https://www.twitch.tv/recontastic');
+    }
+
     const pressed = [];
     const secretCode = 'ArrowUpArrowUpArrowDownArrowDownArrowLeftArrowRightArrowLeftArrowRightba';
     const modal = document.getElementById('modal');

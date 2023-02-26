@@ -60,14 +60,18 @@
         <div class="live-data" style="display: flex; flex-direction: row; width: 50%">
           <div style="display:flex; flex-direction: row; width: 50%; align-items: center; align-self: flex-start;">
             <div class="circle" id="live_feed_icon" style="margin-right: 10px;"></div>
-            <div>Live Feed</div>
+            <div><b>Live Feed</b></div>
           </div>
           <div id="stats_las" style="display:flex; flex-direction: column; margin-left: auto; display: none;">
             <div style="display:flex; flex-direction: row; margin-left: auto;">
-              <span style="margin-right: 10px;">Accuracy:</span><span id="notes_hit">0</span>/<span id="total_notes">0</span>&nbsp;(<span id="accuracy" >NaN</span>)
+              <span style="margin-right: 10px;"><b>Accuracy:</b></span><span id="notes_hit">0</span>/<span id="total_notes">0</span>&nbsp;(<span id="accuracy" >NaN</span>)
             </div>
             <div style="display:flex; flex-direction: row; margin-left: auto;">
-              <span style="margin-left: auto; margin-right: 10px;">Streak:</span><span id="streak">0</span>/<span id="highest_streak"></span>
+              <span style="margin-left: auto; margin-right: 10px;"><b>Streak:</b></span><span id="streak">0</span>/<span id="highest_streak">0</span>
+            </div>
+            <br>
+            <div style="display:flex; flex-direction: row; margin-left: auto;">
+              <span style="margin-left: auto;margin-right: 10px;"><b>Time:</b></span><span id="song_timer">00:00</span>/<span id="song_length">00:00</span>
             </div>
           </div>
         </div>
@@ -280,6 +284,12 @@
 
           const highestStreak = rocksnifferData['memoryReadout']['noteData']['HighestHitStreak'];
           document.getElementById('highest_streak').innerText = highestStreak;
+
+          const songTimer = rocksnifferData['memoryReadout']['songTimer'];
+          document.getElementById('song_timer').innerText = durationString(songTimer);
+
+          const songLength = rocksnifferData['songDetails']['songLength'];
+          document.getElementById('song_length').innerText = durationString(songLength);
 
           // Follow the correct arrangment with Rocksniffer
           const arrangementHash = rocksnifferData['memoryReadout']['arrangementID'];

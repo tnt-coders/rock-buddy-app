@@ -208,3 +208,20 @@ function validatePassword(password, confirmPassword) {
 
   return true;
 }
+
+//Convert a number to a duration "hh:mm:ss"
+function durationString(tSeconds) {
+	var hh = Math.floor(tSeconds / 3600);
+	var mm = Math.floor((tSeconds - (hh * 3600)) / 60);
+	var ss = Math.floor(tSeconds % 60);
+
+	if(hh < 10) {hh = "0"+hh;}
+	if(mm < 10) {mm = "0"+mm;}
+	if(ss < 10) {ss = "0"+ss;}
+
+	if(hh > 0) {
+		return hh+":"+mm+":"+ss;
+	} else {
+		return mm+":"+ss;
+	}
+}

@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld('api', {
   info: (message) => ipcRenderer.send('info', message),
   warning: (message) => ipcRenderer.send('warning', message),
   error: (message) => ipcRenderer.send('error', message),
+  openExternalLink: (url) => ipcRenderer.send('open-external-link', url),
   getVersion: async () => ipcRenderer.invoke('get-version'),
   getHost: async () => ipcRenderer.invoke('get-host'),
   storeGet: async (key) => ipcRenderer.invoke('store-get', key),
