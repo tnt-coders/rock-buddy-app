@@ -323,91 +323,6 @@
       document.getElementById('snort').disabled = true;
     }
 
-    function getAvailablePaths() {
-      let paths = [];
-
-      // Get bonus and alt count by looping through once
-      let bonusCount = {};
-      let altCount = {};
-      rocksnifferData['songDetails']['arrangements'].forEach((arrangement) => {
-        const type = arrangement['type'];
-
-        // If it is a bonus arrangement build the appropriate name
-        if (arrangement['isBonusArrangement']) {
-          if (!bonusCount.hasOwnProperty(type)) {
-            bonusCount[type] = 0;
-          }
-          bonusCount[type]++;
-        }
-
-        // If it is an alt arrangement build the appropriate name
-        else if (arrangement['isAlternateArrangement']) {
-          if (!altCount.hasOwnProperty(type)) {
-            altCount[type] = 0;
-          }
-          altCount[type]++;
-        }
-      });
-
-      // Keep track of bonus and alt indexes to handle bonus and alt arrangement types
-      let bonusIndex = 1;
-      let altIndex = 1;
-      let index = 0;
-      rocksnifferData['songDetails']['arrangements'].forEach((arrangement) => {
-        let path = '';
-        let sortString = '';
-
-        // Special logic to handle bonus and alt arrangement types
-        const type = arrangement['type'];
-
-        if (type === 'Lead') {
-          sortString += 'a';
-        }
-        else if (type === 'Rhythm') {
-          sortString += 'b';
-        }
-        else if (type === 'Bass') {
-          sortString += 'c';
-        }
-
-        // If it is a bonus arrangement build the appropriate name
-        if (arrangement['isBonusArrangement']) {
-          path = 'Bonus ' + type;
-          sortString += 'b';
-
-          if (bonusCount[type] > 1) {
-            path += ' ' + bonusIndex;
-            sortString += bonusIndex;
-          }
-
-          bonusIndex++;
-        }
-
-        // If it is an alt arrangement build the appropriate name
-        else if (arrangement['isAlternateArrangement']) {
-          path = 'Alternate ' + type;
-          sortString += 'a';
-
-          if (altCount[type] > 1) {
-            path += ' ' + altIndex;
-            sortString += altIndex;
-          }
-
-          altIndex++
-        }
-        else {
-          path = arrangement['type'];
-        }
-
-        paths[index++] = {
-          name: path,
-          sort: sortString
-        };
-      });
-
-      return paths;
-    }
-
     async function syncWithServer(songData) {
       const authData = JSON.parse(sessionStorage.getItem('auth_data'));
 
@@ -450,15 +365,30 @@
       songData['arrangements'] = {};
 
       // Get available paths for song
-      let availablePaths = getAvailablePaths();
+      let availablePaths = getAvailablePaths(snifferData['songDetails']['arrangements']);
+      let availablePathNames = availablePaths.map((path) => {
+        return path.name;
+      });
 
-      let index = 0;
       snifferData['songDetails']['arrangements'].forEach((arrangement) => {
         const hash = arrangement['arrangementID'];
 
         let arrangementData = {};
 
-        arrangementData['name'] = availablePaths[index++]['name'];
+        let path = null;
+        availablePaths.forEach((availablePath) => {
+          if (availablePath.hash === hash) {
+            path = availablePath;
+          }
+        });
+
+        // This should never happen but add check just in case
+        if (path === null) {
+          console.error('Invalid path encountered: ' + hash);
+          return;
+        }
+
+        arrangementData['name'] = path['name'];
         arrangementData['hash'] = hash;
 
         const lasDataExists = rocksmithData['Stats']['Songs'].hasOwnProperty(hash);
@@ -494,10 +424,6 @@
 
         songData['arrangements'][hash] = arrangementData;
       });
-
-      // Sort the available paths
-      availablePaths.sort((a, b) => a['sort'].localeCompare(b['sort']));
-      const availablePathNames = availablePaths.map(obj => obj['name'].toLowerCase());
 
       // If the selected path doesn't exist for this song, update it to one that does
       if (!availablePathNames.includes(selectedPath)) {
