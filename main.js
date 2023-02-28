@@ -186,7 +186,7 @@ function createWindow() {
         serverResponse.end();
       }
     });
-  }, 1000);
+  }, 100);
 
   ipcMain.on('info', (event, message) => {
     dialog.showMessageBox({
