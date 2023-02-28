@@ -45,7 +45,13 @@ async function post(url, data) {
       console.error(response.status + ': ' + response.statusText);
     }
 
-    return await response.json();
+    const responseJson = await response.json();
+    if (responseJson.hasOwnProperty('error') && responseJson['error'] === 'Invalid API key.') {
+      api.error("Your API key has expired.\n\nPlease log back in to verify your identity.");
+      window.location.href = './logout.html';
+    }
+
+    return responseJson;
   } catch (error) {
     return JSON.stringify({
       error: error.toString()
