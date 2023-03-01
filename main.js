@@ -148,7 +148,7 @@ function createWindow() {
   let screenHeight = 768;
 
   const authData = store.get('auth_data');
-  if (authData !== null) {
+  if (authData !== undefined) {
     const userId = authData['user_id'];
 
     const savedScreenWidth = store.get('user_data.' + userId + '.screen_width');
@@ -176,7 +176,7 @@ function createWindow() {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
       const authData = store.get('auth_data');
-      if (authData !== null) {
+      if (authData !== undefined) {
         const userId = authData['user_id'];
 
         store.set('user_data.' + userId + '.screen_width', width);
