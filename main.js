@@ -144,14 +144,45 @@ function getRocksmithProfileData(steamUserDataPath, steamProfile, rocksmithProfi
 function createWindow() {
   init();
 
+  let screenWidth = 1024;
+  let screenHeight = 768;
+
+  const authData = store.get('auth_data');
+  if (authData !== null) {
+    const userId = authData['user_id'];
+
+    const savedScreenWidth = store.get('user_data.' + userId + '.screen_width');
+    const savedScreenHeight = store.get('user_data.' + userId + '.screen_height');
+    if (savedScreenWidth !== undefined && savedScreenHeight !== undefined) {
+      screenWidth = savedScreenWidth;
+      screenHeight = savedScreenHeight;
+    }
+  }
+
   const win = new BrowserWindow({
-    width: 1024,
-    height: 768,
+    width: screenWidth,
+    height: screenHeight,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       backgroundThrottling: false
     },
     icon: path.join(__dirname, 'images', 'favicon.ico')
+  });
+
+  let resizeTimer;
+  win.on('resize', () => {
+    const { width, height } = win.getBounds();
+
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      const authData = store.get('auth_data');
+      if (authData !== null) {
+        const userId = authData['user_id'];
+
+        store.set('user_data.' + userId + '.screen_width', width);
+        store.set('user_data.' + userId + '.screen_height', height);
+      }
+    }, 500);
   });
 
   // Hide the menu bar
@@ -174,7 +205,7 @@ function createWindow() {
   });
 
   // Use the webContents object to send updates from your Electron app to the web page
-  setInterval(() => {
+  let captureInterval = setInterval(() => {
     win.webContents.capturePage().then((image) => {
       if (serverResponse !== null) {
         serverResponse.write(image.toDataURL());
@@ -187,6 +218,11 @@ function createWindow() {
       }
     });
   }, 100);
+
+  // Clear the interval when the window is closed to prevent errors
+  win.on('close', () => {
+    clearInterval(captureInterval);
+  });
 
   ipcMain.on('info', (event, message) => {
     dialog.showMessageBox({
@@ -209,6 +245,17 @@ function createWindow() {
       type: 'error',
       message: message,
       buttons: ['OK']
+    });
+  });
+
+  ipcMain.handle('get-window-size', (event) => {
+    return win.getBounds();
+  });
+
+  ipcMain.on('set-window-size', (event, width, height) => {
+    win.setBounds({
+      width: parseInt(width),
+      height: parseInt(height)
     });
   });
 

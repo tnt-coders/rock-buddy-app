@@ -4,6 +4,8 @@ contextBridge.exposeInMainWorld('api', {
   info: (message) => ipcRenderer.send('info', message),
   warning: (message) => ipcRenderer.send('warning', message),
   error: (message) => ipcRenderer.send('error', message),
+  getWindowSize: async () => ipcRenderer.invoke('get-window-size'),
+  setWindowSize: async (width, height) => ipcRenderer.send('set-window-size', width, height),
   openExternalLink: (url) => ipcRenderer.send('open-external-link', url),
   getVersion: async () => ipcRenderer.invoke('get-version'),
   getHost: async () => ipcRenderer.invoke('get-host'),

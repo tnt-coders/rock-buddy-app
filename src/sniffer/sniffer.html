@@ -40,7 +40,7 @@
   <div class="ready" style="display: none;">
     <div id="leaderboard_header" style="display: none;">
       <div style="display: flex; flex-direction: row; width: 100%;">
-        <div style="display: flex; flex-direction: row; gap: 10px; width: 50%; min-width: 400px;">
+        <div style="display: flex; flex-direction: row; gap: 10px; width: 60%; min-width: 480px;">
           <div>
             <img class="coveralbum" id="album_art">
           </div>
@@ -57,7 +57,7 @@
             </div>
           </div>
         </div>
-        <div class="live-data" style="display: flex; flex-direction: row; width: 50%; min-width: 400px;">
+        <div class="live-data" style="display: flex; flex-direction: row; width: 40%; min-width: 320px;">
           <div style="display:flex; flex-direction: row; width: 50%; align-items: center; align-self: flex-start;">
             <div class="circle" id="live_feed_icon" style="margin-right: 10px;"></div>
             <div><b>Live Feed</b></div>
@@ -514,7 +514,7 @@
         // Create header row
         const headerRow = document.createElement('tr');
 
-        const headers = ['Rank', 'Username', 'Last Played', 'Last Accuracy', 'Play Count', 'Streak', 'Mastery'];
+        const headers = ['Rank', 'Username', 'Last Played', 'Play Count', 'Streak', 'Mastery'];
         headers.forEach((header) => {
           const headerCell = document.createElement('th');
           headerCell.style.fontFamily = "Roboto Mono, monospace";
@@ -525,8 +525,8 @@
         table.appendChild(headerRow);
 
         // Create data rows
-        const columns = ['rank', 'username', 'last_played', 'last_accuracy', 'play_count', 'streak', 'mastery'];
-        const columnsAlign = ['right', 'left', 'left', 'right', 'right', 'right', 'right'];
+        const columns = ['rank', 'username', 'last_played', 'play_count', 'streak', 'mastery'];
+        const columnsAlign = ['right', 'left', 'left', 'right', 'right', 'right'];
 
         // Keep track of rank
         let rank = 1;
@@ -541,7 +541,7 @@
             if (column === 'rank') {
               dataCell.appendChild(document.createTextNode(rank++));
             }
-            else if (column === 'mastery' || column === 'last_accuracy') {
+            else if (column === 'mastery') {
               const percentage = (row[column] * 100).toFixed(2) + '%';
               dataCell.appendChild(document.createTextNode(percentage));
             }

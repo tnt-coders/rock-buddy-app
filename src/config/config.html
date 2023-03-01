@@ -35,7 +35,13 @@
   <h3 style="margin-top: 0px;">Preferences</h3>
   <div id="preferences"></div>
   <div style="display: flex; flex-direction:column; gap: 10px;">
-    <div style="display: flex; flex-direction: row; align-items: center; width: 100%;">
+    <div style="display: flex; flex-direction: row;">
+      <span style="margin-right: 10px;">Window Size:</span>
+      <input type="number" id="window_width" style="width: 100px; margin-right: 10px;">
+      <span style="margin-right: 10px">x</span>
+      <input type="number" id="window_height" style="width: 100px;">
+    </div>
+    <div style="display: flex; flex-direction: row;">
       <label for="preferred_path" style="margin-right: 10px;">Preferred Path:</label>
       <select id="preferred_path" style="margin-right: 10px;">
         <option value="lead" selected>Lead</option>
@@ -128,6 +134,25 @@
         let event = new Event('change');
         comboBox.dispatchEvent(event);
       }
+
+      const windowWidthEntry = document.getElementById('window_width');
+      const windowHeightEntry = document.getElementById('window_height');
+
+      const { width, height } = await api.getWindowSize();
+      windowWidthEntry.value = width;
+      windowHeightEntry.value = height;
+
+      windowWidthEntry.addEventListener('change', async () => {
+        let windowWidth = windowWidthEntry.value;
+        let windowHeight = windowHeightEntry.value;
+        api.setWindowSize(windowWidth, windowHeight);
+      });
+
+      windowHeightEntry.addEventListener('change', async () => {
+        let windowWidth = windowWidthEntry.value;
+        let windowHeight = windowHeightEntry.value;
+        api.setWindowSize(windowWidth, windowHeight);
+      });
     }
 
     async function getSteamUserDataPath() {
