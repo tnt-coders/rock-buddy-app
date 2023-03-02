@@ -248,7 +248,7 @@
           await syncData();
           snorted = true;
           countDown = 10; // Reset countdown
-          await displayRocsnifferData();
+          await displayRocksnifferData();
 
           await displayLeaderboardData();
         }
@@ -263,7 +263,7 @@
 
         $('div.status').html('Sniffing...');
 
-        displayRocsnifferData();
+        displayRocksnifferData();
 
         // If a song is active in learn a song, display stats_las
         if (selectedGameMode === 'las' && (rocksnifferData['memoryReadout']['gameStage'] === 'las_game' || rocksnifferData['memoryReadout']['gameStage'] === 'nonstopplaygame')) {
@@ -300,10 +300,12 @@
               const arrangementName = songData['arrangements'][arrangementHash]['name'];
 
               const pathComboBox = document.querySelector('#path');
-              pathComboBox.value = arrangementName.toLowerCase();
+              if (path.pathComboBox.value !== arrangementName.toLowerCase()) {
+                pathComboBox.value = arrangementName.toLowerCase();
 
-              let event = new Event('change');
-              pathComboBox.dispatchEvent(event);
+                let event = new Event('change');
+                pathComboBox.dispatchEvent(event);
+              }
             }
           }
         }
@@ -471,7 +473,7 @@
       return response;
     }
 
-    async function displayRocsnifferData() {
+    async function displayRocksnifferData() {
       document.getElementById('album_art').src = 'data:image/jpeg;base64,' + rocksnifferData['songDetails']['albumArt'];
       document.getElementById('artist').innerText = rocksnifferData['songDetails']['artistName'];
       document.getElementById('title').innerText = rocksnifferData['songDetails']['songName'];
