@@ -300,7 +300,7 @@
               const arrangementName = songData['arrangements'][arrangementHash]['name'];
 
               const pathComboBox = document.querySelector('#path');
-              if (path.pathComboBox.value !== arrangementName.toLowerCase()) {
+              if (pathComboBox.value !== arrangementName.toLowerCase()) {
                 pathComboBox.value = arrangementName.toLowerCase();
 
                 let event = new Event('change');
