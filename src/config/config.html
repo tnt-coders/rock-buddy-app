@@ -119,7 +119,7 @@
       // Update the combo box
       const comboBox = document.querySelector('#preferred_path');
 
-      // Link the combo box selected option to the saved Rocksmith profile
+      // Link the combo box selected option to the user's preferred path
       comboBox.addEventListener('change', async () => {
         const selectedOption = comboBox.options[comboBox.selectedIndex];
         const selectedPath = selectedOption.value;

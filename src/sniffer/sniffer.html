@@ -369,7 +369,7 @@
       // Get available paths for song
       let availablePaths = getAvailablePaths(snifferData['songDetails']['arrangements']);
       let availablePathNames = availablePaths.map((path) => {
-        return path.name;
+        return path.name.toLowerCase();
       });
 
       snifferData['songDetails']['arrangements'].forEach((arrangement) => {
