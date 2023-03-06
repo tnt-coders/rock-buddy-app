@@ -179,10 +179,10 @@ function createWindow() {
     width: screenWidth,
     height: screenHeight,
     webPreferences: {
-      preload: path.join(appRoot, 'dist', 'preload.js'),
+      preload: path.join(__dirname, '..', 'dist', 'preload.js'),
       backgroundThrottling: false
     },
-    icon: path.join(appRoot, 'images', 'favicon.ico')
+    icon: path.join(__dirname, '..', 'images', 'favicon.ico')
   });
 
   let resizeTimer;
