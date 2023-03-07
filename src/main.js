@@ -191,13 +191,7 @@ function createWindow() {
 
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
-      const authData = store.get('auth_data');
-      if (authData !== undefined) {
-        const userId = authData['user_id'];
-
-        store.set('user_data.' + userId + '.screen_width', width);
-        store.set('user_data.' + userId + '.screen_height', height);
-      }
+      win.webContents.send('window-resized', width, height);
     }, 500);
   });
 

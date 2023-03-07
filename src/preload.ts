@@ -1,5 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
+declare type windowResizeCallback = (width: number, height: number) => void;
+
 export const API = {
   info: (message: string) => ipcRenderer.send('info', message),
   warning: (message: string) => ipcRenderer.send('warning', message),
@@ -22,7 +24,8 @@ export const API = {
   getSteamProfiles: async (steamUserDataPath: string) => ipcRenderer.invoke('get-steam-profiles', steamUserDataPath),
   getRocksmithProfiles: async (steamUserDataPath: string, steamProfile: string) => ipcRenderer.invoke('get-rocksmith-profiles', steamUserDataPath, steamProfile),
   checkForNewRocksmithProfileData: async (steamUserDataPath: string, steamProfile: string, rocksmithProfile: string) => ipcRenderer.invoke('check-for-new-rocksmith-profile-data', steamUserDataPath, steamProfile, rocksmithProfile),
-  getRocksmithProfileData: async (steamUserDataPath: string, steamProfile: string, rocksmithProfile: string) => ipcRenderer.invoke('get-rocksmith-profile-data', steamUserDataPath, steamProfile, rocksmithProfile)
+  getRocksmithProfileData: async (steamUserDataPath: string, steamProfile: string, rocksmithProfile: string) => ipcRenderer.invoke('get-rocksmith-profile-data', steamUserDataPath, steamProfile, rocksmithProfile),
+  windowResized: (callback: windowResizeCallback) => ipcRenderer.on('window-resized', (callback))
 };
 
 contextBridge.exposeInMainWorld('api', API);

@@ -18,8 +18,10 @@
 
   <div style="display: flex; flex-direction: row; align-items: center; width: 100%;">
     <h1 style="display: inline;">Config</h1>
-    <label style="margin-left: auto; margin-right: 10px;" id="streamer-color-name" for="streamer-color">Background Color:</label>
-    <input style="margin-right: 20px;" type="color" id="streamer-color" name="streamer-color" onchange="setStreamerColor()">
+    <label style="margin-left: auto; margin-right: 10px;" id="streamer-color-name" for="streamer-color">Background
+      Color:</label>
+    <input style="margin-right: 20px;" type="color" id="streamer-color" name="streamer-color"
+      onchange="setStreamerColor()">
 
     <label style="margin-right: 10px;" id="streamer-text-color-name" for="streamer-text-color">Text Color:</label>
     <input class="colortext" type="color" id="streamer-text-color" name="streamer-text-color"
@@ -32,43 +34,52 @@
       <option value="streamer">Custom</option>
     </select>
   </div>
-  <h3 style="margin-top: 0px;">Preferences</h3>
-  <div id="preferences"></div>
-  <div style="display: flex; flex-direction:column; gap: 10px;">
-    <div style="display: flex; flex-direction: row;">
-      <span style="margin-right: 10px;">Window Size:</span>
-      <input type="number" id="window_width" style="width: 100px; margin-right: 10px;">
-      <span style="margin-right: 10px">x</span>
-      <input type="number" id="window_height" style="width: 100px;">
-    </div>
-    <div style="display: flex; flex-direction: row;">
-      <label for="preferred_path" style="margin-right: 10px;">Preferred Path:</label>
-      <select id="preferred_path" style="margin-right: 10px;">
-        <option value="lead" selected>Lead</option>
-        <option value="rhythm">Rhythm</option>
-        <option value="bass">Bass</option>
-      </select>
+  <h2 style="margin-top: 0px;">Settings</h2>
+  <div id="settings">
+    <div style="display: flex; flex-direction:column; gap: 10px;">
+      <div style="display: flex; flex-direction: row;">
+        <span style="margin-right: 10px; font-weight: bold; min-width: 200px;">Steam User Data Path:</span>
+        <span id="steam_user_data_path">[none selected]</span>
+        <div style="margin-left: auto;">
+          <button class="btn-primary" onclick="getSteamUserDataPath()">Browse</button>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: row;">
+        <span style="margin-right: 10px; font-weight: bold; min-width: 200px;">Steam Profile:</span>
+        <select id="steam_profile"></select>
+      </div>
+      <div style="display: flex; flex-direction: row;">
+        <span style="margin-right: 10px; font-weight: bold; min-width: 200px;">Rocksmith Profile:</span>
+        <select id="rocksmith_profile"></select>
+      </div>
+      <div style="display: flex; flex-direction: row;">
+        <span style="margin-right: 10px; font-weight: bold; min-width: 200px;">Rocksniffer Path:</span>
+        <span id="rocksniffer_path">[none selected]</span>
+        <div style="margin-left: auto;">
+          <button class="btn-primary" onclick="getRocksnifferPath()">Browse</button>
+        </div>
+      </div>
     </div>
   </div>
   <hr>
-  <h3>Steam User Data Path</h3>
-  <div id="steam_user_data_path" style="display: inline;">[none selected]</div>
-  <div style="display: inline; float: right;">
-    <button class="btn-primary" onclick="getSteamUserDataPath()">Browse</button>
-  </div>
-  <hr>
-  <h3>Steam Profile</h3>
-  <select id="steam_profile">
-  </select>
-  <hr>
-  <h3>Rocksmith Profile</h3>
-  <select id="rocksmith_profile">
-  </select>
-  <hr>
-  <h3>Rocksniffer Path</h3>
-  <div id="rocksniffer_path" style="display: inline;">[none selected]</div>
-  <div style="display: inline; float: right;">
-    <button class="btn-primary" onclick="getRocksnifferPath()">Browse</button>
+  <h2>Preferences</h2>
+  <div id="preferences">
+    <div style="display: flex; flex-direction:column; gap: 10px;">
+      <div style="display: flex; flex-direction: row;">
+        <span style="margin-right: 10px; font-weight: bold; min-width: 200px;">Window Size:</span>
+        <input type="number" id="window_width" style="width: 100px; margin-right: 10px;">
+        <span style="margin-right: 10px">x</span>
+        <input type="number" id="window_height" style="width: 100px;">
+      </div>
+      <div style="display: flex; flex-direction: row;">
+        <label for="preferred_path" style="margin-right: 10px; font-weight: bold; min-width: 200px;">Preferred Path:</label>
+        <select id="preferred_path" style="margin-right: 10px;">
+          <option value="lead" selected>Lead</option>
+          <option value="rhythm">Rhythm</option>
+          <option value="bass">Bass</option>
+        </select>
+      </div>
+    </div>
   </div>
   <hr>
   <div id="modal" class="modal">
@@ -113,6 +124,16 @@
 
     const userId = JSON.parse(sessionStorage.getItem('auth_data'))['user_id'];
 
+    api.windowResized((event, width, height) => {
+      console.log('GOT THERE');
+      const windowWidthEntry = document.getElementById('window_width');
+      const windowHeightEntry = document.getElementById('window_height');
+      windowWidthEntry.value = width;
+      windowHeightEntry.value = height;
+      api.storeSet('user_data.' + userId + '.screen_width', width);
+      api.storeSet('user_data.' + userId + '.screen_height', height);
+    });
+
     async function getPreferences() {
       const preferredPath = await api.storeGet('user_data.' + userId + '.preferred_path');
 
@@ -146,12 +167,14 @@
         let windowWidth = windowWidthEntry.value;
         let windowHeight = windowHeightEntry.value;
         api.setWindowSize(windowWidth, windowHeight);
+        api.storeSet('user_data.' + userId + '.screen_width', width);
       });
 
       windowHeightEntry.addEventListener('change', async () => {
         let windowWidth = windowWidthEntry.value;
         let windowHeight = windowHeightEntry.value;
         api.setWindowSize(windowWidth, windowHeight);
+        api.storeSet('user_data.' + userId + '.screen_height', height);
       });
     }
 
