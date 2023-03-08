@@ -25,14 +25,13 @@
   },
   "build": {
     "icon": "images/icon-256x256",
-    "extraFiles": [
-      "addons"
-    ],
+    "target": "nsis",
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
     "directories": {
       "output": "release"
-    },
-    "win": {
-      "target": "zip"
     }
   }
 }

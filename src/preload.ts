@@ -25,6 +25,8 @@ export const API = {
   getRocksmithProfiles: async (steamUserDataPath: string, steamProfile: string) => ipcRenderer.invoke('get-rocksmith-profiles', steamUserDataPath, steamProfile),
   checkForNewRocksmithProfileData: async (steamUserDataPath: string, steamProfile: string, rocksmithProfile: string) => ipcRenderer.invoke('check-for-new-rocksmith-profile-data', steamUserDataPath, steamProfile, rocksmithProfile),
   getRocksmithProfileData: async (steamUserDataPath: string, steamProfile: string, rocksmithProfile: string) => ipcRenderer.invoke('get-rocksmith-profile-data', steamUserDataPath, steamProfile, rocksmithProfile),
+  enableAddons: async (port: number) => ipcRenderer.send('enable-addons', port),
+  disableAddons: async () => ipcRenderer.send('disable-addons'),
   windowResized: (callback: windowResizeCallback) => ipcRenderer.on('window-resized', (callback))
 };
 
