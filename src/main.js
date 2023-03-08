@@ -1,10 +1,14 @@
 const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron');
+const isDev = require('electron-is-dev');
 const Store = require('electron-store');
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const aesjs = require('aes-js');
 const { unzipSync } = require('node:zlib');
+
+// Get the app root
+const appRoot = isDev ? path.join(__dirname, '..') : path.join(process.resourcesPath, '..');
 
 // Process input args
 const args = process.argv.slice(2);
@@ -144,6 +148,7 @@ function getRocksmithProfileData(steamUserDataPath, steamProfile, rocksmithProfi
 function createWindow() {
   init();
 
+  // Get screen width/height
   let screenWidth = 1024;
   let screenHeight = 768;
 
@@ -163,10 +168,10 @@ function createWindow() {
     width: screenWidth,
     height: screenHeight,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, '..', 'dist', 'preload.js'),
       backgroundThrottling: false
     },
-    icon: path.join(__dirname, 'images', 'favicon.ico')
+    icon: path.join(__dirname, '..', 'images', 'favicon.ico')
   });
 
   let resizeTimer;
@@ -175,20 +180,16 @@ function createWindow() {
 
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
-      const authData = store.get('auth_data');
-      if (authData !== undefined) {
-        const userId = authData['user_id'];
-
-        store.set('user_data.' + userId + '.screen_width', width);
-        store.set('user_data.' + userId + '.screen_height', height);
-      }
+      win.webContents.send('window-resized', width, height);
     }, 500);
   });
 
   // Hide the menu bar
   win.setMenuBarVisibility(false);
 
+  // Addon web server setup
   let serverResponse = null;
+  let captureInterval = null;
 
   // Start an HTTP server within your Electron app
   const server = http.createServer((req, res) => {
@@ -199,29 +200,13 @@ function createWindow() {
     serverResponse = res; // store the response object for later updates
   });
 
-  // Serve the content of your Electron window via the HTTP server
-  server.listen(8080, 'localhost', () => {
-    console.log('Server running on http://localhost:8080');
-  });
-
-  // Use the webContents object to send updates from your Electron app to the web page
-  let captureInterval = setInterval(() => {
-    win.webContents.capturePage().then((image) => {
-      if (serverResponse !== null) {
-        serverResponse.write(image.toDataURL());
-        serverResponse.end();
-      }
-    }).catch((error) => {
-      console.error(error);
-      if (serverResponse !== null) {
-        serverResponse.end();
-      }
-    });
-  }, 100);
-
   // Clear the interval when the window is closed to prevent errors
   win.on('close', () => {
-    clearInterval(captureInterval);
+    if (captureInterval !== null) {
+      clearInterval(captureInterval);
+    }
+
+    server.close();
   });
 
   ipcMain.on('info', (event, message) => {
@@ -264,7 +249,7 @@ function createWindow() {
   });
 
   ipcMain.handle('get-version', (event) => {
-    return require('./package.json').version;
+    return require('../package.json').version;
   });
 
   ipcMain.handle('get-host', (event) => {
@@ -362,6 +347,45 @@ function createWindow() {
   ipcMain.handle('get-rocksmith-profile-data', (event, steamUserDataPath, steamProfile, rocksmithProfile) => {
     return getRocksmithProfileData(steamUserDataPath, steamProfile, rocksmithProfile);
   });
+
+  ipcMain.on('enable-addons', (event, port) => {
+
+    // Serve the content of your Electron window via the HTTP server
+    server.listen(port, 'localhost', () => {
+      console.log('Server running on http://localhost:' + port);
+    });
+
+    if (captureInterval !== null) {
+      clearInterval(captureInterval);
+      captureInterval = null;
+    }
+
+    // Use the webContents object to send updates from your Electron app to the web page
+    captureInterval = setInterval(() => {
+      win.webContents.capturePage().then((image) => {
+        if (serverResponse !== null) {
+          serverResponse.write(image.toDataURL());
+          serverResponse.end();
+        }
+      }).catch((error) => {
+        console.error(error);
+        if (serverResponse !== null) {
+          serverResponse.end();
+        }
+      });
+    }, 100);
+  })
+
+  ipcMain.on('disable-addons', (event) => {
+    if (captureInterval !== null) {
+      clearInterval(captureInterval);
+      captureInterval = null;
+    }
+
+    if (server.listening) {
+      server.close();
+    }
+  })
 
   win.loadFile('src/index.html');
 }

@@ -18,57 +18,84 @@
 
   <div style="display: flex; flex-direction: row; align-items: center; width: 100%;">
     <h1 style="display: inline;">Config</h1>
-    <label style="margin-left: auto; margin-right: 10px;" id="streamer-color-name" for="streamer-color">Background Color:</label>
-    <input style="margin-right: 20px;" type="color" id="streamer-color" name="streamer-color" onchange="setStreamerColor()">
+    <label style="margin-left: auto; margin-right: 10px;" id="streamer-color-name" for="streamer-color">Background
+      Color:</label>
+    <input style="margin-right: 20px;" type="color" id="streamer-color" name="streamer-color"
+      onchange="setStreamerColor()">
 
     <label style="margin-right: 10px;" id="streamer-text-color-name" for="streamer-text-color">Text Color:</label>
     <input class="colortext" type="color" id="streamer-text-color" name="streamer-text-color"
       onchange="setStreamerTextColor()">
     <label for="theme-select" style="margin-left: auto;">Theme:</label>
-    <select id="theme-select" style="margin-left: 10px;" onchange="setTheme()">
+    <select id="theme-select" style="margin-left: 10px; min-width: 100px;" onchange="setTheme()">
       <option value="light">Light</option>
       <option value="dark">Dark</option>
       <option value="classic">Retro</option>
       <option value="streamer">Custom</option>
     </select>
   </div>
-  <h3 style="margin-top: 0px;">Preferences</h3>
-  <div id="preferences"></div>
-  <div style="display: flex; flex-direction:column; gap: 10px;">
-    <div style="display: flex; flex-direction: row;">
-      <span style="margin-right: 10px;">Window Size:</span>
-      <input type="number" id="window_width" style="width: 100px; margin-right: 10px;">
-      <span style="margin-right: 10px">x</span>
-      <input type="number" id="window_height" style="width: 100px;">
-    </div>
-    <div style="display: flex; flex-direction: row;">
-      <label for="preferred_path" style="margin-right: 10px;">Preferred Path:</label>
-      <select id="preferred_path" style="margin-right: 10px;">
-        <option value="lead" selected>Lead</option>
-        <option value="rhythm">Rhythm</option>
-        <option value="bass">Bass</option>
-      </select>
+  <h2 style="margin-top: 0px;">Settings</h2>
+  <div id="settings">
+    <div style="display: flex; flex-direction:column; gap: 10px;">
+      <div style="display: flex; flex-direction: row;">
+        <span style="margin-right: 10px; font-weight: bold; min-width: 200px;">Steam User Data Path:</span>
+        <span id="steam_user_data_path">[none selected]</span>
+        <div style="margin-left: auto;">
+          <button class="btn-primary" onclick="getSteamUserDataPath()">Browse</button>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: row;">
+        <span style="margin-right: 10px; font-weight: bold; min-width: 200px;">Steam Profile:</span>
+        <select id="steam_profile" style="min-width: 100px;"></select>
+      </div>
+      <div style="display: flex; flex-direction: row;">
+        <span style="margin-right: 10px; font-weight: bold; min-width: 200px;">Rocksmith Profile:</span>
+        <select id="rocksmith_profile" style="min-width: 100px;"></select>
+      </div>
+      <div style="display: flex; flex-direction: row;">
+        <span style="margin-right: 10px; font-weight: bold; min-width: 200px;">Rocksniffer Path:</span>
+        <span id="rocksniffer_path">[none selected]</span>
+        <div style="margin-left: auto;">
+          <button class="btn-primary" onclick="getRocksnifferPath()">Browse</button>
+        </div>
+      </div>
     </div>
   </div>
   <hr>
-  <h3>Steam User Data Path</h3>
-  <div id="steam_user_data_path" style="display: inline;">[none selected]</div>
-  <div style="display: inline; float: right;">
-    <button class="btn-primary" onclick="getSteamUserDataPath()">Browse</button>
+  <h2>Preferences</h2>
+  <div id="preferences">
+    <div style="display: flex; flex-direction:column; gap: 10px;">
+      <div style="display: flex; flex-direction: row;">
+        <span style="margin-right: 10px; font-weight: bold; min-width: 200px;">Window Size:</span>
+        <input type="number" id="window_width" style="width: 100px; margin-right: 10px;">
+        <span style="margin-right: 10px">x</span>
+        <input type="number" id="window_height" style="width: 100px;">
+      </div>
+      <div style="display: flex; flex-direction: row;">
+        <label for="preferred_path" style="margin-right: 10px; font-weight: bold; min-width: 200px;">Preferred
+          Path:</label>
+        <select id="preferred_path" style="margin-right: 10px; min-width: 100px;">
+          <option value="lead" selected>Lead</option>
+          <option value="rhythm">Rhythm</option>
+          <option value="bass">Bass</option>
+        </select>
+      </div>
+    </div>
   </div>
   <hr>
-  <h3>Steam Profile</h3>
-  <select id="steam_profile">
-  </select>
-  <hr>
-  <h3>Rocksmith Profile</h3>
-  <select id="rocksmith_profile">
-  </select>
-  <hr>
-  <h3>Rocksniffer Path</h3>
-  <div id="rocksniffer_path" style="display: inline;">[none selected]</div>
-  <div style="display: inline; float: right;">
-    <button class="btn-primary" onclick="getRocksnifferPath()">Browse</button>
+  <h2>Addons</h2>
+  <div id="addons">
+    <div style="display: flex; flex-direction:column; gap: 10px;">
+      <div style="display: flex; flex-direction: row;">
+        <input type="checkbox" id="addons_enabled" style="width: 16px; height: 16px; margin-right: 10px;">
+        <label for="addons_enabled" style="margin-right: 10px;">Enabled</label>
+        <span style="font-style: italic;">(Enabling addons will turn on a local web server.)</span>
+      </div>
+      <div style="display: flex; flex-direction: row;">
+        <span style="margin-right: 10px; font-weight: bold; min-width: 50px;">Port:</span>
+        <input type="number" id="addons_port" style="width: 100px; margin-right: 10px;">
+      </div>
+    </div>
   </div>
   <hr>
   <div id="modal" class="modal">
@@ -113,47 +140,15 @@
 
     const userId = JSON.parse(sessionStorage.getItem('auth_data'))['user_id'];
 
-    async function getPreferences() {
-      const preferredPath = await api.storeGet('user_data.' + userId + '.preferred_path');
-
-      // Update the combo box
-      const comboBox = document.querySelector('#preferred_path');
-
-      // Link the combo box selected option to the saved Rocksmith profile
-      comboBox.addEventListener('change', async () => {
-        const selectedOption = comboBox.options[comboBox.selectedIndex];
-        const selectedPath = selectedOption.value;
-        await api.storeSet('user_data.' + userId + '.preferred_path', selectedPath);
-        sessionStorage.setItem('preferred_path', selectedPath);
-      });
-
-      // Update the combo box with the preferred value
-      if (preferredPath !== null) {
-        comboBox.value = preferredPath;
-
-        let event = new Event('change');
-        comboBox.dispatchEvent(event);
-      }
-
+    api.windowResized((event, width, height) => {
+      console.log('GOT THERE');
       const windowWidthEntry = document.getElementById('window_width');
       const windowHeightEntry = document.getElementById('window_height');
-
-      const { width, height } = await api.getWindowSize();
       windowWidthEntry.value = width;
       windowHeightEntry.value = height;
-
-      windowWidthEntry.addEventListener('change', async () => {
-        let windowWidth = windowWidthEntry.value;
-        let windowHeight = windowHeightEntry.value;
-        api.setWindowSize(windowWidth, windowHeight);
-      });
-
-      windowHeightEntry.addEventListener('change', async () => {
-        let windowWidth = windowWidthEntry.value;
-        let windowHeight = windowHeightEntry.value;
-        api.setWindowSize(windowWidth, windowHeight);
-      });
-    }
+      api.storeSet('user_data.' + userId + '.screen_width', width);
+      api.storeSet('user_data.' + userId + '.screen_height', height);
+    });
 
     async function getSteamUserDataPath() {
       const defaultPath = document.getElementById('steam_user_data_path').innerText;
@@ -260,6 +255,78 @@
       }
     }
 
+    async function getPreferences() {
+      const preferredPath = await api.storeGet('user_data.' + userId + '.preferred_path');
+
+      // Update the combo box
+      const comboBox = document.querySelector('#preferred_path');
+
+      // Link the combo box selected option to the user's preferred path
+      comboBox.addEventListener('change', async () => {
+        const selectedOption = comboBox.options[comboBox.selectedIndex];
+        const selectedPath = selectedOption.value;
+        await api.storeSet('user_data.' + userId + '.preferred_path', selectedPath);
+        sessionStorage.setItem('preferred_path', selectedPath);
+      });
+
+      // Update the combo box with the preferred value
+      if (preferredPath !== null) {
+        comboBox.value = preferredPath;
+
+        let event = new Event('change');
+        comboBox.dispatchEvent(event);
+      }
+
+      const windowWidthEntry = document.getElementById('window_width');
+      const windowHeightEntry = document.getElementById('window_height');
+
+      const { width, height } = await api.getWindowSize();
+      windowWidthEntry.value = width;
+      windowHeightEntry.value = height;
+
+      windowWidthEntry.addEventListener('change', async () => {
+        let windowWidth = windowWidthEntry.value;
+        let windowHeight = windowHeightEntry.value;
+        api.setWindowSize(windowWidth, windowHeight);
+        api.storeSet('user_data.' + userId + '.screen_width', width);
+      });
+
+      windowHeightEntry.addEventListener('change', async () => {
+        let windowWidth = windowWidthEntry.value;
+        let windowHeight = windowHeightEntry.value;
+        api.setWindowSize(windowWidth, windowHeight);
+        api.storeSet('user_data.' + userId + '.screen_height', height);
+      });
+    }
+
+    async function initAddonConfig() {
+      const addonsEnabledCheckbox = document.querySelector('#addons_enabled');
+      const addonsPortEntry = document.querySelector('#addons_port');
+
+      let addonsEnabled = await api.storeGet('user_data.' + userId + '.addons_enabled');
+      if (addonsEnabled === null) {
+        addonsEnabled = false;
+        api.storeSet('user_data.' + userId + '.addons_enabled', addonsEnabled);
+      }
+      addonsEnabledCheckbox.checked = addonsEnabled;
+
+      let addonsPort = await api.storeGet('user_data.' + userId + '.addons_port');
+      if (addonsPort === null) {
+        addonsPort = 9001;
+        api.storeSet('user_data.' + userId + '.addons_port', addonsPort);
+      }
+      addonsPortEntry.value = addonsPort;
+
+      addonsEnabledCheckbox.addEventListener('change', async () => {
+        if (addonsEnabledCheckbox.checked) {
+          api.enableAddons(addonsPort);
+        }
+        else {
+          api.disableAddons();
+        }
+      });
+    }
+
     async function main() {
       // Get preferences
       await getPreferences();
@@ -286,6 +353,8 @@
       if (rocksnifferPath !== null) {
         document.getElementById('rocksniffer_path').innerText = rocksnifferPath;
       }
+
+      await initAddonConfig();
     }
 
     main();
