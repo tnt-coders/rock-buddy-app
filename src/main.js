@@ -151,6 +151,8 @@ function createWindow() {
   // Get screen width/height
   let screenWidth = 1024;
   let screenHeight = 768;
+  let addonsEnabled = false;
+  let addonsPort = 9001;
 
   const authData = store.get('auth_data');
   if (authData !== undefined) {
@@ -161,6 +163,13 @@ function createWindow() {
     if (savedScreenWidth !== undefined && savedScreenHeight !== undefined) {
       screenWidth = savedScreenWidth;
       screenHeight = savedScreenHeight;
+    }
+
+    const savedAddonsEnabled = store.get('user_data.' + userId + '.addons_enabled');
+    const savedAddonsPort = store.get('user_data.' + userId + '.addons_port');
+    if (savedAddonsEnabled !== undefined && savedAddonsPort !== undefined) {
+      addonsEnabled = savedAddonsEnabled;
+      addonsPort = savedAddonsPort;
     }
   }
 
@@ -321,7 +330,7 @@ function createWindow() {
   ipcMain.handle('semver-gte', (event, version1, version2) => {
     const semver = require('semver');
     return semver.gte(version1, version2);
-  })
+  });
 
   // Reads an encrypted Rocksmith data file and returns the contents
   ipcMain.handle('read-rocksmith-data', (event, dataFile) => {
@@ -349,7 +358,6 @@ function createWindow() {
   });
 
   ipcMain.on('enable-addons', (event, port) => {
-
     // Serve the content of your Electron window via the HTTP server
     server.listen(port, 'localhost', () => {
       console.log('Server running on http://localhost:' + port);
@@ -374,7 +382,7 @@ function createWindow() {
         }
       });
     }, 100);
-  })
+  });
 
   ipcMain.on('disable-addons', (event) => {
     if (captureInterval !== null) {
@@ -385,7 +393,12 @@ function createWindow() {
     if (server.listening) {
       server.close();
     }
-  })
+  });
+
+  if (addonsEnabled) {
+    // TODO I genuinely don't know why I need to pass NULL as the 2nd argument
+    ipcMain.emit('enable-addons', null, 9001);
+  }
 
   win.loadFile('src/index.html');
 }

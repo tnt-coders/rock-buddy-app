@@ -324,6 +324,7 @@
         else {
           api.disableAddons();
         }
+        api.storeSet('user_data.' + userId + '.addons_enabled', addonsEnabledCheckbox.checked);
       });
     }
 
