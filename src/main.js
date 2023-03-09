@@ -357,7 +357,7 @@ function createWindow() {
     return getRocksmithProfileData(steamUserDataPath, steamProfile, rocksmithProfile);
   });
 
-  ipcMain.on('enable-addons', (event, port) => {
+  let enableAddons = (event, port) => {
     // Serve the content of your Electron window via the HTTP server
     server.listen(port, 'localhost', () => {
       console.log('Server running on http://localhost:' + port);
@@ -382,7 +382,9 @@ function createWindow() {
         }
       });
     }, 100);
-  });
+  };
+
+  ipcMain.on('enable-addons', enableAddons);
 
   ipcMain.on('disable-addons', (event) => {
     if (captureInterval !== null) {
@@ -396,8 +398,7 @@ function createWindow() {
   });
 
   if (addonsEnabled) {
-    // TODO I genuinely don't know why I need to pass NULL as the 2nd argument
-    ipcMain.emit('enable-addons', null, 9001);
+    enableAddons(null, addonsPort);
   }
 
   win.loadFile('src/index.html');
