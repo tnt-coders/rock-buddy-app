@@ -1,26 +1,34 @@
 class Rocksniffer {
   private static requiredVersion: string = 'v0.4.1';
 
-  private path: string;
-  private host: string | undefined;
-  private port: number | undefined;
-  private connected: boolean = false;
+  private _path: string;
+  private _host: string | undefined;
+  private _port: number | undefined;
+  private _connected: boolean = false;
 
-  public static async create(path: string): Promise<Rocksniffer> {
+  public static async create(path: string | null): Promise<Rocksniffer> {
+    if (path === null) {
+      throw new Error('Rocksniffer path is not defined.');
+    }
+
     const rocksniffer = new Rocksniffer(path);
     await rocksniffer.init();
     return rocksniffer;
   }
 
+  public connected(): boolean {
+    return this._connected;
+  }
+
   public async sniff(): Promise<JSON | null> {
-    if (!this.connected) {
+    if (!this._connected) {
       return null;
     }
 
     try {
-      const response = await fetch('http://' + this.host + ':' + this.port);
+      const response = await fetch('http://' + this._host + ':' + this._port);
       const data = await response.json();
-      if (data.hasOwnProperty('Success') && data.Success === true) {
+      if (data.hasOwnProperty('success') && data.success === true) {
         return data;
       }
       else {
@@ -33,7 +41,7 @@ class Rocksniffer {
   }
 
   private constructor(path: string) {
-    this.path = path;
+    this._path = path;
   }
 
   private async init(): Promise<void> {
@@ -43,14 +51,14 @@ class Rocksniffer {
   }
 
   private async verifyPath(): Promise<void> {
-    if (!await window.api.directoryExists(this.path)) {
+    if (!await window.api.directoryExists(this._path)) {
       throw new Error('Rocksniffer path not found.');
     }
   }
 
   private async verifyVersion(): Promise<void> {
     const regex = /RockSniffer\s(\d+\.\d+\.\d+)$/i;
-    const match = regex.exec(this.path);
+    const match = regex.exec(this._path);
     const version = match ? match[1] : null;
 
     if (version === null) {
@@ -63,12 +71,12 @@ class Rocksniffer {
   }
 
   private async connect(): Promise<void> {
-    const addonConfigFile = await window.api.pathJoin(this.path, 'config', 'addons.json');
+    const addonConfigFile = await window.api.pathJoin(this._path, 'config', 'addons.json');
     const addonConfig = JSON.parse(await window.api.readFile(addonConfigFile));
 
     // Verify contents are valid
     if (!addonConfig.hasOwnProperty('enableAddons')
-      || !addonConfig.hasOwnProperty('host')
+      || !addonConfig.hasOwnProperty('ipAddress')
       || !addonConfig.hasOwnProperty('port')) {
       throw new Error('Rocksniffer config/addons.json is invalid.');
     }
@@ -80,8 +88,8 @@ class Rocksniffer {
       await window.api.writeFile(addonConfigFile, JSON.stringify(addonConfig, null, 2));
     }
 
-    this.host = addonConfig.host;
-    this.port = parseInt(addonConfig.port);
-    this.connected = true;
+    this._host = addonConfig.ipAddress;
+    this._port = parseInt(addonConfig.port);
+    this._connected = true;
   }
 };

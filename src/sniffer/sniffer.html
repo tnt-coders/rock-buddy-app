@@ -137,6 +137,7 @@
     </div>
     </p>
   </footer>
+  <script src="../../dist/sniffer/rocksniffer.js"></script>
   <script src="../common/functions.js"></script>
   <script src="../../node_modules/jquery/dist/jquery.min.js"></script>
   <script>
@@ -144,6 +145,9 @@
     sessionUpdate();
 
     const userId = JSON.parse(sessionStorage.getItem('auth_data'))['user_id'];
+
+    // Global Rocksniffer object
+    let g_rockSniffer = null;
 
     // If the page is starting up we want to immediately pull data
     let startup = true;
@@ -184,8 +188,9 @@
 
       requestActive = true;
 
-      rocksnifferData = await getRocksnifferData();
+      rocksnifferData = await g_rockSniffer.sniff();
       if (rocksnifferData === null) {
+        showClass('waiting');
         requestActive = false;
       }
       else if (rocksnifferData['success']) {
@@ -588,27 +593,6 @@
       return await api.getRocksmithProfileData(steamUserDataPath, steamProfile, rocksmithProfile);
     }
 
-    async function getRocksnifferData() {
-      const rocksnifferHost = sessionStorage.getItem('rocksniffer_host');
-      const rocksnifferPort = sessionStorage.getItem('rocksniffer_port');
-
-      //JSON query the addon service
-      try {
-        const response = await $.get("http://" + rocksnifferHost + ":" + rocksnifferPort);
-        showClass('connected');
-
-        let randomNumber = Math.floor(Math.random() * 69) + 1;
-        if (randomNumber === 69) {
-          console.log('*sniff sniff*');
-        }
-
-        return response;
-      } catch (error) {
-        showClass('waiting');
-        return null;
-      }
-    }
-
     async function showClass(className) {
       const classNames = {
         loading: document.getElementsByClassName('loading'),
@@ -657,54 +641,6 @@
       return true;
     }
 
-    async function connectToRocksniffer() {
-      const rocksnifferHost = sessionStorage.getItem('rocksniffer_host');
-      const rocksnifferPort = sessionStorage.getItem('rocksniffer_port');
-
-      // If we don't have the host and port, get it
-      let notFound = false;
-      if (rocksnifferHost === null || rocksnifferPort === null) {
-        const rocksnifferPath = await api.storeGet('user_data.' + userId + '.rocksniffer_path');
-        if (rocksnifferPath === null) {
-          notFound = true;
-        }
-        
-        if (!await api.directoryExists(rocksnifferPath)) {
-          notFound = true;
-        }
-
-        if (notFound) {
-          document.getElementById('error').innerHTML = '<p>Could not find Rocksniffer. Check that your config settings are correct.</p>';
-          showClass('error');
-          return false;
-        }
-
-        // Check that the provided Rocksniffer version is compatible
-        const regex = /RockSniffer\s(\d+\.\d+\.\d+)$/i;
-        const match = regex.exec(rocksnifferPath);
-        const version = match ? match[1] : null;
-        const requiredVersion = 'v0.4.1';
-        if (version === null || !await api.semverGte(version, requiredVersion)) {
-          await api.warning("Rocksniffer version could not be verified.\n\nLeaderboard sniffer may not function as expected.");
-        }
-
-        const addonConfigFile = await api.pathJoin(rocksnifferPath, 'config', 'addons.json');
-        const addonConfig = JSON.parse(await api.readFile(addonConfigFile));
-
-        // Make sure addons are enabled
-        if (!addonConfig['enableAddons']) {
-          console.log('Enabling Rocksniffer addons.');
-          addonConfig['enableAddons'] = true;
-          await api.writeFile(addonConfigFile, JSON.stringify(addonConfig, null, 2));
-        }
-
-        sessionStorage.setItem('rocksniffer_host', addonConfig['ipAddress']);
-        sessionStorage.setItem('rocksniffer_port', addonConfig['port']);
-      }
-
-      return true;
-    }
-
     async function getPreferredPath() {
       let preferredPath = sessionStorage.getItem('preferred_path');
       if (preferredPath === null) {
@@ -722,7 +658,16 @@
 
     async function main() {
       const rocksmithConnected = await connectToRocksmith();
-      const rocksnifferConnected = await connectToRocksniffer();
+
+      const rocksnifferPath = await api.storeGet('user_data.' + userId + '.rocksniffer_path');
+
+      try {
+        g_rockSniffer = await Rocksniffer.create(rocksnifferPath);
+      }
+      catch (error) {
+        document.getElementById('error').innerHTML = '<p>' + error + '</p>';
+        showClass('error');
+      }
 
       // Setup combo boxes
       const gameModeComboBox = document.querySelector('#game_mode');
@@ -761,7 +706,7 @@
         await displayLeaderboardData();
       });
 
-      if (rocksmithConnected && rocksnifferConnected) {
+      if (rocksmithConnected && g_rockSniffer.connected()) {
         setInterval(refresh, pollRate);
         refresh();
       }
