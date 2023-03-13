@@ -6,14 +6,40 @@ class Rocksniffer {
   private _port: number | undefined;
   private _connected: boolean = false;
 
-  public static async create(path: string | null): Promise<Rocksniffer> {
-    if (path === null) {
-      throw new Error('Rocksniffer path is not defined.');
-    }
+  public constructor(path: string) {
+    this._path = path;
+  }
 
-    const rocksniffer = new Rocksniffer(path);
-    await rocksniffer.init();
-    return rocksniffer;
+  public async connect(): Promise<void> {
+    
+    await this.verifyPath();
+
+    await this.configure();
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      controller.abort();
+    }, 100); // Set timeout of 100ms
+
+    try {
+      const response = await fetch('http://' + this._host + ':' + this._port, { signal: controller.signal });
+      const data = await response.json();
+      clearTimeout(timeout);
+
+      // Verify the version
+      if (!data.hasOwnProperty('Version')) {
+        throw new Error('Rocksniffer version could not be verified.');
+      }
+      else if (!await window.api.semverGte(data.Version, Rocksniffer.requiredVersion)) {
+        throw new Error('Rocksniffer ' + Rocksniffer.requiredVersion + ' or greater required.');
+      }
+
+      this._connected = true;
+    }
+    catch(error) {
+      clearTimeout(timeout);
+      throw new Error('Failed to connect to Rocksniffer.');
+    }
   }
 
   public connected(): boolean {
@@ -22,12 +48,18 @@ class Rocksniffer {
 
   public async sniff(): Promise<JSON | null> {
     if (!this._connected) {
-      return null;
+      throw new Error('Rocksniffer connection has not yet been established.');
     }
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      controller.abort();
+    }, 100); // Set timeout of 100ms
+
     try {
-      const response = await fetch('http://' + this._host + ':' + this._port);
+      const response = await fetch('http://' + this._host + ':' + this._port, { signal: controller.signal });
       const data = await response.json();
+      clearTimeout(timeout);
       if (data.hasOwnProperty('success') && data.success === true) {
         return data;
       }
@@ -35,19 +67,10 @@ class Rocksniffer {
         return null;
       }
     }
-    catch {
+    catch(error) {
+      clearTimeout(timeout);
       return null;
     }
-  }
-
-  private constructor(path: string) {
-    this._path = path;
-  }
-
-  private async init(): Promise<void> {
-    await this.verifyPath();
-    await this.verifyVersion();
-    await this.connect();
   }
 
   private async verifyPath(): Promise<void> {
@@ -56,21 +79,7 @@ class Rocksniffer {
     }
   }
 
-  private async verifyVersion(): Promise<void> {
-    const regex = /RockSniffer\s(\d+\.\d+\.\d+)$/i;
-    const match = regex.exec(this._path);
-    const version = match ? match[1] : null;
-
-    if (version === null) {
-      throw new Error('Rocksniffer version could not be verified.');
-    }
-
-    if (!await window.api.semverGte(version, Rocksniffer.requiredVersion)) {
-      throw new Error('Rocksniffer v0.4.1 or greater required.');
-    }
-  }
-
-  private async connect(): Promise<void> {
+  private async configure(): Promise<void> {
     const addonConfigFile = await window.api.pathJoin(this._path, 'config', 'addons.json');
     const addonConfig = JSON.parse(await window.api.readFile(addonConfigFile));
 
@@ -90,6 +99,5 @@ class Rocksniffer {
 
     this._host = addonConfig.ipAddress;
     this._port = parseInt(addonConfig.port);
-    this._connected = true;
   }
-};
+}

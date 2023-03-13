@@ -7,9 +7,6 @@ const fs = require('fs');
 const aesjs = require('aes-js');
 const { unzipSync } = require('node:zlib');
 
-// Get the app root
-const appRoot = isDev ? path.join(__dirname, '..') : path.join(process.resourcesPath, '..');
-
 // Process input args
 const args = process.argv.slice(2);
 const host = args[0] || 'https://rock-buddy.com';
@@ -216,6 +213,10 @@ function createWindow() {
     }
 
     server.close();
+  });
+
+  ipcMain.handle('get-src-dir', (event) => {
+    return __dirname;
   });
 
   ipcMain.on('info', (event, message) => {

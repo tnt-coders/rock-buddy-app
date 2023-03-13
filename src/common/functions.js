@@ -1,22 +1,5 @@
 'use strict';
 
-function sessionUpdate() {
-  // Get current page and previous page so we can implement "back" functionality
-  const currentPage = sessionStorage.getItem('current_page');
-  if (currentPage !== window.location.href) {
-    sessionStorage.setItem('current_page', window.location.href);
-    sessionStorage.setItem('previous_page', currentPage);
-  }
-}
-
-function back() {
-  const previousPage = sessionStorage.getItem('previous_page');
-  if (previousPage !== null) {
-    window.location.href = previousPage;
-    return;
-  }
-}
-
 async function getVersion() {
   let version = sessionStorage.getItem('version');
   if (version === null) {
@@ -423,4 +406,8 @@ function getAvailablePaths(arrangementData) {
   });
 
   return paths;
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }

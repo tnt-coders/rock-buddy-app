@@ -2,16 +2,14 @@
 <html lang="en">
 
 <head>
+  <!-- Need to get rid of unsafe-inline from style-src -->
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self';connect-src https://rock-buddy.com;script-src 'self';font-src https://fonts.gstatic.com;style-src 'unsafe-inline' 'self' https://fonts.googleapis.com">
+  <link rel="stylesheet" href="./css/index.css" id="theme">
   <link rel="stylesheet" href="./css/activation.css">
   <link rel="stylesheet" href="./css/footer.css">
+  <link rel="stylesheet" href="./css/dark-theme.css" id="theme">
   <title>Rock Buddy (alpha test)</title>
-  <style>
-    body {
-      color: white;
-      font-family: 'Open Sans', sans-serif;
-      background: #18181b;
-    }
-  </style>
 </head>
 
 <body>
@@ -22,8 +20,7 @@
   <footer>
     <p>
     <div class="copyright">
-      Copyright &copy; 2023 <a class="tntrocks"
-        href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
+      Copyright &copy; 2023 <a class="tntrocks" href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
     </div>
     <div class="team-mem">
       <a href="./../team.html">Team</a>
@@ -36,54 +33,24 @@
       </center>
       <img src="./../images/boulder-bro.png" alt="you found him!">
     </div>
-    <script>
-      const pressed = [];
-      const secretCode = 'ArrowUpArrowUpArrowDownArrowDownArrowLeftArrowRightArrowLeftArrowRightba';
-      const modal = document.getElementById('modal');
-      const closeBtn = document.querySelector('.close');
-
-      window.addEventListener('keyup', (e) => {
-        pressed.push(e.key);
-        pressed.splice(-secretCode.length - 1, pressed.length - secretCode.length);
-        if (pressed.join('').includes(secretCode)) {
-          modal.style.display = 'block';
-        }
-      });
-
-      closeBtn.addEventListener('click', () => {
-        modal.style.display = 'none';
-      });
-    </script>
   </footer>
-  <script src="common/functions.js"></script>
-  <script>
-    'use strict';
-    sessionUpdate();
+  <script src="./common/boulder_bro.js"></script>
+  <script src="./common/functions.js"></script>
+  <script src="./common/theme.js"></script>
+  <script src="./index.js"></script>
 
-    async function main() {
-      const auth = await checkAuthentication()
-      if (!auth) {
-        // Authentication failed - navigate to login
-        window.location.href = './auth/login.html';
-        return;
-      }
+  <select style="display: none;" id="theme-select" onchange="setTheme()">
+    <option value="light">Light theme</option>
+    <option value="dark">Dark theme</option>
+    <option value="streamer">Streamer theme</option>
+  </select>
 
-      // Verify the user's email
-      const authData = JSON.parse(sessionStorage.getItem('auth_data'));
-      const activated = await checkAccountActivation(authData);
-      if (!activated) {
-        // Verification failed - redirect to account activation
-        window.location.href = './account/activation.html'
-        return;
-      }
+  <label style="display: none;" id="streamer-color-name" for="streamer-color">Background Color:</label>
+  <input style="display: none;" type="color" id="streamer-color" name="streamer-color" onchange="setStreamerColor()">
 
-      // Authentication successful - proceed
-      window.location.href = './sniffer/sniffer.html';
-      return;
-    }
-
-    main();
-  </script>
+  <label style="display: none;" id="streamer-text-color-name" for="streamer-text-color">Text Color:</label>
+  <input style="display: none;" class="colortext" type="color" id="streamer-text-color" name="streamer-text-color"
+    onchange="setStreamerTextColor()">
 </body>
 
 </html>

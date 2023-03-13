@@ -20,152 +20,29 @@
       <p style="color: red;">Warning: Your account will need to be reactivated using the new email.</p>
       <input class="btn-primary" type="submit" value="Submit" onclick="changeEmail(event)"><br><br>
     </form>
-    <a href="#" onclick="back()">Cancel</a>
+    <a href="#" onclick="history.back()">Cancel</a>
+  </div>
+  <div id="modal" class="modal">
+    <span class="close">&times;</span>
+    <center>
+      <h3>You found Boulder Bro, Rock Buddy's big brother!</h3>
+    </center>
+    <img src="./../../images/boulder-bro.png" alt="you found him!">
   </div>
   <footer>
     <p>
     <div class="copyright">
-      Copyright &copy; 2023 <a class="tntrocks"
-        href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
+      Copyright &copy; 2023 <a class="tntrocks" href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
     </div>
     <div class="team-mem">
       <a href="./../team.html">Team</a>
     </div>
     </p>
   </footer>
+  <script src="../common/boulder_bro.js"></script>
   <script src="../common/functions.js"></script>
-  <script>
-    'use strict';
-    sessionUpdate();
-
-    async function requestEmailChange(newEmail, password) {
-      const authData = JSON.parse(sessionStorage.getItem('auth_data'));
-
-      const host = await api.getHost();
-      const response = await post(host + '/api/account/change_email.php', {
-        auth_data: authData,
-        new_email: newEmail,
-        password: password
-      });
-
-      if ('error' in response) {
-        api.error(response['error']);
-        return false;
-      }
-
-      return response['success'];
-    }
-
-    async function changeEmail(event) {
-      // Prevents the form from being immediately cleared
-      event.preventDefault();
-
-      const newEmail = document.getElementById('new_email').value;
-      const password = document.getElementById('password').value;
-
-      // Make sure the new username is valid
-      if (!validateEmail(newEmail)) {
-        document.getElementById('new_email').value = '';
-        document.getElementById('password').value = '';
-        return;
-      }
-
-      const status = await requestEmailChange(newEmail, password);
-      if (!status) {
-        document.getElementById('password').value = '';
-        return;
-      }
-
-      api.info('Email changed successfully.');
-      window.location.href = './activation.html';
-      return;
-    }
-  </script>
-  <script>
-    document.documentElement.style.setProperty('--streamer-color', '#FFF');
-    document.documentElement.style.setProperty('--streamer-text-color', '#e66b07');
-
-    document.addEventListener("DOMContentLoaded", function () {
-      const theme = localStorage.getItem("theme");
-      if (theme) {
-        const themeSelect = document.getElementById("theme-select");
-        themeSelect.value = theme;
-
-        const themeLink = document.getElementById("theme");
-        themeLink.href = `../css/${theme}-theme.css`;
-      }
-
-      if (theme === "streamer") {
-        const streamerColor = localStorage.getItem("streamer-color");
-        if (streamerColor) {
-          const streamerColorInput = document.getElementById("streamer-color");
-          streamerColorInput.value = streamerColor;
-          setStreamerColor();
-        }
-
-        const streamerTextColor = localStorage.getItem("streamer-text-color");
-        if (streamerTextColor) {
-          const streamerTextColorInput = document.getElementById("streamer-text-color");
-          streamerTextColorInput.value = streamerTextColor;
-          setStreamerTextColor();
-        }
-      }
-    });
-
-    function setTheme() {
-      const themeSelect = document.getElementById("theme-select");
-      const theme = themeSelect.value;
-      const themeLink = document.getElementById("theme");
-
-      if (theme === "streamer") {
-        const streamerColorInput = document.getElementById("streamer-color");
-        const streamerColor = streamerColorInput.value;
-        document.body.style.background = streamerColor;
-        localStorage.setItem("streamer-color", streamerColor);
-
-        const streamerTextColorInput = document.getElementById("streamer-text-color");
-        const streamerTextColor = streamerTextColorInput.value;
-        document.body.style.color = streamerTextColor;
-        localStorage.setItem("streamer-text-color", streamerTextColor);
-      } else {
-        document.body.style.background = null;
-        localStorage.removeItem("streamer-color");
-        document.body.style.color = null;
-        localStorage.removeItem("streamer-text-color");
-      }
-
-      themeLink.href = `../css/${theme}-theme.css`;
-      localStorage.setItem("theme", theme);
-    }
-
-    function setStreamerColor() {
-      const theme = localStorage.getItem("theme");
-      if (theme === "streamer") {
-        const streamerColorInput = document.getElementById("streamer-color");
-        const streamerColor = streamerColorInput.value;
-
-        document.body.style.background = streamerColor;
-        document.documentElement.style.setProperty('--streamer-color', streamerColor);
-
-        localStorage.setItem("streamer-color", streamerColor);
-      }
-    }
-
-    function setStreamerTextColor() {
-      const theme = localStorage.getItem("theme");
-      if (theme === "streamer") {
-        const streamerTextColorInput = document.getElementById("streamer-text-color");
-        const streamerTextColor = streamerTextColorInput.value;
-
-        document.body.style.color = streamerTextColor;
-        document.documentElement.style.setProperty('--streamer-text-color', streamerTextColor);
-
-        localStorage.setItem("streamer-text-color", streamerTextColor);
-      }
-    }
-
-  </script>
-
+  <script src="../common/theme.js"></script>
+  <script src="./change_email.js"></script>
 
   <select style="display: none;" id="theme-select" onchange="setTheme()">
     <option value="light">Light theme</option>

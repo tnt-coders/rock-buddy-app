@@ -3,6 +3,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 declare type windowResizeCallback = (width: number, height: number) => void;
 
 export const API = {
+  getSrcDir: async () => ipcRenderer.invoke('get-src-dir'),
   info: (message: string) => ipcRenderer.send('info', message),
   warning: (message: string) => ipcRenderer.send('warning', message),
   error: (message: string) => ipcRenderer.send('error', message),
