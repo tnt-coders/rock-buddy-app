@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     themeSelect.value = theme;
 
     const themeLink = document.getElementById("theme");
-    themeLink.href = await api.pathJoin(await api.getSrcDir(), 'css', theme + '-theme.css');
+    themeLink.href = await api.pathJoin(await api.getSrcDir(), 'common', theme + '-theme.css');
   }
 
   if (theme === "streamer") {
@@ -47,7 +47,7 @@ async function setTheme() {
     document.documentElement.style.setProperty('--streamer-text-color', '#000');
   }
 
-  themeLink.href = await api.pathJoin(await api.getSrcDir(), 'css', theme + '-theme.css');
+  themeLink.href = await api.pathJoin(await api.getSrcDir(), 'common', theme + '-theme.css');
   localStorage.setItem("theme", theme);
 }
 
