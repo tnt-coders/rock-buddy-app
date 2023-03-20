@@ -15,7 +15,6 @@
     "aes-js": "^3.1.2",
     "electron-is-dev": "^2.0.0",
     "electron-store": "^8.1.0",
-    "jquery": "^3.6.3",
     "semver": "^7.3.8"
   },
   "devDependencies": {
