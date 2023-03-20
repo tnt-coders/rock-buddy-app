@@ -1,60 +1,38 @@
-class Rocksniffer {
-  private static requiredVersion: string = 'v0.4.1';
+import { UserData } from '../common/user_data';
 
-  private _path: string;
+export class Rocksniffer {
+  private static readonly requiredVersion: string = 'v0.4.1';
+  private static readonly timeout: number = 100; // milliseconds
+
+  private readonly _path: string;
   private _host: string | undefined;
   private _port: number | undefined;
-  private _connected: boolean = false;
 
-  public constructor(path: string) {
+  private constructor(path: string) {
     this._path = path;
   }
 
-  public async connect(): Promise<void> {
-    
-    await this.verifyPath();
+  public static async create() {
+    const rocksnifferPath = await UserData.get('rocksniffer_path');
+    if (rocksnifferPath !== null) {
+      const rocksniffer = new Rocksniffer(rocksnifferPath);
 
-    await this.configure();
+      await rocksniffer.verifyPath();
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => {
-      controller.abort();
-    }, 100); // Set timeout of 100ms
+      await rocksniffer.configure();
 
-    try {
-      const response = await fetch('http://' + this._host + ':' + this._port, { signal: controller.signal });
-      const data = await response.json();
-      clearTimeout(timeout);
-
-      // Verify the version
-      if (!data.hasOwnProperty('Version')) {
-        throw new Error('Rocksniffer version could not be verified.');
-      }
-      else if (!await window.api.semverGte(data.Version, Rocksniffer.requiredVersion)) {
-        throw new Error('Rocksniffer ' + Rocksniffer.requiredVersion + ' or greater required.');
-      }
-
-      this._connected = true;
+      return rocksniffer;
     }
-    catch(error) {
-      clearTimeout(timeout);
-      throw new Error('Failed to connect to Rocksniffer.');
+    else {
+      throw new Error('Rocksniffer path not set, please check the config.');
     }
-  }
-
-  public connected(): boolean {
-    return this._connected;
   }
 
   public async sniff(): Promise<JSON | null> {
-    if (!this._connected) {
-      throw new Error('Rocksniffer connection has not yet been established.');
-    }
-
     const controller = new AbortController();
     const timeout = setTimeout(() => {
       controller.abort();
-    }, 100); // Set timeout of 100ms
+    }, Rocksniffer.timeout);
 
     try {
       const response = await fetch('http://' + this._host + ':' + this._port, { signal: controller.signal });
@@ -69,7 +47,7 @@ class Rocksniffer {
     }
     catch(error) {
       clearTimeout(timeout);
-      return null;
+      throw new Error('Connection to Rocksniffer could not be established.');
     }
   }
 

@@ -1,6 +1,10 @@
 'use strict';
 
+// User ID for the current session
 const userId = JSON.parse(sessionStorage.getItem('auth_data'))['user_id'];
+
+// Refresh rate (milliseconds)
+const g_refreshRate = 100;
 
 // Global Rocksniffer object
 let g_rockSniffer = null;
@@ -33,54 +37,74 @@ let previousRocksnifferData = null;
 let songData = null;
 let previousSongData = null;
 
-async function updateSongData() {
-  const liveFeedData = await g_rockSniffer.sniff();
-  if (liveFeedData === null) {
+async function refresh() {
+  const snifferData = await g_rockSniffer.sniff();
+  if (snifferData === null) {
     return;
   }
 
-  document.getElementById('album_art').src = 'data:image/jpeg;base64,' + liveFeedData['songDetails']['albumArt'];
-  document.getElementById('artist').innerText = liveFeedData['songDetails']['artistName'];
-  document.getElementById('title').innerText = liveFeedData['songDetails']['songName'];
-  document.getElementById('album').innerText = liveFeedData['songDetails']['albumName'];
-  document.getElementById('year').innerText = liveFeedData['songDetails']['albumYear'];
-  document.getElementById('version').innerText = liveFeedData['songDetails']['toolkit']['version'];
-  document.getElementById('author').innerText = liveFeedData['songDetails']['toolkit']['author'];
-  document.getElementById('leaderboard_header').style.display = 'block';
+  updateSongData(snifferData);
 
-  // If a song is active in learn a song, display stats_las
-  if (selectedGameMode === 'las' && (liveFeedData['memoryReadout']['gameStage'] === 'las_game' || liveFeedData['memoryReadout']['gameStage'] === 'nonstopplaygame')) {
+  updateLiveFeedData(snifferData);
+
+  updatePath(snifferData);
+}
+
+function updateSongData(snifferData) {
+  document.getElementById('album_art').src = 'data:image/jpeg;base64,' + snifferData['songDetails']['albumArt'];
+  document.getElementById('artist').innerText = snifferData['songDetails']['artistName'];
+  document.getElementById('title').innerText = snifferData['songDetails']['songName'];
+  document.getElementById('album').innerText = snifferData['songDetails']['albumName'];
+  document.getElementById('year').innerText = snifferData['songDetails']['albumYear'];
+  document.getElementById('version').innerText = snifferData['songDetails']['toolkit']['version'];
+  document.getElementById('author').innerText = snifferData['songDetails']['toolkit']['author'];
+  document.getElementById('leaderboard_header').style.display = 'block';
+}
+
+function updateLiveFeedData(snifferData) {
+  const gameStage = snifferData['memoryReadout']['gameStage'];
+
+  // If a song is active in learn a song, display live feed data
+  if (selectedGameMode === 'las'
+    && (gameStage === 'las_game' || gameStage === 'nonstopplaygame')) {
+
+    const notesHit = snifferData['memoryReadout']['noteData']['TotalNotesHit'];
+    const totalNotes = snifferData['memoryReadout']['noteData']['TotalNotes'];
+    const accuracy = snifferData['memoryReadout']['noteData']['Accuracy'];
+    const streak = snifferData['memoryReadout']['noteData']['CurrentHitStreak'];
+    const highestStreak = snifferData['memoryReadout']['noteData']['HighestHitStreak'];
+    const songTimer = snifferData['memoryReadout']['songTimer'];
+    const songLength = snifferData['songDetails']['songLength'];
+
     document.getElementById('stats_las').style.display = 'block';
     document.getElementById('live_feed_icon').style.backgroundColor = 'green';
-
-    const notesHit = liveFeedData['memoryReadout']['noteData']['TotalNotesHit'];
     document.getElementById('notes_hit').innerText = notesHit;
-
-    const totalNotes = liveFeedData['memoryReadout']['noteData']['TotalNotes'];
     document.getElementById('total_notes').innerText = totalNotes;
-
-    const accuracy = liveFeedData['memoryReadout']['noteData']['Accuracy'];
     document.getElementById('accuracy').innerText = accuracy.toFixed(2) + '%';
-
-    const streak = liveFeedData['memoryReadout']['noteData']['CurrentHitStreak'];
     document.getElementById('streak').innerText = streak;
-
-    const highestStreak = liveFeedData['memoryReadout']['noteData']['HighestHitStreak'];
     document.getElementById('highest_streak').innerText = highestStreak;
-
-    const songTimer = liveFeedData['memoryReadout']['songTimer'];
     document.getElementById('song_timer').innerText = durationString(songTimer);
-
-    const songLength = liveFeedData['songDetails']['songLength'];
     document.getElementById('song_length').innerText = durationString(songLength);
+  }
+  else {
+    document.getElementById('live_feed_icon').style.backgroundColor = 'red';
+  }
+}
+
+function updatePath(snifferData) {
+  const gameStage = snifferData['memoryReadout']['gameStage'];
+
+  // If a song is active in learn a song, update the path to the current path
+  if (selectedGameMode === 'las'
+    && (gameStage === 'las_game' || gameStage === 'nonstopplaygame')) {
 
     // Follow the correct arrangment with Rocksniffer
-    const arrangementHash = liveFeedData['memoryReadout']['arrangementID'];
-    if (liveFeedData !== null && snorted === true) {
+    const arrangementHash = snifferData['memoryReadout']['arrangementID'];
+    if (songData !== null) {
 
       // It takes a second for the arrangement ID to update so check that it exists for the current song
-      if (liveFeedData['arrangements'].hasOwnProperty(arrangementHash)) {
-        const arrangementName = liveFeedData['arrangements'][arrangementHash]['name'];
+      if (songData['arrangements'].hasOwnProperty(arrangementHash)) {
+        const arrangementName = songData['arrangements'][arrangementHash]['name'];
 
         const pathComboBox = document.querySelector('#path');
         if (pathComboBox.value !== arrangementName.toLowerCase()) {
@@ -91,9 +115,6 @@ async function updateSongData() {
         }
       }
     }
-  }
-  else {
-    document.getElementById('live_feed_icon').style.backgroundColor = 'red';
   }
 }
 
@@ -576,7 +597,7 @@ async function main() {
   });
 
   if (rocksmithConnected) {
-    setInterval(updateSongData, 100);
+    setInterval(refresh, g_refreshRate);
 
     setInterval(updateLeaderboardData, pollRate);
   }

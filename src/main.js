@@ -112,30 +112,6 @@ function getRocksmithProfiles(steamUserDataPath, steamProfile) {
   return profiles;
 }
 
-function checkForNewRocksmithProfileData(steamUserDataPath, steamProfile, rocksmithProfile) {
-  const rocksmithProfilePath = path.join(steamUserDataPath, steamProfile.toString(), rocksmithAppId.toString(), 'remote', rocksmithProfile + '_PRFLDB');
-
-  try {
-    const stats = fs.statSync(rocksmithProfilePath);
-
-    // If the file timestamp has not changed return false
-    const rocksmithProfileTimestamp = cacheGet('rocksmith_profile_timestamp');
-    if (rocksmithProfileTimestamp !== null) {
-      if (stats.mtime.getTime() === rocksmithProfileTimestamp.getTime()) {
-        return false;
-      }
-    }
-
-    // Timestamps didn't match, cache the new timestamp and return true
-    cacheSet('rocksmith_profile_timestamp', stats.mtime);
-    return true;
-  }
-  catch (error) {
-    console.error(error);
-    return false;
-  }
-}
-
 function getRocksmithProfileData(steamUserDataPath, steamProfile, rocksmithProfile) {
   const rocksmithProfilePath = path.join(steamUserDataPath, steamProfile.toString(), rocksmithAppId.toString(), 'remote', rocksmithProfile + '_PRFLDB');
   return readRocksmithData(rocksmithProfilePath);
@@ -312,6 +288,18 @@ function createWindow() {
     return path.join(...args);
   });
 
+  // Get the timestamp of a file
+  ipcMain.handle('get-file-timestamp', (event, path) => {
+    try {
+      const stats = fs.statSync(path);
+      return stats.mtime.getTime();
+    }
+    catch (error) {
+      console.error(error);
+      return null;
+    }
+  });
+
   // Read a file and return the contents
   ipcMain.handle('read-file', (event, file) => {
     try {
@@ -346,16 +334,6 @@ function createWindow() {
   // Gets a map of Rocksmith profiles and their corresponding file names
   ipcMain.handle('get-rocksmith-profiles', (event, steamUserDataPath, steamProfile) => {
     return getRocksmithProfiles(steamUserDataPath, steamProfile);
-  });
-
-  // Check for new rocksmith profile data
-  ipcMain.handle('check-for-new-rocksmith-profile-data', (event, steamUserDataPath, steamProfile, rocksmithProfile) => {
-    return checkForNewRocksmithProfileData(steamUserDataPath, steamProfile, rocksmithProfile);
-  });
-
-  // Get Rocksmith profile data
-  ipcMain.handle('get-rocksmith-profile-data', (event, steamUserDataPath, steamProfile, rocksmithProfile) => {
-    return getRocksmithProfileData(steamUserDataPath, steamProfile, rocksmithProfile);
   });
 
   let enableAddons = (event, port) => {

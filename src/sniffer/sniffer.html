@@ -17,27 +17,17 @@
   </div>
   <div style="display: flex; flex-direction: row; align-items: center; width: 100%; min-width: 800px;">
     <h1>Leaderboard Sniffer</h1>
-    <div class="ready" style="margin-left: auto; display: none;">
-      <div class="status" style="display: inline-block;">
-        Sniffing...
+    <div style="margin-left: auto;">
+      <div id="status" style="display: inline-block;">
+        Loading...
       </div>
-      <div style="display: inline-block;">
+      <div class="group1 connected" style="display: none;">
         <button id="snort" title="Force an immediate refresh of the data." onclick="snortData()">Snort </button>
       </div>
     </div>
   </div>
-  <div class="loading">
-    <p>Loading...</p>
-  </div>
-  <div id="error" class="error" style="display: none;">
-  </div>
-  <div class="waiting" style="display: none;">
-    <p>Waiting for Rocksniffer...</p>
-  </div>
-  <div class="connected" style="display: none;">
-    <p>Navigate to a song in Rocksmith to begin sniffing...</p>
-  </div>
-  <div class="ready" style="display: none;">
+  <div id="error" class="group1 error" style="display: none;"></div>
+  <div class="group1 connected" style="display: none;">
     <div id="leaderboard_header" style="display: none;">
       <div style="display: flex; flex-direction: row; width: 100%;">
         <div style="display: flex; flex-direction: row; gap: 10px; width: 60%; min-width: 480px;">
@@ -57,7 +47,7 @@
             </div>
           </div>
         </div>
-        <div class="live-data" style="display: flex; flex-direction: row; width: 40%; min-width: 320px;">
+        <div class="live_data" style="display: flex; flex-direction: row; width: 40%; min-width: 320px;">
           <div style="display:flex; flex-direction: row; width: 50%; align-items: center; align-self: flex-start;">
             <div class="circle" id="live_feed_icon" style="margin-right: 10px;"></div>
             <div><b>Live Feed</b></div>
@@ -99,8 +89,34 @@
     </div>
     <br>
     <div id="leaderboard_data" style="display: none; min-width: 800px;">
-      <p>And this is where I would put my score... <em>IF I HAD ONE!</em></p>
+      <p>And this is where I would put my scores... <em>IF I HAD ONE!</em></p>
     </div>
+  </div>
+  <div id="sussy_warning" class="modal">
+    <span id="sussy_warning_close">&times;</span>
+    <center>
+      <h1>Warning</h1>
+      <p>Your song may not be verified if you:</p>
+      <ul>
+        <li>Pause more than once in 10 minutes</li>
+        <li>Rewind the song</li>
+        <li>Alter the song speed</li>
+      </ul>
+    </center>
+    <img src="./../../images/warning.png">
+  </div>
+  <div id="sussy_error" class="modal">
+    <span id="sussy_error_close">&times;</span>
+    <center>
+      <h1>Sussy behavior detected!</h1>
+      <p>Your score will not be verified for one of the following reasons:</p>
+      <ul>
+        <li>Pausing more than once in 10 minutes</li>
+        <li>Rewinding the song</li>
+        <li>Altering the song speed</li>
+      </ul>
+    </center>
+    <img src="./../../images/error.png">
   </div>
   <div id="modal" class="modal">
     <span class="close">&times;</span>
@@ -119,12 +135,10 @@
     </div>
     </p>
   </footer>
-  <script src="../../node_modules/jquery/dist/jquery.min.js"></script>
+  <script src="../../dist/sniffer/sniffer.js"></script>
   <script src="../../dist/sniffer/rocksniffer.js"></script>
   <script src="../common/boulder_bro.js"></script>
-  <script src="../common/functions.js"></script>
   <script src="../common/theme.js"></script>
-  <script src="./sniffer.js"></script>
 
   <select style="display: none;" id="theme-select" onchange="setTheme()">
     <option value="light">Light theme</option>

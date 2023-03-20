@@ -54,6 +54,7 @@ async function authenticate(authData) {
   if (response['success']) {
     // User has been authenticated, set the auth data for the active session
     sessionStorage.setItem('auth_data', JSON.stringify(authData));
+    sessionStorage.setItem('user_id', authData['user_id']);
   }
 
   return response['success'];
