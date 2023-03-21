@@ -54,7 +54,7 @@ class Sniffer {
   }
 
   public async start(): Promise<void> {
-    setInterval(this.refresh, Sniffer.refreshRate);
+    setInterval(this.refresh.bind(this), Sniffer.refreshRate);
   }
 
   private async init(): Promise<void> {
@@ -425,14 +425,16 @@ class Sniffer {
       return;
     }
 
+    if (this._previousRocksnifferData !== null && this._previousRocksmithData !== null) {
+      await this.monitorProgress();
+    }
+
     // Allow these to execute in parallel for better performance
-    const monitorPromise = this.monitorProgress();
     const songInfoPromise = this.updateSongInfo();
     const liveFeedPromise = this.updateLiveFeed();
     const pathPromise = this.updatePath();
     const leaderboardPromise = this.updateLeaderboard();
 
-    await monitorPromise;
     await songInfoPromise;
     await liveFeedPromise;
     await pathPromise;

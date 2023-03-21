@@ -5,20 +5,20 @@ export class Rocksmith {
 
   private readonly _profilePath: string;
   private _profileData: any;
-  private _profileTimestamp: number | null = null;
+  private _profileTimestamp: number = 0;
   
   public static async create() {
-    const steamUserDataPath = UserData.get('steam_user_data_path');
+    const steamUserDataPath = await UserData.get('steam_user_data_path');
     if (steamUserDataPath === null) {
       throw new Error('Steam user data path not set, please check the config.');
     }
 
-    const steamProfile = UserData.get('steam_profile');
+    const steamProfile = await UserData.get('steam_profile');
     if (steamProfile === null) {
       throw new Error('Steam profile not set, please check the config.');
     }
 
-    const rocksmithProfile = UserData.get('rocksmith_profile');
+    const rocksmithProfile = await UserData.get('rocksmith_profile');
     if (rocksmithProfile === null) {
       throw new Error('Rocksmith profile not set, please check the config.');
     }
@@ -39,10 +39,9 @@ export class Rocksmith {
 
   public async getProfileData(): Promise<any> {
     if (await this.newProfileDataAvailable()) {
-      return await window.api.readRocksmithData(this._profilePath);
+      this._profileData = await window.api.readRocksmithData(this._profilePath);
     }
-    else {
-      return this._profileData;
-    }
+    
+    return this._profileData;
   }
 };

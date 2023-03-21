@@ -17,20 +17,6 @@ const store = new Store();
 // Define Rocksmith app ID
 const rocksmithAppId = 221680;
 
-// Define a cache variable
-let cache = {};
-
-function cacheGet(key) {
-  if (key in cache) {
-    return cache[key];
-  }
-  return null;
-}
-
-function cacheSet(key, value) {
-  cache[key] = value;
-}
-
 // Initialize some app data
 function init() {
 
