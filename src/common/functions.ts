@@ -35,6 +35,200 @@ export function durationString(tSeconds: number) {
   }
 }
 
+// Get all available paths in the provided song
+export function getAvailablePaths(arrangementData: any) {
+  let pathGroups: { [key: string]: Array<any> } = {
+    lead: [],
+    altLead: [],
+    bonusLead: [],
+    rhythm: [],
+    altRhythm: [],
+    bonusRhythm: [],
+    bass: [],
+    altBass: [],
+    bonusBass: [],
+  };
+
+  arrangementData.forEach((arrangement: any) => {
+    const hash = arrangement['arrangementID'];
+    const type = arrangement['type'];
+    const isAlt = arrangement['isAlternateArrangement'];
+    const isBonus = arrangement['isBonusArrangement'];
+
+    if (type === 'Lead') {
+      if (isAlt) {
+        pathGroups.altLead.push({
+          name: 'Alternate ' + type,
+          hash: hash
+        });
+      }
+      else if (isBonus) {
+        pathGroups.bonusLead.push({
+          name: 'Bonus ' + type,
+          hash: hash
+        });
+      }
+      else {
+        pathGroups.lead.push({
+          name: type,
+          hash: hash
+        });
+      }
+    }
+    else if (type === 'Rhythm') {
+      if (isAlt) {
+        pathGroups.altRhythm.push({
+          name: 'Alternate ' + type,
+          hash: hash
+        });
+      }
+      else if (isBonus) {
+        pathGroups.bonusRhythm.push({
+          name: 'Bonus ' + type,
+          hash: hash
+        });
+      }
+      else {
+        pathGroups.rhythm.push({
+          name: type,
+          hash: hash
+        });
+      }
+    }
+    else if (type === 'Bass') {
+      if (isAlt) {
+        pathGroups.altBass.push({
+          name: 'Alternate ' + type,
+          hash: hash
+        });
+      }
+      else if (isBonus) {
+        pathGroups.bonusBass.push({
+          name: 'Bonus ' + type,
+          hash: hash
+        });
+      }
+      else {
+        pathGroups.bass.push({
+          name: type,
+          hash: hash
+        });
+      }
+    }
+  });
+
+  // Update names to include numbers if there is more than one of a path
+  if (pathGroups.lead.length > 1) {
+    let index = 1;
+    pathGroups.lead.forEach((path) => {
+      if (index > 1) {
+        path.name += ' ' + index;
+      }
+      index++;
+    });
+  }
+
+  if (pathGroups.altLead.length > 1) {
+    let index = 1;
+    pathGroups.altLead.forEach((path) => {
+      path.name += ' ' + index;
+      index++;
+    });
+  }
+
+  if (pathGroups.bonusLead.length > 1) {
+    let index = 1;
+    pathGroups.bonusLead.forEach((path) => {
+      path.name += ' ' + index;
+      index++;
+    });
+  }
+
+  if (pathGroups.rhythm.length > 1) {
+    let index = 1;
+    pathGroups.rhythm.forEach((path) => {
+      if (index > 1) {
+        path.name += ' ' + index;
+      }
+      index++;
+    });
+  }
+
+  if (pathGroups.altRhythm.length > 1) {
+    let altRhythmIndex = 1;
+    pathGroups.altRhythm.forEach((path) => {
+      path.name += ' ' + altRhythmIndex;
+      altRhythmIndex++;
+    });
+  }
+
+  if (pathGroups.bonusRhythm.length > 1) {
+    let index = 1;
+    pathGroups.bonusRhythm.forEach((path) => {
+      path.name += ' ' + index;
+      index++;
+    });
+  }
+
+  if (pathGroups.bass.length > 1) {
+    let index = 1;
+    pathGroups.bass.forEach((path) => {
+      if (index > 1) {
+        path.name += ' ' + index;
+      }
+      index++;
+    });
+  }
+
+  if (pathGroups.altBass.length > 1) {
+    let index = 1;
+    pathGroups.altBass.forEach((path) => {
+      path.name += ' ' + index;
+      index++;
+    });
+  }
+
+  if (pathGroups.bonusBass.length > 1) {
+    let index = 1;
+    pathGroups.bonusBass.forEach((path) => {
+      path.name += ' ' + index;
+      index++;
+    });
+  }
+
+  // Add paths to the array in the proper order for display
+  let paths: any[] = [];
+  pathGroups.lead.forEach((path) => {
+    paths.push(path);
+  });
+  pathGroups.altLead.forEach((path) => {
+    paths.push(path);
+  });
+  pathGroups.bonusLead.forEach((path) => {
+    paths.push(path);
+  });
+  pathGroups.rhythm.forEach((path) => {
+    paths.push(path);
+  });
+  pathGroups.altRhythm.forEach((path) => {
+    paths.push(path);
+  });
+  pathGroups.bonusRhythm.forEach((path) => {
+    paths.push(path);
+  });
+  pathGroups.bass.forEach((path) => {
+    paths.push(path);
+  });
+  pathGroups.altBass.forEach((path) => {
+    paths.push(path);
+  });
+  pathGroups.bonusBass.forEach((path) => {
+    paths.push(path);
+  });
+
+  return paths;
+}
+
 export async function post(url: string, data: any) {
   // Add version number to the data
   data['version'] = await getVersion();

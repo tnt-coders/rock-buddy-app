@@ -1,7 +1,7 @@
 import { Rocksmith } from './rocksmith';
 import { Rocksniffer } from './rocksniffer';
 import { UserData } from '../common/user_data';
-import { approxEqual, durationString, post } from '../common/functions';
+import { approxEqual, durationString, getAvailablePaths, post } from '../common/functions';
 
 class Sniffer {
   // Refresh rate in milliseconds
@@ -14,7 +14,7 @@ class Sniffer {
   private readonly _rocksniffer: Rocksniffer;
 
   // Used to prevent duplicate refreshing
-  private _refreshActive: boolean = false;
+  private _refreshHeaderActive: boolean = false;
 
   // Song data
   private _rocksmithData: any = null;
@@ -54,7 +54,7 @@ class Sniffer {
   }
 
   public async start(): Promise<void> {
-    setInterval(this.refresh.bind(this), Sniffer.refreshRate);
+    setInterval(this.refreshHeaderData.bind(this), Sniffer.refreshRate);
   }
 
   private async init(): Promise<void> {
@@ -255,79 +255,112 @@ class Sniffer {
     snortElement.disabled = true;
   }
 
-  private async monitorProgress(): Promise<void> {
-    const songTime = this._rocksnifferData['memoryReadout']['songTimer'];
-    const previousSongTime = this._previousRocksnifferData['memoryReadout']['songTimer'];
-    const previousSongLength = this._previousRocksnifferData['songDetails']['songLength'];
-
-    // If song time is 0 we are not in a song
-    // Reset values and return
-    if (approxEqual(songTime, 0)) {
-
-      // If we were just in a song, check if the score is verified. If it is record it!
-      if (previousSongTime > 0) {
-
-        // NOTE: "previous" values are used here because in nonstop play the current song data will be wrong
-        // If the completion time is more than 5 seconds off from the song
-        if (!approxEqual(previousSongTime, previousSongLength, Sniffer.songLengthTolerance)) {
-          if (this._verifiedScore) {
-            sussyError();
-            this._verifiedScore = false;
-          }
-        }
-
-        if (this._verifiedScore) {
-          //TODO record verified score
-        }
-      }
-
-      this._refreshCounter = 0;
-      this._pauseTime = 0;
-      this._verifiedScore = true;
+  private async refreshHeaderData(): Promise<void> {
+    if (this._refreshHeaderActive === true) {
       return;
     }
 
-    // Check if a song has started
-    if (approxEqual(previousSongTime, 0) && songTime > 0) {
+    this._refreshHeaderActive = true;
 
-      // Synchronize the counter with the song start time
-      this._refreshCounter = songTime * 1000 / Sniffer.refreshRate;
-    }
-
-    // Check if the song is paused (limited for verified scores)
-    if (approxEqual(songTime, previousSongTime)) {
-      this._pauseTime = songTime;
-
-      // If the song was previously paused check if it was long enough ago to keep the score verified
-      if (this._lastPauseTime > 0) {
-        if (this._pauseTime - this._lastPauseTime < Sniffer.minPauseRate) {
-          sussyError();
-          this._verifiedScore = false;
-        }
+    try {
+      const rocksnifferData: any = await this._rocksniffer.sniff();
+      if (rocksnifferData === null) {
+        throw new Error('Navigate to a song in Rocksmith to begin sniffing.');
       }
+      
+      this.updateSongInfo(rocksnifferData);
+      this.updateLiveFeed(rocksnifferData);
+      this.updatePath(rocksnifferData);
 
-      if (this._verifiedScore) {
-        sussyWarning();
-      }
+      // Update the status and show header info
+      const statusElement = document.getElementById('status') as HTMLElement;
+      const leaderboardHeaderElement = document.getElementById('leaderboard_header') as HTMLElement;
+
+      statusElement.innerText = 'Sniffing...';
+      leaderboardHeaderElement.style.display = 'block';
+
+      // Show connected state
+      showExclusive('group1', 'connected');
+    }
+    catch (error) {
+      showError(error);
     }
 
-    // Check if the song was rewound (not allowed for verified scores)
-    else if (songTime < previousSongTime) {
-      if (this._verifiedScore) {
-        sussyError();
-        this._verifiedScore = false;
-      }
-    }
-
-    // The song is no longer paused
-    else {
-      clearSussyWarning();
-      this._lastPauseTime = this._pauseTime;
-    }
+    this._refreshHeaderActive = false;
   }
 
-  private async updateSongInfo(): Promise<void> {
-    // Update song info from Rocksniffer
+  // private async monitorProgress(): Promise<void> {
+  //   const songTime = this._rocksnifferData['memoryReadout']['songTimer'];
+  //   const previousSongTime = this._previousRocksnifferData['memoryReadout']['songTimer'];
+  //   const previousSongLength = this._previousRocksnifferData['songDetails']['songLength'];
+
+  //   // If song time is 0 we are not in a song
+  //   // Reset values and return
+  //   if (approxEqual(songTime, 0)) {
+
+  //     // If we were just in a song, check if the score is verified. If it is record it!
+  //     if (previousSongTime > 0) {
+
+  //       // NOTE: "previous" values are used here because in nonstop play the current song data will be wrong
+  //       // If the completion time is more than 5 seconds off from the song
+  //       if (!approxEqual(previousSongTime, previousSongLength, Sniffer.songLengthTolerance)) {
+  //         if (this._verifiedScore) {
+  //           sussyError();
+  //           this._verifiedScore = false;
+  //         }
+  //       }
+
+  //       if (this._verifiedScore) {
+  //         //TODO record verified score
+  //       }
+  //     }
+
+  //     this._refreshCounter = 0;
+  //     this._pauseTime = 0;
+  //     this._verifiedScore = true;
+  //     return;
+  //   }
+
+  //   // Check if a song has started
+  //   if (approxEqual(previousSongTime, 0) && songTime > 0) {
+
+  //     // Synchronize the counter with the song start time
+  //     this._refreshCounter = songTime * 1000 / Sniffer.refreshRate;
+  //   }
+
+  //   // Check if the song is paused (limited for verified scores)
+  //   if (approxEqual(songTime, previousSongTime)) {
+  //     this._pauseTime = songTime;
+
+  //     // If the song was previously paused check if it was long enough ago to keep the score verified
+  //     if (this._lastPauseTime > 0) {
+  //       if (this._pauseTime - this._lastPauseTime < Sniffer.minPauseRate) {
+  //         sussyError();
+  //         this._verifiedScore = false;
+  //       }
+  //     }
+
+  //     if (this._verifiedScore) {
+  //       sussyWarning();
+  //     }
+  //   }
+
+  //   // Check if the song was rewound (not allowed for verified scores)
+  //   else if (songTime < previousSongTime) {
+  //     if (this._verifiedScore) {
+  //       sussyError();
+  //       this._verifiedScore = false;
+  //     }
+  //   }
+
+  //   // The song is no longer paused
+  //   else {
+  //     clearSussyWarning();
+  //     this._lastPauseTime = this._pauseTime;
+  //   }
+  // }
+
+  private updateSongInfo(rocksnifferData: any): void {
     const albumArtElement = document.getElementById('album_art') as HTMLImageElement;
     const artistElement = document.getElementById('artist') as HTMLElement;
     const titleElement = document.getElementById('title') as HTMLElement;
@@ -335,21 +368,19 @@ class Sniffer {
     const yearElement = document.getElementById('year') as HTMLElement;
     const versionElement = document.getElementById('version') as HTMLElement;
     const authorElement = document.getElementById('author') as HTMLElement;
-    const leaderboardHeaderElement = document.getElementById('leaderboard_header') as HTMLElement;
 
-    albumArtElement.src = 'data:image/jpeg;base64,' + this._rocksnifferData['songDetails']['albumArt'];
-    artistElement.innerText = this._rocksnifferData['songDetails']['artistName'];
-    titleElement.innerText = this._rocksnifferData['songDetails']['songName'];
-    albumElement.innerText = this._rocksnifferData['songDetails']['albumName'];
-    yearElement.innerText = this._rocksnifferData['songDetails']['albumYear'];
-    versionElement.innerText = this._rocksnifferData['songDetails']['toolkit']['version'];
-    authorElement.innerText = this._rocksnifferData['songDetails']['toolkit']['author'];
-    leaderboardHeaderElement.style.display = 'block';
+    albumArtElement.src = 'data:image/jpeg;base64,' + rocksnifferData['songDetails']['albumArt'];
+    artistElement.innerText = rocksnifferData['songDetails']['artistName'];
+    titleElement.innerText = rocksnifferData['songDetails']['songName'];
+    albumElement.innerText = rocksnifferData['songDetails']['albumName'];
+    yearElement.innerText = rocksnifferData['songDetails']['albumYear'];
+    versionElement.innerText = rocksnifferData['songDetails']['toolkit']['version'];
+    authorElement.innerText = rocksnifferData['songDetails']['toolkit']['author'];
   }
 
-  private async updateLiveFeed(): Promise<void> {
-    const mode = this._rocksnifferData['memoryReadout']['mode'];
-    const songTime = this._rocksnifferData['memoryReadout']['songTimer'];
+  private updateLiveFeed(rocksnifferData: any): void {
+    const mode = rocksnifferData['memoryReadout']['mode'];
+    const songTime = rocksnifferData['memoryReadout']['songTimer'];
 
     const liveFeedIconElement = document.getElementById('live_feed_icon') as HTMLElement;
 
@@ -362,13 +393,13 @@ class Sniffer {
         const statsLasElement = document.getElementById('stats_las') as HTMLElement;
         statsLasElement.style.display = 'block';
 
-        const notesHit = this._rocksnifferData['memoryReadout']['noteData']['TotalNotesHit'];
-        const totalNotes = this._rocksnifferData['memoryReadout']['noteData']['TotalNotes'];
-        const accuracy = this._rocksnifferData['memoryReadout']['noteData']['Accuracy'];
-        const streak = this._rocksnifferData['memoryReadout']['noteData']['CurrentHitStreak'];
-        const highestStreak = this._rocksnifferData['memoryReadout']['noteData']['HighestHitStreak'];
-        const songTimer = this._rocksnifferData['memoryReadout']['songTimer'];
-        const songLength = this._rocksnifferData['songDetails']['songLength'];
+        const notesHit = rocksnifferData['memoryReadout']['noteData']['TotalNotesHit'];
+        const totalNotes = rocksnifferData['memoryReadout']['noteData']['TotalNotes'];
+        const accuracy = rocksnifferData['memoryReadout']['noteData']['Accuracy'];
+        const streak = rocksnifferData['memoryReadout']['noteData']['CurrentHitStreak'];
+        const highestStreak = rocksnifferData['memoryReadout']['noteData']['HighestHitStreak'];
+        const songTimer = rocksnifferData['memoryReadout']['songTimer'];
+        const songLength = rocksnifferData['songDetails']['songLength'];
 
         const notesHitElement = document.getElementById('notes_hit') as HTMLElement;
         const totalNotesElement = document.getElementById('total_notes') as HTMLElement;
@@ -397,55 +428,77 @@ class Sniffer {
     }
   }
 
-  private async updatePath(): Promise<void> {
-    //TODO
+  private updatePath(rocksnifferData: any): void {
+    const availablePaths = getAvailablePaths(rocksnifferData['songDetails']['arrangements']);
+    
+    let hashMap: any = {}
+
+    // Update the path combo box with available paths
+    const pathElement = document.getElementById('path') as HTMLSelectElement;
+    pathElement.innerHTML = '';
+    availablePaths.forEach((path) => {
+      const option = document.createElement('option');
+      option.text = path.name;
+      option.value = path.name.toLowerCase();
+
+      if (option.value === this._path) {
+        option.selected = true;
+      }
+
+      pathElement.appendChild(option);
+
+      // Also make a map of hashes to path name so we can use it later
+      hashMap[path.hash] = path.name.toLowerCase();
+    });
+
+    // If the user is in a song, follow the path they are playing
+    const songTime = rocksnifferData['memoryReadout']['songTimer'];
+    if (songTime > 0) {
+
+      // Follow the correct arrangment with Rocksniffer
+      const arrangementHash = rocksnifferData['memoryReadout']['arrangementID'];
+
+      // Need to check if the path exists (this is because Rocksniffer is bugged in nonstop play)
+      // NOTE: in nonstop play the arrangement hash will be wrong and it will not automatically follow the correct path
+      if (hashMap.hasOwnProperty(arrangementHash)) {
+        const arrangementKey = hashMap[arrangementHash];
+        if (pathElement.value !== arrangementKey) {
+          pathElement.value = arrangementKey;
+          const event = new Event('change');
+          pathElement.dispatchEvent(event);
+        }
+      }
+    }
   }
 
   private async updateLeaderboard(): Promise<void> {
     //TODO
   }
 
-  private async refresh() {
+//   private async refresh() {
 
-    // If already refreshing, return
-    if (this._refreshActive) {
-      return;
-    }
+//     // If already refreshing, return
+//     if (this._refreshActive) {
+//       return;
+//     }
 
-    // Refresh starting
-    this._refreshActive = true;
+//     // Refresh starting
+//     this._refreshActive = true;
 
-    // Get Rocksmith and Rocksniffer data
-    this._rocksmithData = await this._rocksmith.getProfileData();
-    this._rocksnifferData = await this._rocksniffer.sniff();
+//     try {
+//       // Get Rocksmith and Rocksniffer data
+//       this._rocksmithData = await this._rocksmith.getProfileData();
+//       this._rocksnifferData = await this._rocksniffer.sniff();
 
-    if (this._rocksnifferData === null) {
-      showError(new Error('Navigate to a song in Rocksmith to begin sniffing...'));
-      this._refreshActive = false;
-      return;
-    }
+//       showExclusive('group1', 'connected');
+//     }
+//     catch (error) {
+//       showError(error);
+//     }
 
-    if (this._previousRocksnifferData !== null && this._previousRocksmithData !== null) {
-      await this.monitorProgress();
-    }
-
-    // Allow these to execute in parallel for better performance
-    const songInfoPromise = this.updateSongInfo();
-    const liveFeedPromise = this.updateLiveFeed();
-    const pathPromise = this.updatePath();
-    const leaderboardPromise = this.updateLeaderboard();
-
-    await songInfoPromise;
-    await liveFeedPromise;
-    await pathPromise;
-    await leaderboardPromise;
-
-    // Save Rocksmith and Rocksniffer data
-    this._previousRocksmithData = this._rocksmithData;
-    this._previousRocksnifferData = this._rocksnifferData;
-
-    this._refreshActive = false;
-  }
+//     this._refreshActive = false;
+//   }
+// }
 }
 
 // Gets all elements with the provided group class
@@ -456,7 +509,12 @@ function showExclusive(group: string, name: string): void {
   elements.forEach((element) => {
     const htmlElement = element as HTMLElement;
     if (htmlElement.classList.contains(name)) {
-      htmlElement.style.display = 'block';
+      if (htmlElement.classList.contains('inline')) {
+        htmlElement.style.display = 'inline-block';
+      }
+      else {
+        htmlElement.style.display = 'block';
+      }
     }
     else {
       htmlElement.style.display = 'none';

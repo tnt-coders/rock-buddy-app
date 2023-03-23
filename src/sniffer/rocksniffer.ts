@@ -47,7 +47,7 @@ export class Rocksniffer {
     }
     catch(error) {
       clearTimeout(timeout);
-      throw new Error('Connection to Rocksniffer could not be established.');
+      throw new Error('Waiting for Rocksniffer...');
     }
   }
 
