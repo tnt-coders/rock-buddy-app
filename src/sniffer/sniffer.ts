@@ -1,3 +1,4 @@
+import { Mutex } from 'async-mutex';
 import { Rocksmith } from './rocksmith';
 import { Rocksniffer } from './rocksniffer';
 import { UserData } from '../common/user_data';
@@ -13,13 +14,25 @@ class Sniffer {
   private readonly _rocksmith: Rocksmith;
   private readonly _rocksniffer: Rocksniffer;
 
+  // Mutexes for threadsafe access
+  private _connectedMutex: Mutex = new Mutex();
+  private _refreshSniffActiveMutex: Mutex = new Mutex();
+  private _refreshHeaderActiveMutex: Mutex = new Mutex();
+  private _refreshMonitorProgressActiveMutex: Mutex = new Mutex();
+  private _rocksnifferDataMutex: Mutex = new Mutex();
+
   // Used to prevent duplicate refreshing
+  private _refreshSniffActive: boolean = false;
   private _refreshHeaderActive: boolean = false;
+  private _refreshMonitorProgressActive: boolean = false;
+
+  // Connected status with RockSniffer
+  private _connected: boolean = false;
 
   // Song data
   private _rocksmithData: any = null;
-  private _rocksnifferData: any = null;
   private _previousRocksmithData: any = null;
+  private _rocksnifferData: any = null;
   private _previousRocksnifferData: any = null;
 
   // Monitoring 
@@ -54,7 +67,9 @@ class Sniffer {
   }
 
   public async start(): Promise<void> {
+    setInterval(this.refreshSniff.bind(this), Sniffer.refreshRate);
     setInterval(this.refreshHeaderData.bind(this), Sniffer.refreshRate);
+    setInterval(this.refreshMonitorProgress.bind(this), Sniffer.refreshRate);
   }
 
   private async init(): Promise<void> {
@@ -138,6 +153,58 @@ class Sniffer {
     sussyErrorCloseElement.addEventListener('click', () => {
       sussyErrorElement.style.display = 'none';
     });
+  }
+
+  private async getConnected(): Promise<boolean> {
+    const release = await this._connectedMutex.acquire();
+    const connected = this._connected;
+    release();
+    return connected;
+  }
+
+  private async getRefreshSniffActive(): Promise<boolean> {
+    const release = await this._refreshSniffActiveMutex.acquire();
+    const refreshSniffActive = this._refreshSniffActive;
+    release();
+    return refreshSniffActive;
+  }
+
+  private async getRefreshHeaderActive(): Promise<boolean> {
+    const release = await this._refreshHeaderActiveMutex.acquire();
+    const refreshHeaderActive = this._refreshHeaderActive;
+    release();
+    return refreshHeaderActive;
+  }
+
+  private async getRefreshMonitorProgressActive(): Promise<boolean> {
+    const release = await this._refreshMonitorProgressActiveMutex.acquire();
+    const refreshMonitorProgressActive = this._refreshMonitorProgressActive;
+    release();
+    return refreshMonitorProgressActive;
+  }
+
+  private async setConnected(connected: boolean): Promise<void> {
+    const release = await this._connectedMutex.acquire();
+    this._connected = connected;
+    release();
+  }
+
+  private async setRefreshSniffActive(refreshSniffActive: boolean): Promise<void> {
+    const release = await this._refreshSniffActiveMutex.acquire();
+    this._refreshSniffActive = refreshSniffActive;
+    release();
+  }
+
+  private async setRefreshHeaderActive(refreshHeaderActive: boolean): Promise<void> {
+    const release = await this._refreshHeaderActiveMutex.acquire();
+    this._refreshHeaderActive = refreshHeaderActive;
+    release();
+  }
+
+  private async setRefreshMonitorProgressActive(refreshMonitorProgressActive: boolean): Promise<void> {
+    const release = await this._refreshMonitorProgressActiveMutex.acquire();
+    this._refreshMonitorProgressActive = refreshMonitorProgressActive;
+    release();
   }
 
   private async showLeaderboard(): Promise<void> {
@@ -230,7 +297,7 @@ class Sniffer {
     })
   }
 
-  private async getScoresLas(): Promise<any> {
+  private async getScoresLas(rocksnifferData: any): Promise<any> {
     const authData = sessionStorage.getItem('auth_data');
     if (authData !== null) {
       const host = await window.api.getHost();
@@ -255,41 +322,143 @@ class Sniffer {
     snortElement.disabled = true;
   }
 
-  private async refreshHeaderData(): Promise<void> {
-    if (this._refreshHeaderActive === true) {
+  private async refreshSniff(): Promise<void> {
+    const refreshSniffActive = await this.getRefreshSniffActive();
+    if (refreshSniffActive === true) {
       return;
     }
 
-    this._refreshHeaderActive = true;
+    await this.setRefreshSniffActive(true);
 
     try {
-      const rocksnifferData: any = await this._rocksniffer.sniff();
-      if (rocksnifferData === null) {
-        throw new Error('Navigate to a song in Rocksmith to begin sniffing.');
+
+      const release = await this._rocksnifferDataMutex.acquire();
+      try {
+        this._previousRocksnifferData = this._rocksnifferData;
+        this._rocksnifferData = await this._rocksniffer.sniff();
+        if (this._rocksnifferData === null) {
+          throw new Error('Navigate to a song in Rocksmith to begin sniffing.');
+        }
       }
-      
+      finally {
+        release();
+      }
+
+      // Update the status
+      const statusElement = document.getElementById('status') as HTMLElement;
+      statusElement.innerText = 'Sniffing...';
+
+      // Show connected state
+      await this.setConnected(true);
+      showExclusive('group1', 'connected');
+    }
+    catch (error) {
+      await this.setConnected(false);
+      showError(error);
+    }
+
+    await this.setRefreshSniffActive(false);
+  }
+  private async refreshHeaderData(): Promise<void> {
+    const refreshHeaderActive = await this.getRefreshHeaderActive();
+    if (refreshHeaderActive === true) {
+      return;
+    }
+
+    await this.setRefreshHeaderActive(true);
+
+    const connected = await this.getConnected();
+    if (!connected) {
+      await this.setRefreshHeaderActive(false);
+      return;
+    }
+
+    try {
+      const release = await this._rocksnifferDataMutex.acquire();
+      const rocksnifferData = this._rocksnifferData;
+      release();
+
       this.updateSongInfo(rocksnifferData);
       this.updateLiveFeed(rocksnifferData);
       this.updatePath(rocksnifferData);
 
-      // Update the status and show header info
-      const statusElement = document.getElementById('status') as HTMLElement;
+      // Show header info
       const leaderboardHeaderElement = document.getElementById('leaderboard_header') as HTMLElement;
-
-      statusElement.innerText = 'Sniffing...';
       leaderboardHeaderElement.style.display = 'block';
-
-      // Show connected state
-      showExclusive('group1', 'connected');
     }
     catch (error) {
       showError(error);
     }
 
-    this._refreshHeaderActive = false;
+    await this.setRefreshHeaderActive(false);
   }
 
-  // private async monitorProgress(): Promise<void> {
+  private async refreshMonitorProgress(): Promise<void> {
+    if (this._refreshMonitorProgressActive === true) {
+      return;
+    }
+
+    await this.setRefreshMonitorProgressActive(true);
+
+    const connected = await this.getConnected();
+    if (!connected) {
+      await this.setRefreshMonitorProgressActive(false);
+      return;
+    }
+
+    try {
+      const release = await this._rocksnifferDataMutex.acquire();
+      const rocksnifferData = this._rocksnifferData;
+      const previousRocksnifferData = this._previousRocksnifferData;
+      release();
+
+      if (previousRocksnifferData === null) {
+        await this.setRefreshMonitorProgressActive(false);
+        return;
+      }
+
+      this.monitorProgress(rocksnifferData, previousRocksnifferData);
+    }
+    catch (error) {
+      showError(error);
+    }
+
+    await this.setRefreshMonitorProgressActive(false);
+  }
+
+  private monitorProgress(rocksnifferData: any, previousRocksnifferData: any): void {
+    const songTime = rocksnifferData['memoryReadout']['songTimer'];
+    const previousSongTime = previousRocksnifferData['memoryReadout']['songTimer'];
+    const previousSongLength = previousRocksnifferData['songDetails']['songLength'];
+
+    // If song time is 0 we are not in a song
+    // Reset values and return
+    if (approxEqual(songTime, 0)) {
+
+      // If we were just in a song, check if the score is verified. If it is record it!
+      if (previousSongTime > 0) {
+
+        // NOTE: "previous" values are used here because in nonstop play the current song data will be wrong
+        // If the completion time is more than 5 seconds off from the song
+        if (!approxEqual(previousSongTime, previousSongLength, Sniffer.songLengthTolerance)) {
+          if (this._verifiedScore) {
+            sussyError();
+            this._verifiedScore = false;
+          }
+        }
+
+        if (this._verifiedScore) {
+          //TODO record verified score
+        }
+      }
+
+      this._refreshCounter = 0;
+      this._pauseTime = 0;
+      this._verifiedScore = true;
+
+      return;
+    }
+  }
   //   const songTime = this._rocksnifferData['memoryReadout']['songTimer'];
   //   const previousSongTime = this._previousRocksnifferData['memoryReadout']['songTimer'];
   //   const previousSongLength = this._previousRocksnifferData['songDetails']['songLength'];
