@@ -3,7 +3,7 @@ var path = require('path');
 module.exports = {
   target: 'electron-renderer',
   entry: {
-    sniffer: './dist/sniffer/sniffer.js'
+    sniffer: './dist/sniffer/main.js'
   },
   output: {
     path: path.resolve(__dirname, 'dist'),

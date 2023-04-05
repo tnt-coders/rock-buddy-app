@@ -28,7 +28,7 @@ export class Rocksniffer {
     }
   }
 
-  public async sniff(): Promise<JSON | null> {
+  public async sniff(): Promise<any> {
     const controller = new AbortController();
     const timeout = setTimeout(() => {
       controller.abort();
