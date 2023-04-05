@@ -25,8 +25,10 @@ export class Sniffer {
 
     // Snort data
     private _snort = true; // Set to true on startup to ensure initial snorting
+    private _snortCountdown: number = 10; // seconds
     private _timeSinceLastSnort: number = 0;
     private _currentSong: string | null = null;
+    private _previousSongData: any = null;
 
     private constructor(rocksmith: Rocksmith, rocksniffer: Rocksniffer) {
         this._rocksmith = rocksmith;
@@ -45,6 +47,12 @@ export class Sniffer {
 
     public start(): void {
         setInterval(this.refresh.bind(this), Sniffer.refreshRate);
+    }
+
+    public queueSnort(): void {
+        const snortButton = document.getElementById('snort') as HTMLButtonElement;
+        this._snort = true;
+        snortButton.disabled = true;
     }
 
     private async init(): Promise<void> {
@@ -281,13 +289,18 @@ export class Sniffer {
     }
 
     private async updateLeaderboard(rocksnifferData: any): Promise<void> {
+        const snortButton = document.getElementById('snort') as HTMLButtonElement;
+
+        let snortData = {};
+       //  snortData['song_key'] = 1;
+
         if (rocksnifferData['songDetauls']['songID'] !== this._currentSong) {
             this._currentSong = rocksnifferData['songDetauls']['songID'];
         }
 
         // If enough time has passed, snort
-        if (this._timeSinceLastSnort > Sniffer.snortRate) {
-            this._snort = true;
+        if (this._snort === false && this._timeSinceLastSnort > Sniffer.snortRate) {
+            snortButton.disabled = false;
         }
 
         if (this._snort) {
