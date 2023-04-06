@@ -13,8 +13,4 @@ async function main() {
     }
 }
 
-function snort(): void {
-    sniffer?.queueSnort();
-}
-
 main();

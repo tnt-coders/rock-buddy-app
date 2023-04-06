@@ -7,15 +7,14 @@ import { approxEqual, durationString, getAvailablePaths } from '../common/functi
 
 export class Sniffer {
     // Refresh rate in milliseconds
-    private static readonly refreshRate: number = 100; // milliseconds
-    private static readonly snortRate: number = 10000; // milliseconds
+    private static readonly sniffRate: number = 100; // milliseconds
+    private static readonly snortRate: number = 1000; // milliseconds
 
     private readonly _rocksmith: Rocksmith;
     private readonly _rocksniffer: Rocksniffer;
 
     // Prevent duplicate refreshes
-    private _refreshActive: boolean = false;
-    private _refreshLeaderboardActive: boolean = false;
+    private _sniffActive: boolean = false;
 
     // Game mode/path/difficulty combo box data
     private _preferredPath: string | null = null;
@@ -23,12 +22,15 @@ export class Sniffer {
     private _path: string = 'lead';
     private _difficulty: string = 'hard';
 
+    // Header data
+    private _rocksnifferData: any = null
+
     // Snort data
-    private _snort = true; // Set to true on startup to ensure initial snorting
+    private _snort = true; // Set true on startup to ensure initial snorting
+    private _snorted = false; // Set false on startup to ensure initial snorting
     private _snortCountdown: number = 10; // seconds
     private _timeSinceLastSnort: number = 0;
-    private _currentSong: string | null = null;
-    private _previousSongData: any = null;
+    private _previousSnortRocksnifferData: any = null;
 
     private constructor(rocksmith: Rocksmith, rocksniffer: Rocksniffer) {
         this._rocksmith = rocksmith;
@@ -46,7 +48,8 @@ export class Sniffer {
     }
 
     public start(): void {
-        setInterval(this.refresh.bind(this), Sniffer.refreshRate);
+        setInterval(this.sniff.bind(this), Sniffer.sniffRate);
+        setInterval(this.snort.bind(this), Sniffer.snortRate);
     }
 
     public queueSnort(): void {
@@ -56,6 +59,9 @@ export class Sniffer {
     }
 
     private async init(): Promise<void> {
+        // Bind the snort button to the snort function
+        const snortButton = document.getElementById('snort') as HTMLButtonElement;
+        snortButton.addEventListener('click', this.queueSnort.bind(this));
 
         // Get the preferred path
         this._preferredPath = await UserData.get('preferred_path');
@@ -138,32 +144,29 @@ export class Sniffer {
         });
     }
 
-    private async sniff(): Promise<any> {
-        const rocksnifferData = await this._rocksniffer.sniff();
-        if (rocksnifferData === null || !rocksnifferData['success']) {
-            throw new Error('Navigate to a song in Rocksmith to begin sniffing.');
-        }
+    private async sniff(): Promise<void> {
+        this._timeSinceLastSnort += Sniffer.sniffRate;
 
-        return rocksnifferData;
-    }
-
-    private async refresh(): Promise<void> {
-        this._timeSinceLastSnort += Sniffer.refreshRate;
-
-        if (this._refreshActive === true) {
+        if (this._sniffActive === true) {
             return;
         }
 
         try {
-            const rocksnifferData = await this.sniff();
-            this.updateSongInfo(rocksnifferData);
-            this.updateLiveFeed(rocksnifferData);
-            this.updatePath(rocksnifferData);
+            this._rocksnifferData = await this._rocksniffer.sniff();
+            if (this._rocksnifferData === null || !this._rocksnifferData['success']) {
+                throw new Error('Navigate to a song in Rocksmith to begin sniffing.');
+            }
+            
+            this.updateSongInfo();
+            this.updateLiveFeed();
+            this.updatePath();
             this.updateLeaderboard(rocksnifferData);
+
+            this._previousSnortRocksnifferData = rocksnifferData;
         }
         catch (error) {
             showError(error);
-            this._refreshActive = false;
+            this._sniffActive = false;
             return;
         }
 
@@ -174,10 +177,10 @@ export class Sniffer {
         // Show connected state
         showExclusive('group1', 'connected');
 
-        this._refreshActive = false;
+        this._sniffActive = false;
     }
 
-    private updateSongInfo(rocksnifferData: any): void {
+    private updateSongInfo(): void {
         const albumArtElement = document.getElementById('album_art') as HTMLImageElement;
         const artistElement = document.getElementById('artist') as HTMLElement;
         const titleElement = document.getElementById('title') as HTMLElement;
@@ -186,18 +189,18 @@ export class Sniffer {
         const versionElement = document.getElementById('version') as HTMLElement;
         const authorElement = document.getElementById('author') as HTMLElement;
 
-        albumArtElement.src = 'data:image/jpeg;base64,' + rocksnifferData['songDetails']['albumArt'];
-        artistElement.innerText = rocksnifferData['songDetails']['artistName'];
-        titleElement.innerText = rocksnifferData['songDetails']['songName'];
-        albumElement.innerText = rocksnifferData['songDetails']['albumName'];
-        yearElement.innerText = rocksnifferData['songDetails']['albumYear'];
-        versionElement.innerText = rocksnifferData['songDetails']['toolkit']['version'];
-        authorElement.innerText = rocksnifferData['songDetails']['toolkit']['author'];
+        albumArtElement.src = 'data:image/jpeg;base64,' + this._rocksnifferData['songDetails']['albumArt'];
+        artistElement.innerText = this._rocksnifferData['songDetails']['artistName'];
+        titleElement.innerText = this._rocksnifferData['songDetails']['songName'];
+        albumElement.innerText = this._rocksnifferData['songDetails']['albumName'];
+        yearElement.innerText = this._rocksnifferData['songDetails']['albumYear'];
+        versionElement.innerText = this._rocksnifferData['songDetails']['toolkit']['version'];
+        authorElement.innerText = this._rocksnifferData['songDetails']['toolkit']['author'];
     }
 
-    private updateLiveFeed(rocksnifferData: any): void {
-        const mode = rocksnifferData['memoryReadout']['mode'];
-        const songTime = rocksnifferData['memoryReadout']['songTimer'];
+    private updateLiveFeed(): void {
+        const mode = this._rocksnifferData['memoryReadout']['mode'];
+        const songTime = this._rocksnifferData['memoryReadout']['songTimer'];
 
         const liveFeedIconElement = document.getElementById('live_feed_icon') as HTMLElement;
 
@@ -210,13 +213,13 @@ export class Sniffer {
                 const statsLasElement = document.getElementById('stats_las') as HTMLElement;
                 statsLasElement.style.display = 'block';
 
-                const notesHit = rocksnifferData['memoryReadout']['noteData']['TotalNotesHit'];
-                const totalNotes = rocksnifferData['memoryReadout']['noteData']['TotalNotes'];
-                const accuracy = rocksnifferData['memoryReadout']['noteData']['Accuracy'];
-                const streak = rocksnifferData['memoryReadout']['noteData']['CurrentHitStreak'];
-                const highestStreak = rocksnifferData['memoryReadout']['noteData']['HighestHitStreak'];
-                const songTimer = rocksnifferData['memoryReadout']['songTimer'];
-                const songLength = rocksnifferData['songDetails']['songLength'];
+                const notesHit = this._rocksnifferData['memoryReadout']['noteData']['TotalNotesHit'];
+                const totalNotes = this._rocksnifferData['memoryReadout']['noteData']['TotalNotes'];
+                const accuracy = this._rocksnifferData['memoryReadout']['noteData']['Accuracy'];
+                const streak = this._rocksnifferData['memoryReadout']['noteData']['CurrentHitStreak'];
+                const highestStreak = this._rocksnifferData['memoryReadout']['noteData']['HighestHitStreak'];
+                const songTimer = this._rocksnifferData['memoryReadout']['songTimer'];
+                const songLength = this._rocksnifferData['songDetails']['songLength'];
 
                 const notesHitElement = document.getElementById('notes_hit') as HTMLElement;
                 const totalNotesElement = document.getElementById('total_notes') as HTMLElement;
@@ -245,8 +248,8 @@ export class Sniffer {
         }
     }
 
-    private updatePath(rocksnifferData: any): void {
-        const availablePaths = getAvailablePaths(rocksnifferData['songDetails']['arrangements']);
+    private updatePath(): void {
+        const availablePaths = getAvailablePaths(this._rocksnifferData['songDetails']['arrangements']);
 
         let hashMap: any = {}
 
@@ -269,11 +272,11 @@ export class Sniffer {
         });
 
         // If the user is in a song, follow the path they are playing
-        const songTime = rocksnifferData['memoryReadout']['songTimer'];
+        const songTime = this._rocksnifferData['memoryReadout']['songTimer'];
         if (songTime > 0) {
 
             // Follow the correct arrangment with Rocksniffer
-            const arrangementHash = rocksnifferData['memoryReadout']['arrangementID'];
+            const arrangementHash = this._rocksnifferData['memoryReadout']['arrangementID'];
 
             // Need to check if the path exists (this is because Rocksniffer is bugged in nonstop play)
             // NOTE: in nonstop play the arrangement hash will be wrong and it will not automatically follow the correct path
@@ -288,27 +291,68 @@ export class Sniffer {
         }
     }
 
-    private async updateLeaderboard(rocksnifferData: any): Promise<void> {
+    private async updateLeaderboard(): Promise<void> {
         const snortButton = document.getElementById('snort') as HTMLButtonElement;
 
-        let snortData = {};
-       //  snortData['song_key'] = 1;
+        const newProfileDataAvailable = await this._rocksmith.newProfileDataAvailable();
 
-        if (rocksnifferData['songDetauls']['songID'] !== this._currentSong) {
-            this._currentSong = rocksnifferData['songDetauls']['songID'];
+        console.log("got there");
+
+        if (this._previousRocksnifferData !== null &&
+            rocksnifferData['songDetails']['songID'] !== this._previousRocksnifferData['songDetails']['songID']) {
+
+            // Allow the user to snort immediately
+            snortButton.disabled = false;
+            this._snorted = false;
+
+            // Reset the snort countdown
+            this._snortCountdown = 10;
+
+            // If new profile data is available AND the song is changing, snort the previous song data
+            // This fixes a bug where rock buddy data would not be updated after playing a song in nonstop play
+            if (newProfileDataAvailable) {
+                this.snort(this._previousRocksnifferData);
+                return;
+            }
         }
 
-        // If enough time has passed, snort
-        if (this._snort === false && this._timeSinceLastSnort > Sniffer.snortRate) {
-            snortButton.disabled = false;
+        // If enough time has passed and we have not already snorted, snort
+        if (this._snorted === false && this._timeSinceLastSnort > Sniffer.snortRate) {
+            this._snort = true;
+        }
+
+        // If the game has just been saved snort to keep things in sync
+        if (newProfileDataAvailable) {
+            this._snort = true;
         }
 
         if (this._snort) {
-
+            this._snort = false;
+            this.snort(rocksnifferData);
         }
-        else {
-
+        else if (!this._snorted) {
+            const leaderboardDataElement = document.getElementById('leaderboard_data') as HTMLElement;
+            leaderboardDataElement.innerHTML = '';
+            leaderboardDataElement.appendChild(document.createTextNode('Snorting data in ' + Math.ceil(this._snortCountdown)));
+            this._snortCountdown -= Sniffer.sniffRate / 1000; // convert to seconds
+            this._timeSinceLastSnort += Sniffer.sniffRate
         }
+    }
+
+    private async snort(rocksnifferData: any) {
+        const statusElement = document.getElementById('status') as HTMLElement;
+        statusElement.innerHTML = 'Snorting data...';
+
+        const leaderboardDataElement = document.getElementById('leaderboard_data') as HTMLElement;
+        leaderboardDataElement.innerHTML = '';
+        const snortText = document.createElement('em');
+        snortText.textContent = '*Snort*';
+        leaderboardDataElement.appendChild(snortText);
+
+        const rocksmithData = await this._rocksmith.getProfileData();
+
+        this._timeSinceLastSnort = 0;
+        this._snorted = true;
     }
 
 
