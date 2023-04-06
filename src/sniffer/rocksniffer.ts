@@ -2,7 +2,7 @@ import { UserData } from '../common/user_data';
 
 export class Rocksniffer {
   private static readonly requiredVersion: string = 'v0.4.1';
-  private static readonly timeout: number = 100; // milliseconds
+  private static readonly timeout: number = 1000; // milliseconds
 
   private readonly _path: string;
   private _host: string | undefined;
@@ -38,6 +38,16 @@ export class Rocksniffer {
       const response = await fetch('http://' + this._host + ':' + this._port, { signal: controller.signal });
       const data = await response.json();
       clearTimeout(timeout);
+      if (data.hasOwnProperty('Version')) {
+        const version = data['Version'];
+        if (!await window.api.semverGte(version, Rocksniffer.requiredVersion)) {
+          throw new Error("Minimum Rocksniffer version requirement not met. Please update Rocksniffer to at least " + Rocksniffer.requiredVersion + ".");
+        }
+      }
+      else {
+        window.api.warning("Rocksniffer version could not be verified.\n\nRock Buddy may not function as expected.")
+      }
+
       if (data.hasOwnProperty('success') && data.success === true) {
         return data;
       }
