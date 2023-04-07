@@ -3,7 +3,7 @@ import { Rocksmith } from './rocksmith';
 import { Rocksniffer } from './rocksniffer';
 import { UserData } from '../common/user_data';
 import { showError, showExclusive } from './functions';
-import { approxEqual, durationString, getAvailablePaths } from '../common/functions';
+import { approxEqual, durationString, getAvailablePaths, post } from '../common/functions';
 
 export class Sniffer {
     // Refresh rate in milliseconds
@@ -17,7 +17,7 @@ export class Sniffer {
     private _refreshActive: boolean = false;
 
     // Game mode/path/difficulty combo box data
-    private _preferredPath: string | null = null;
+    private _preferredPath: string = 'lead';
     private _gameMode: string = 'las';
     private _path: string = 'lead';
     private _difficulty: string = 'hard';
@@ -62,9 +62,9 @@ export class Sniffer {
         snortButton.addEventListener('click', this.queueSnort.bind(this));
 
         // Get the preferred path
-        this._preferredPath = await UserData.get('preferred_path');
-        if (this._preferredPath === null) {
-            this._preferredPath = 'lead';
+        const preferredPath = await UserData.get('preferred_path');
+        if (preferredPath !== null) {
+            this._preferredPath = preferredPath;
         }
 
         // Setup game mode combo box
@@ -86,7 +86,7 @@ export class Sniffer {
 
             // Update the display (keep things feeling responsive)
             try {
-                await this.showLeaderboard();
+                this.queueSnort();
             }
             catch (error) {
                 showError(error);
@@ -102,7 +102,7 @@ export class Sniffer {
 
             // Update the display (keep things feeling responsive)
             try {
-                await this.showLeaderboard();
+                this.queueSnort();
             }
             catch (error) {
                 showError(error);
@@ -118,7 +118,7 @@ export class Sniffer {
 
             // Update the display (keep things feeling responsive)
             try {
-                await this.showLeaderboard();
+                this.queueSnort();
             }
             catch (error) {
                 showError(error);
@@ -160,7 +160,7 @@ export class Sniffer {
 
         try {
             const rocksnifferData = await this.sniff();
-            
+
             this.updateSongInfo(rocksnifferData);
             this.updateLiveFeed(rocksnifferData);
             this.updatePath(rocksnifferData);
@@ -294,6 +294,29 @@ export class Sniffer {
                 }
             }
         }
+
+        // If we are in a new song update the path to the preferred path
+        // If that path doesn't exist choose the first available path instead
+        else if (this._previousRocksnifferData !== null &&
+            rocksnifferData['songDetails']['songID'] !== this._previousRocksnifferData['songDetails']['songID']) {
+
+            // Default to the preferred path
+            if (this._preferredPath in hashMap) {
+                this._path = this._preferredPath;
+            }
+            else {
+                this._path = availablePaths[0].name.toLowerCase;
+            }
+
+            // Update the path combo box to the user's selected path
+            // DO NOT trigger the path change event (this is intentional so it doesn't snort immediately)
+            Array.from(pathElement.options).forEach((option) => {
+                if (option.value === this._path) {
+                    option.selected = true;
+                    return;
+                }
+            });
+        }
     }
 
     private async updateLeaderboard(rocksnifferData: any): Promise<void> {
@@ -303,7 +326,7 @@ export class Sniffer {
 
         if (this._previousRocksnifferData !== null &&
             rocksnifferData['songDetails']['songID'] !== this._previousRocksnifferData['songDetails']['songID']) {
-                console.log(rocksnifferData['songDetails']['songID']);
+            console.log(rocksnifferData['songDetails']['songID']);
 
             // Allow the user to snort immediately
             snortButton.disabled = false;
@@ -322,14 +345,11 @@ export class Sniffer {
 
         // If enough time has passed and we have not already snorted, snort
         if (this._snorted === false && this._snortCountdown <= 0 && this._timeSinceLastSnort > Sniffer.snortRate) {
-            console.log(this._timeSinceLastSnort);
-            console.log(Sniffer.snortRate);
             this._snort = true;
         }
 
         // If the game has just been saved snort to keep things in sync
         if (newProfileDataAvailable && rocksnifferData['memoryReadout']['gameStage'] !== 'MainMenu') {
-            console.log("TEST");
             this._snort = true;
         }
 
@@ -355,28 +375,129 @@ export class Sniffer {
         snortText.textContent = '*Snort*';
         leaderboardDataElement.appendChild(snortText);
 
+        // Grab current Rocksmith profile data
         const rocksmithData = await this._rocksmith.getProfileData();
+
+        // Define object to hold snort data
+        let snortData: any = {};
+
+        // Get basic song metadata
+        snortData['song_key'] = rocksnifferData['songDetails']['songID'];
+        snortData['psarc_hash'] = rocksnifferData['songDetails']['psarcFileHash'];
+        snortData['title'] = rocksnifferData['songDetails']['songName'];
+        snortData['artist'] = rocksnifferData['songDetails']['artistName'];
+        snortData['album'] = rocksnifferData['songDetails']['albumName'];
+        snortData['year'] = rocksnifferData['songDetails']['albumYear'];
+
+        const availablePaths = getAvailablePaths(rocksnifferData['songDetails']['arrangements']);
+
+        // Define object to hold arrangement data
+        snortData['arrangements'] = {};
+
+        // Loop athrough each arrangement
+        rocksnifferData['songDetails']['arrangements'].forEach((arrangement: any) => {
+            let arrangementData: any = {};
+
+            const hash = arrangement['arrangementID'];
+            arrangementData['hash'] = hash;
+
+            // Get the name of the arrangement
+            availablePaths.forEach((path) => {
+                if (path.hash === hash) {
+                    arrangementData['name'] = path['name'];
+                }
+            });
+
+            const lasDataExists = rocksmithData['Stats']['Songs'].hasOwnProperty(hash);
+            const saDataExists = rocksmithData['SongsSA'].hasOwnProperty(hash);
+            if (lasDataExists) {
+                arrangementData['mastery'] = rocksmithData['Stats']['Songs'][hash]['MasteryPeak'];
+                arrangementData['last_accuracy'] = rocksmithData['Stats']['Songs'][hash]['AccuracyGlobal'];
+                arrangementData['streak'] = rocksmithData['Stats']['Songs'][hash]['Streak'];
+                arrangementData['las_last_played'] = rocksmithData['Stats']['Songs'][hash]['DateLAS'];
+                arrangementData['las_play_count'] = rocksmithData['Stats']['Songs'][hash]['PlayedCount'];
+            }
+            if (saDataExists) {
+                arrangementData['scores'] = {};
+                arrangementData['badges'] = {};
+
+                // Scores
+                // Keep easy and medium commented out in case we want to add them later
+                //arrangementData['scores']['easy'] = rocksmithData['SongsSA'][hash]['HighScores']['Easy'];
+                //arrangementData['scores']['medium'] = rocksmithData['SongsSA'][hash]['HighScores']['Medium'];
+                arrangementData['scores']['hard'] = rocksmithData['SongsSA'][hash]['HighScores']['Hard'];
+                arrangementData['scores']['master'] = rocksmithData['SongsSA'][hash]['HighScores']['Master'];
+
+                // Strikes
+                // Keep easy and medium commented out in case we want to add them later
+                //arrangementData['badges']['easy'] = rocksmithData['SongsSA'][hash]['Badges']['Easy'];
+                //arrangementData['badges']['medium'] = rocksmithData['SongsSA'][hash]['Badges']['Medium'];
+                arrangementData['badges']['hard'] = rocksmithData['SongsSA'][hash]['Badges']['Hard'];
+                arrangementData['badges']['master'] = rocksmithData['SongsSA'][hash]['Badges']['Master'];
+
+                arrangementData['sa_last_played'] = rocksmithData['Stats']['Songs'][hash]['DateSA'];
+                arrangementData['sa_play_count'] = rocksmithData['SongsSA'][hash]['PlayCount'];
+            }
+
+            snortData['arrangements'][hash] = arrangementData;
+        });
 
         this._timeSinceLastSnort = 0;
         this._snorted = true;
+
+        // Sync the data with the server
+        await this.syncWithServer(snortData);
+
+        // Show the leaderboard
+        await this.showLeaderboard(rocksnifferData);
     }
 
+    private async syncWithServer(snortData: any): Promise<void> {
+        //TODO GET FROM SESSION STORAGE INSTEAD!!! HOW?
+        const authData = JSON.parse(await window.api.storeGet('auth_data'));
 
+        console.log(authData);
+        console.log(snortData);
 
+        const host = await window.api.getHost();
+        const response = await post(host + '/api/data/sniffer_sync.php', {
+            auth_data: authData,
+            song_data: snortData
+        });
 
+        if ('error' in response) {
+            window.api.error(response['error']);
+        }
+    }
 
+    private async getScoresLAS(rocksnifferData: any): Promise<any> {
+        //TODO GET FROM SESSION STORAGE INSTEAD!!! HOW?
+        const authData = JSON.parse(await window.api.storeGet('auth_data'));
 
+        const host = await window.api.getHost();
+        const response = await post(host + '/api/data/get_scores_las.php', {
+            auth_data: authData,
+            song_key: rocksnifferData['songDetails']['songID'],
+            psarc_hash: rocksnifferData['songDetails']['psarcFileHash'],
+            arrangement: this._path
+        });
 
-    ///////////////////////////////////
+        if ('error' in response) {
+            window.api.error(response['error']);
+            return null;
+        }
 
-    private async showLeaderboard(): Promise<void> {
-        // if (!this._snorted) {
-        //     this.snort();
-        //     return;
-        // }
+        return response;
+    }
+
+    private async showLeaderboard(rocksnifferData: any): Promise<void> {
+        if (!this._snorted) {
+            this.queueSnort();
+            return;
+        }
 
         if (this._gameMode === 'las') {
-            //this.displayLasLeaderboard();
+            this.displayLASLeaderboard(rocksnifferData);
         }
         else if (this._gameMode === 'sa') {
             //TODO
@@ -385,77 +506,77 @@ export class Sniffer {
         }
     }
 
-//     private async displayLasLeaderboard(): Promise<void> {
-//         const scoresLas = await this.getScoresLas();
+    private async displayLASLeaderboard(rocksnifferData: any): Promise<void> {
+        const scoresLas = await this.getScoresLAS(rocksnifferData);
 
-//         if (scoresLas.length === 0) {
-//             // No scores found
-//             return;
-//         }
+        if (scoresLas.length === 0) {
+            // No scores found
+            return;
+        }
 
-//         // Create the table element
-//         const table = document.createElement('table');
-//         table.style.width = '100%';
+        // Create the table element
+        const table = document.createElement('table');
+        table.style.width = '100%';
 
-//         // Create the header row
-//         const headerRow = document.createElement('tr');
-//         const headers = ['Rank', 'Username', 'Last Played', 'Play Count', 'Streak', 'Mastery'];
-//         headers.forEach((header) => {
-//             const headerCell = document.createElement('th');
-//             headerCell.style.fontFamily = "Roboto Mono, monospace";
-//             headerCell.appendChild(document.createTextNode(header));
-//             headerRow.appendChild(headerCell);
-//         });
+        // Create the header row
+        const headerRow = document.createElement('tr');
+        const headers = ['Rank', 'Username', 'Last Played', 'Play Count', 'Streak', 'Mastery'];
+        headers.forEach((header) => {
+            const headerCell = document.createElement('th');
+            headerCell.style.fontFamily = "Roboto Mono, monospace";
+            headerCell.appendChild(document.createTextNode(header));
+            headerRow.appendChild(headerCell);
+        });
 
-//         table.appendChild(headerRow);
+        table.appendChild(headerRow);
 
-//         // Create data rows
-//         const columns = ['rank', 'username', 'last_played', 'play_count', 'streak', 'mastery'];
-//         const columnsAlign = ['right', 'left', 'left', 'right', 'right', 'right'];
+        // Create data rows
+        const columns = ['rank', 'username', 'last_played', 'play_count', 'streak', 'mastery'];
+        const columnsAlign = ['right', 'left', 'left', 'right', 'right', 'right'];
 
-//         // Keep track of rank
-//         let rank = 1;
-//         let lastMastery: number | null = null;
-//         let lastStreak: number | null = null;
-//         let tieCount = 0;
-//         scoresLas.forEach((row: any) => {
-//             const dataRow = document.createElement('tr');
+        // Keep track of rank
+        let rank = 1;
+        let lastMastery: number | null = null;
+        let lastStreak: number | null = null;
+        let tieCount = 0;
+        scoresLas.forEach((row: any) => {
+            const dataRow = document.createElement('tr');
 
-//             // Populate data for each column
-//             let columnIndex = 0;
-//             columns.forEach((column) => {
-//                 const dataCell = document.createElement('td');
-//                 dataCell.style.fontFamily = "Roboto Mono, monospace";
-//                 if (column === 'rank') {
-//                     dataCell.appendChild(document.createTextNode(rank.toString()));
-//                 }
-//                 else if (column === 'mastery') {
-//                     const percentage = (row[column] * 100).toFixed(2) + '%';
-//                     dataCell.appendChild(document.createTextNode(percentage));
-//                 }
-//                 else {
-//                     dataCell.appendChild(document.createTextNode(row[column]));
-//                 }
-//                 dataCell.style.textAlign = columnsAlign[columnIndex++];
-//                 dataRow.appendChild(dataCell);
-//             });
+            // Populate data for each column
+            let columnIndex = 0;
+            columns.forEach((column) => {
+                const dataCell = document.createElement('td');
+                dataCell.style.fontFamily = "Roboto Mono, monospace";
+                if (column === 'rank') {
+                    dataCell.appendChild(document.createTextNode(rank.toString()));
+                }
+                else if (column === 'mastery') {
+                    const percentage = (row[column] * 100).toFixed(2) + '%';
+                    dataCell.appendChild(document.createTextNode(percentage));
+                }
+                else {
+                    dataCell.appendChild(document.createTextNode(row[column]));
+                }
+                dataCell.style.textAlign = columnsAlign[columnIndex++];
+                dataRow.appendChild(dataCell);
+            });
 
-//             // Handle the situation where a tie occurs
-//             let tie = false;
-//             if (lastMastery !== null && lastStreak !== null) {
-//                 if (approxEqual(row['mastery'], lastMastery) && approxEqual(row['streak'], lastStreak)) {
-//                     tie = true;
-//                     tieCount++;
-//                 }
-//             }
+            // Handle the situation where a tie occurs
+            let tie = false;
+            if (lastMastery !== null && lastStreak !== null) {
+                if (approxEqual(row['mastery'], lastMastery) && approxEqual(row['streak'], lastStreak)) {
+                    tie = true;
+                    tieCount++;
+                }
+            }
 
-//             if (!tie) {
-//                 rank += (tieCount + 1);
-//                 tieCount = 0;
-//             }
+            if (!tie) {
+                rank += (tieCount + 1);
+                tieCount = 0;
+            }
 
-//             // Add the row to the table
-//             table.appendChild(dataRow);
-//         })
-//     }
+            // Add the row to the table
+            table.appendChild(dataRow);
+        })
+    }
 };

@@ -1,16 +1,3 @@
-async function getVersion(): Promise<string | null> {
-  let version = sessionStorage.getItem('version');
-  if (version === null) {
-    version = await window.api.getVersion();
-
-    if (version !== null) {
-      sessionStorage.setItem('version', version);
-    }
-  }
-
-  return version;
-}
-
 export function approxEqual(a: number, b: number, tolerance = 0.0001): boolean {
   return Math.abs(a - b) <= tolerance;
 }
@@ -228,6 +215,20 @@ export function getAvailablePaths(arrangementData: any) {
 
   return paths;
 }
+
+async function getVersion(): Promise<string | null> {
+  let version = sessionStorage.getItem('version');
+  if (version === null) {
+    version = await window.api.getVersion();
+
+    if (version !== null) {
+      sessionStorage.setItem('version', version);
+    }
+  }
+
+  return version;
+}
+
 
 export async function post(url: string, data: any) {
   // Add version number to the data
