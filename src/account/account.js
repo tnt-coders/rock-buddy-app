@@ -1,16 +1,19 @@
 'use strict';
 
 async function main() {
-  const authData = JSON.parse(sessionStorage.getItem('auth_data'));
+    const version = await getVersion();
+    document.title += ' v' + version;
 
-  const accountInfo = await getAccountInfo(authData);
-  if (!accountInfo) {
-    api.error('Failed to get account info.');
-    return;
-  }
+    const authData = JSON.parse(sessionStorage.getItem('auth_data'));
 
-  document.getElementById('username').innerText = accountInfo['username'];
-  document.getElementById('email').innerText = accountInfo['email'];
+    const accountInfo = await getAccountInfo(authData);
+    if (!accountInfo) {
+        api.error('Failed to get account info.');
+        return;
+    }
+
+    document.getElementById('username').innerText = accountInfo['username'];
+    document.getElementById('email').innerText = accountInfo['email'];
 }
 
 main();
