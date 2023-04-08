@@ -305,7 +305,7 @@ export class Sniffer {
                 this._path = this._preferredPath;
             }
             else {
-                this._path = availablePaths[0].name.toLowerCase;
+                this._path = availablePaths[0].name.toLowerCase();
             }
 
             // Update the path combo box to the user's selected path
@@ -453,11 +453,7 @@ export class Sniffer {
     }
 
     private async syncWithServer(snortData: any): Promise<void> {
-        //TODO GET FROM SESSION STORAGE INSTEAD!!! HOW?
-        const authData = JSON.parse(await window.api.storeGet('auth_data'));
-
-        console.log(authData);
-        console.log(snortData);
+        const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
 
         const host = await window.api.getHost();
         const response = await post(host + '/api/data/sniffer_sync.php', {
@@ -471,8 +467,11 @@ export class Sniffer {
     }
 
     private async getScoresLAS(rocksnifferData: any): Promise<any> {
-        //TODO GET FROM SESSION STORAGE INSTEAD!!! HOW?
-        const authData = JSON.parse(await window.api.storeGet('auth_data'));
+        const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
+
+        console.log(authData);
+        console.log(rocksnifferData);
+        console.log(this._path);
 
         const host = await window.api.getHost();
         const response = await post(host + '/api/data/get_scores_las.php', {
@@ -501,16 +500,27 @@ export class Sniffer {
         }
         else if (this._gameMode === 'sa') {
             //TODO
-            showError(new Error('Score attack leaderboards are not yet available. Check back soon!'));
+            const leaderboardDataElement = document.getElementById('leaderboard_data') as HTMLElement;
+            const message = document.createElement('p');
+            message.innerText = 'Selected game mode not yet supported. Check back soon!';
+            leaderboardDataElement.innerHTML = '';
+            leaderboardDataElement.appendChild(message);
             //this.displaySaLeaderboard();
         }
     }
 
     private async displayLASLeaderboard(rocksnifferData: any): Promise<void> {
+        const leaderboardDataElement = document.getElementById('leaderboard_data') as HTMLElement;
+
         const scoresLas = await this.getScoresLAS(rocksnifferData);
 
+        console.log(scoresLas);
+
         if (scoresLas.length === 0) {
-            // No scores found
+            const message = document.createElement('p');
+            message.innerHTML = 'And this is where I would put my scores... <em>IF I HAD ONE!</em>';
+            leaderboardDataElement.innerHTML = '';
+            leaderboardDataElement.appendChild(message);
             return;
         }
 
@@ -578,5 +588,8 @@ export class Sniffer {
             // Add the row to the table
             table.appendChild(dataRow);
         })
+
+        leaderboardDataElement.innerHTML = '';
+        leaderboardDataElement.appendChild(table);
     }
 };
