@@ -111,6 +111,7 @@ function createWindow() {
     let screenWidth = 1024;
     let screenHeight = 768;
     let addonsEnabled = false;
+    let addonsHost = 'localhost';
     let addonsPort = 9001;
 
     const authData = store.get('auth_data');
@@ -125,9 +126,17 @@ function createWindow() {
         }
 
         const savedAddonsEnabled = store.get('user_data.' + userId + '.addons_enabled');
-        const savedAddonsPort = store.get('user_data.' + userId + '.addons_port');
-        if (savedAddonsEnabled !== undefined && savedAddonsPort !== undefined) {
+        if (savedAddonsEnabled !== undefined) {
             addonsEnabled = savedAddonsEnabled;
+        }
+
+        const savedAddonsHost = store.get('user_data.' + userId + '.addons_host');
+        if (savedAddonsHost !== undefined) {
+            addonsHost = savedAddonsHost;
+        }
+
+        const savedAddonsPort = store.get('user_data.' + userId + '.addons_port');
+        if (savedAddonsPort !== undefined) {
             addonsPort = savedAddonsPort;
         }
     }
@@ -322,10 +331,14 @@ function createWindow() {
         return getRocksmithProfiles(steamUserDataPath, steamProfile);
     });
 
-    let enableAddons = (event, port) => {
+    let enableAddons = (event, host, port) => {
+        server.on('error', (error) => {
+            console.log("Server error: " + error);
+        });
+
         // Serve the content of your Electron window via the HTTP server
-        server.listen(port, 'localhost', () => {
-            console.log('Server running on http://localhost:' + port);
+        server.listen(port, host, () => {
+            console.log('Server running on ' + host + ':' + port);
         });
 
         if (captureInterval !== null) {
@@ -347,7 +360,7 @@ function createWindow() {
                 }
             });
         }, 100);
-    };
+    }
 
     ipcMain.on('enable-addons', enableAddons);
 
@@ -358,12 +371,13 @@ function createWindow() {
         }
 
         if (server.listening) {
+            console.log("Addons server stopped.");
             server.close();
         }
     });
 
     if (addonsEnabled) {
-        enableAddons(null, addonsPort);
+        enableAddons(null, addonsHost, addonsPort);
     }
 
     win.loadFile('src/index.html');

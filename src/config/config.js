@@ -2,6 +2,11 @@
 
 const userId = JSON.parse(sessionStorage.getItem('auth_data'))['user_id'];
 
+// Globals (default settings)
+let addonsEnabled = false;
+let addonsHost = 'localhost';
+let addonsPort = 9001;
+
 api.windowResized((event, width, height) => {
     const windowWidthEntry = document.getElementById('window_width');
     const windowHeightEntry = document.getElementById('window_height');
@@ -160,32 +165,66 @@ async function getPreferences() {
     });
 }
 
+// TODO wrap config into a class so when addon values are changed we can use
+// the saved values to auto-restart the server with the new values
 async function initAddonConfig() {
     const addonsEnabledCheckbox = document.querySelector('#addons_enabled');
+    const addonsHostEntry = document.querySelector('#addons_host');
     const addonsPortEntry = document.querySelector('#addons_port');
 
-    let addonsEnabled = await api.storeGet('user_data.' + userId + '.addons_enabled');
-    if (addonsEnabled === null) {
-        addonsEnabled = false;
+    let savedAddonsEnabled = await api.storeGet('user_data.' + userId + '.addons_enabled');
+    if (savedAddonsEnabled === null) {
         api.storeSet('user_data.' + userId + '.addons_enabled', addonsEnabled);
+    }
+    else {
+        addonsEnabled = savedAddonsEnabled;
     }
     addonsEnabledCheckbox.checked = addonsEnabled;
 
-    let addonsPort = await api.storeGet('user_data.' + userId + '.addons_port');
-    if (addonsPort === null) {
-        addonsPort = 9001;
+    let savedAddonsHost = await api.storeGet('user_data.' + userId + '.addons_host');
+    if (savedAddonsHost === null) {
+        api.storeSet('user_data.' + userId + '.addons_host', addonsHost);
+    }
+    else {
+        addonsHost = savedAddonsHost;
+    }
+    addonsHostEntry.value = addonsHost;
+
+    let savedAddonsPort = await api.storeGet('user_data.' + userId + '.addons_port');
+    if (savedAddonsPort === null) {
         api.storeSet('user_data.' + userId + '.addons_port', addonsPort);
+    }
+    else {
+        addonsPort = savedAddonsPort;
     }
     addonsPortEntry.value = addonsPort;
 
     addonsEnabledCheckbox.addEventListener('change', async () => {
         if (addonsEnabledCheckbox.checked) {
-            api.enableAddons(addonsPort);
+            api.enableAddons(addonsHost, addonsPort);
         }
         else {
             api.disableAddons();
         }
         api.storeSet('user_data.' + userId + '.addons_enabled', addonsEnabledCheckbox.checked);
+    });
+
+    addonsHostEntry.addEventListener('change', async () => {
+        addonsHost = addonsHostEntry.value;
+        if (addonsEnabledCheckbox.checked) {
+            api.disableAddons();
+            api.enableAddons(addonsHost, addonsPort);
+        }
+        api.storeSet('user_data.' + userId + '.addons_host', addonsHost);
+    });
+
+    addonsPortEntry.addEventListener('change', async () => {
+        addonsPort = addonsPortEntry.value;
+        if (addonsEnabledCheckbox.checked) {
+            api.disableAddons();
+            api.enableAddons(addonsHost, addonsPort);
+        }
+        api.storeSet('user_data.' + userId + '.addons_port', addonsPort);
     });
 }
 
