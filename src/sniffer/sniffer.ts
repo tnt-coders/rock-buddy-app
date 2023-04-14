@@ -165,7 +165,8 @@ export class Sniffer {
             this.updateLiveFeed(rocksnifferData);
             this.updatePath(rocksnifferData);
 
-            await this.updateLeaderboard(rocksnifferData);
+            // Check if it is time to snort
+            await this.checkSnort(rocksnifferData);
 
             this._previousRocksnifferData = rocksnifferData;
         }
@@ -319,7 +320,7 @@ export class Sniffer {
         }
     }
 
-    private async updateLeaderboard(rocksnifferData: any): Promise<void> {
+    private async checkSnort(rocksnifferData: any): Promise<void> {
         const snortButton = document.getElementById('snort') as HTMLButtonElement;
 
         const newProfileDataAvailable = await this._rocksmith.newProfileDataAvailable();
@@ -442,11 +443,11 @@ export class Sniffer {
             snortData['arrangements'][hash] = arrangementData;
         });
 
-        this._timeSinceLastSnort = 0;
-        this._snorted = true;
-
         // Sync the data with the server
         await this.syncWithServer(snortData);
+
+        this._timeSinceLastSnort = 0;
+        this._snorted = true;
 
         // Show the leaderboard
         await this.showLeaderboard(rocksnifferData);
@@ -510,6 +511,8 @@ export class Sniffer {
     }
 
     private async displayLASLeaderboard(rocksnifferData: any): Promise<void> {
+        const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
+
         const leaderboardDataElement = document.getElementById('leaderboard_data') as HTMLElement;
 
         const scoresLas = await this.getScoresLAS(rocksnifferData);
@@ -583,6 +586,11 @@ export class Sniffer {
             if (!tie) {
                 rank += (tieCount + 1);
                 tieCount = 0;
+            }
+
+            // Highlight the row of the current user
+            if (row['user_id'] === authData['user_id']) {
+                dataRow.classList.add('current-user');
             }
 
             // Add the row to the table
