@@ -43,15 +43,15 @@ export function getAvailablePaths(arrangementData: any) {
         const isBonus = arrangement['isBonusArrangement'];
 
         if (type === 'Lead') {
-            if (isAlt) {
-                pathGroups.altLead.push({
-                    name: 'Alternate ' + type,
+            if (isBonus) {
+                pathGroups.bonusLead.push({
+                    name: 'Bonus ' + type,
                     hash: hash
                 });
             }
-            else if (isBonus) {
-                pathGroups.bonusLead.push({
-                    name: 'Bonus ' + type,
+            else if (isAlt) {
+                pathGroups.altLead.push({
+                    name: 'Alternate ' + type,
                     hash: hash
                 });
             }
@@ -63,15 +63,15 @@ export function getAvailablePaths(arrangementData: any) {
             }
         }
         else if (type === 'Rhythm') {
-            if (isAlt) {
-                pathGroups.altRhythm.push({
-                    name: 'Alternate ' + type,
+            if (isBonus) {
+                pathGroups.bonusRhythm.push({
+                    name: 'Bonus ' + type,
                     hash: hash
                 });
             }
-            else if (isBonus) {
-                pathGroups.bonusRhythm.push({
-                    name: 'Bonus ' + type,
+            else if (isAlt) {
+                pathGroups.altRhythm.push({
+                    name: 'Alternate ' + type,
                     hash: hash
                 });
             }
@@ -83,15 +83,15 @@ export function getAvailablePaths(arrangementData: any) {
             }
         }
         else if (type === 'Bass') {
-            if (isAlt) {
-                pathGroups.altBass.push({
-                    name: 'Alternate ' + type,
+            if (isBonus) {
+                pathGroups.bonusBass.push({
+                    name: 'Bonus ' + type,
                     hash: hash
                 });
             }
-            else if (isBonus) {
-                pathGroups.bonusBass.push({
-                    name: 'Bonus ' + type,
+            else if (isAlt) {
+                pathGroups.altBass.push({
+                    name: 'Alternate ' + type,
                     hash: hash
                 });
             }
