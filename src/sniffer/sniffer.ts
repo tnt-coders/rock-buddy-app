@@ -327,7 +327,6 @@ export class Sniffer {
 
         if (this._previousRocksnifferData !== null &&
             rocksnifferData['songDetails']['songID'] !== this._previousRocksnifferData['songDetails']['songID']) {
-            console.log(rocksnifferData['songDetails']['songID']);
 
             // Allow the user to snort immediately
             snortButton.disabled = false;
@@ -470,9 +469,6 @@ export class Sniffer {
     private async getScoresLAS(rocksnifferData: any): Promise<any> {
         const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
 
-        console.log(authData);
-        console.log(rocksnifferData);
-        console.log(this._path);
 
         const host = await window.api.getHost();
         const response = await post(host + '/api/data/get_scores_las.php', {
@@ -517,7 +513,6 @@ export class Sniffer {
 
         const scoresLas = await this.getScoresLAS(rocksnifferData);
 
-        console.log(scoresLas);
 
         if (scoresLas.length === 0) {
             const message = document.createElement('p');
