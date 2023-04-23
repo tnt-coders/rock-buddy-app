@@ -157,6 +157,7 @@ export class Sniffer {
         if (this._refreshActive === true) {
             return;
         }
+        this._refreshActive = true;
 
         try {
             const rocksnifferData = await this.sniff();
