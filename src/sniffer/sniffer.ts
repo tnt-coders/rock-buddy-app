@@ -215,10 +215,13 @@ export class Sniffer {
         if (songTime > 0) {
             liveFeedIconElement.style.backgroundColor = 'green';
 
+            const statsLASElement = document.getElementById('stats_las') as HTMLElement;
+            const statsSAElement = document.getElementById('stats_sa') as HTMLElement;
+
             // Mode 1 is learn a song
             if (mode === 1) {
-                const statsLasElement = document.getElementById('stats_las') as HTMLElement;
-                statsLasElement.style.display = 'block';
+                statsSAElement.style.display = 'none';
+                statsLASElement.style.display = 'block';
 
                 const notesHit = rocksnifferData['memoryReadout']['noteData']['TotalNotesHit'];
                 const totalNotes = rocksnifferData['memoryReadout']['noteData']['TotalNotes'];
@@ -228,13 +231,13 @@ export class Sniffer {
                 const songTimer = rocksnifferData['memoryReadout']['songTimer'];
                 const songLength = rocksnifferData['songDetails']['songLength'];
 
-                const notesHitElement = document.getElementById('notes_hit') as HTMLElement;
-                const totalNotesElement = document.getElementById('total_notes') as HTMLElement;
-                const accuracyElement = document.getElementById('accuracy') as HTMLElement;
-                const streakElement = document.getElementById('streak') as HTMLElement;
-                const highestStreakElement = document.getElementById('highest_streak') as HTMLElement;
-                const songTimerElement = document.getElementById('song_timer') as HTMLElement;
-                const songLengthElement = document.getElementById('song_length') as HTMLElement;
+                const notesHitElement = document.getElementById('las_notes_hit') as HTMLElement;
+                const totalNotesElement = document.getElementById('las_total_notes') as HTMLElement;
+                const accuracyElement = document.getElementById('las_accuracy') as HTMLElement;
+                const streakElement = document.getElementById('las_streak') as HTMLElement;
+                const highestStreakElement = document.getElementById('las_highest_streak') as HTMLElement;
+                const songTimerElement = document.getElementById('las_song_timer') as HTMLElement;
+                const songLengthElement = document.getElementById('las_song_length') as HTMLElement;
 
                 notesHitElement.innerText = notesHit;
                 totalNotesElement.innerText = totalNotes;
@@ -247,7 +250,32 @@ export class Sniffer {
 
             // Mode 2 is score attack
             else if (mode === 2) {
-                //TODO score attack live feed
+                statsLASElement.style.display = 'none';
+                statsSAElement.style.display = 'block';
+
+                const notesHit = rocksnifferData['memoryReadout']['noteData']['TotalNotesHit'];
+                const totalNotes = rocksnifferData['memoryReadout']['noteData']['TotalNotes'];
+                const accuracy = rocksnifferData['memoryReadout']['noteData']['Accuracy'];
+                const streak = rocksnifferData['memoryReadout']['noteData']['CurrentHitStreak'];
+                const highestStreak = rocksnifferData['memoryReadout']['noteData']['HighestHitStreak'];
+                const songTimer = rocksnifferData['memoryReadout']['songTimer'];
+                const songLength = rocksnifferData['songDetails']['songLength'];
+
+                const notesHitElement = document.getElementById('sa_notes_hit') as HTMLElement;
+                const totalNotesElement = document.getElementById('sa_total_notes') as HTMLElement;
+                const accuracyElement = document.getElementById('sa_accuracy') as HTMLElement;
+                const streakElement = document.getElementById('sa_streak') as HTMLElement;
+                const highestStreakElement = document.getElementById('sa_highest_streak') as HTMLElement;
+                const songTimerElement = document.getElementById('sa_song_timer') as HTMLElement;
+                const songLengthElement = document.getElementById('sa_song_length') as HTMLElement;
+
+                notesHitElement.innerText = notesHit;
+                totalNotesElement.innerText = totalNotes;
+                accuracyElement.innerText = accuracy.toFixed(2) + '%';
+                streakElement.innerText = streak;
+                highestStreakElement.innerText = highestStreak;
+                songTimerElement.innerText = durationString(songTimer);
+                songLengthElement.innerText = durationString(songLength);
             }
         }
         else {
