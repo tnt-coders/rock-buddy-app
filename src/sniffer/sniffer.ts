@@ -693,6 +693,13 @@ export class Sniffer {
                 else if (column === 'score') {
                     dataCell.appendChild(document.createTextNode(row[column].toLocaleString('en-US')))
                 }
+                else if (column === 'badges'){
+                    var img = document.createElement('img');
+                    img.src = `./../../images/badge-icons/badge-${lastBadges}.png`;
+                    img.width=25;
+                    img.height=25;
+                    dataCell.appendChild(img)
+                }
                 else {
                     dataCell.appendChild(document.createTextNode(row[column]));
                 }
