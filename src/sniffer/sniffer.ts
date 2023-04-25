@@ -215,10 +215,13 @@ export class Sniffer {
         if (songTime > 0) {
             liveFeedIconElement.style.backgroundColor = 'green';
 
+            const statsLASElement = document.getElementById('stats_las') as HTMLElement;
+            const statsSAElement = document.getElementById('stats_sa') as HTMLElement;
+
             // Mode 1 is learn a song
             if (mode === 1) {
-                const statsLasElement = document.getElementById('stats_las') as HTMLElement;
-                statsLasElement.style.display = 'block';
+                statsSAElement.style.display = 'none';
+                statsLASElement.style.display = 'block';
 
                 const notesHit = rocksnifferData['memoryReadout']['noteData']['TotalNotesHit'];
                 const totalNotes = rocksnifferData['memoryReadout']['noteData']['TotalNotes'];
@@ -228,13 +231,13 @@ export class Sniffer {
                 const songTimer = rocksnifferData['memoryReadout']['songTimer'];
                 const songLength = rocksnifferData['songDetails']['songLength'];
 
-                const notesHitElement = document.getElementById('notes_hit') as HTMLElement;
-                const totalNotesElement = document.getElementById('total_notes') as HTMLElement;
-                const accuracyElement = document.getElementById('accuracy') as HTMLElement;
-                const streakElement = document.getElementById('streak') as HTMLElement;
-                const highestStreakElement = document.getElementById('highest_streak') as HTMLElement;
-                const songTimerElement = document.getElementById('song_timer') as HTMLElement;
-                const songLengthElement = document.getElementById('song_length') as HTMLElement;
+                const notesHitElement = document.getElementById('las_notes_hit') as HTMLElement;
+                const totalNotesElement = document.getElementById('las_total_notes') as HTMLElement;
+                const accuracyElement = document.getElementById('las_accuracy') as HTMLElement;
+                const streakElement = document.getElementById('las_streak') as HTMLElement;
+                const highestStreakElement = document.getElementById('las_highest_streak') as HTMLElement;
+                const songTimerElement = document.getElementById('las_song_timer') as HTMLElement;
+                const songLengthElement = document.getElementById('las_song_length') as HTMLElement;
 
                 notesHitElement.innerText = notesHit;
                 totalNotesElement.innerText = totalNotes;
@@ -247,7 +250,32 @@ export class Sniffer {
 
             // Mode 2 is score attack
             else if (mode === 2) {
-                //TODO score attack live feed
+                statsLASElement.style.display = 'none';
+                statsSAElement.style.display = 'block';
+
+                const notesHit = rocksnifferData['memoryReadout']['noteData']['TotalNotesHit'];
+                const totalNotes = rocksnifferData['memoryReadout']['noteData']['TotalNotes'];
+                const accuracy = rocksnifferData['memoryReadout']['noteData']['Accuracy'];
+                const streak = rocksnifferData['memoryReadout']['noteData']['CurrentHitStreak'];
+                const highestStreak = rocksnifferData['memoryReadout']['noteData']['HighestHitStreak'];
+                const songTimer = rocksnifferData['memoryReadout']['songTimer'];
+                const songLength = rocksnifferData['songDetails']['songLength'];
+
+                const notesHitElement = document.getElementById('sa_notes_hit') as HTMLElement;
+                const totalNotesElement = document.getElementById('sa_total_notes') as HTMLElement;
+                const accuracyElement = document.getElementById('sa_accuracy') as HTMLElement;
+                const streakElement = document.getElementById('sa_streak') as HTMLElement;
+                const highestStreakElement = document.getElementById('sa_highest_streak') as HTMLElement;
+                const songTimerElement = document.getElementById('sa_song_timer') as HTMLElement;
+                const songLengthElement = document.getElementById('sa_song_length') as HTMLElement;
+
+                notesHitElement.innerText = notesHit;
+                totalNotesElement.innerText = totalNotes;
+                accuracyElement.innerText = accuracy.toFixed(2) + '%';
+                streakElement.innerText = streak;
+                highestStreakElement.innerText = highestStreak;
+                songTimerElement.innerText = durationString(songTimer);
+                songLengthElement.innerText = durationString(songLength);
             }
         }
         else {
@@ -338,7 +366,7 @@ export class Sniffer {
 
             // If new profile data is available AND the song is changing, snort the previous song data
             // This fixes a bug where rock buddy data would not be updated after playing a song in nonstop play
-            if (newProfileDataAvailable) {
+            if (newProfileDataAvailable && rocksnifferData['memoryReadout']['gameStage'] === 'NonStopPlay_Hub') {
                 this.snort(this._previousRocksnifferData);
                 return;
             }
@@ -470,13 +498,32 @@ export class Sniffer {
     private async getScoresLAS(rocksnifferData: any): Promise<any> {
         const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
 
-
         const host = await window.api.getHost();
         const response = await post(host + '/api/data/get_scores_las.php', {
             auth_data: authData,
             song_key: rocksnifferData['songDetails']['songID'],
             psarc_hash: rocksnifferData['songDetails']['psarcFileHash'],
             arrangement: this._path
+        });
+
+        if ('error' in response) {
+            window.api.error(response['error']);
+            return null;
+        }
+
+        return response;
+    }
+
+    private async getScoresSA(rocksnifferData: any): Promise<any> {
+        const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
+
+        const host = await window.api.getHost();
+        const response = await post(host + '/api/data/get_scores_sa.php', {
+            auth_data: authData,
+            song_key: rocksnifferData['songDetails']['songID'],
+            psarc_hash: rocksnifferData['songDetails']['psarcFileHash'],
+            arrangement: this._path,
+            difficulty: this._difficulty
         });
 
         if ('error' in response) {
@@ -497,13 +544,7 @@ export class Sniffer {
             this.displayLASLeaderboard(rocksnifferData);
         }
         else if (this._gameMode === 'sa') {
-            //TODO
-            const leaderboardDataElement = document.getElementById('leaderboard_data') as HTMLElement;
-            const message = document.createElement('p');
-            message.innerText = 'Selected game mode not yet supported. Check back soon!';
-            leaderboardDataElement.innerHTML = '';
-            leaderboardDataElement.appendChild(message);
-            //this.displaySaLeaderboard();
+            this.displaySALeaderboard(rocksnifferData);
         }
     }
 
@@ -512,10 +553,9 @@ export class Sniffer {
 
         const leaderboardDataElement = document.getElementById('leaderboard_data') as HTMLElement;
 
-        const scoresLas = await this.getScoresLAS(rocksnifferData);
+        const scores = await this.getScoresLAS(rocksnifferData);
 
-
-        if (scoresLas.length === 0) {
+        if (scores.length === 0) {
             const message = document.createElement('p');
             message.innerHTML = 'And this is where I would put my scores... <em>IF I HAD ONE!</em>';
             leaderboardDataElement.innerHTML = '';
@@ -532,7 +572,7 @@ export class Sniffer {
         const headers = ['Rank', 'Username', 'Last Played', 'Play Count', 'Streak', 'Mastery'];
         headers.forEach((header) => {
             const headerCell = document.createElement('th');
-            headerCell.style.fontFamily = "Roboto Mono, monospace";
+            headerCell.style.fontFamily = 'Roboto Mono, monospace';
             headerCell.appendChild(document.createTextNode(header));
             headerRow.appendChild(headerCell);
         });
@@ -548,14 +588,14 @@ export class Sniffer {
         let lastMastery: number | null = null;
         let lastStreak: number | null = null;
         let tieCount = 0;
-        scoresLas.forEach((row: any) => {
+        scores.forEach((row: any) => {
             const dataRow = document.createElement('tr');
 
             // Populate data for each column
             let columnIndex = 0;
             columns.forEach((column) => {
                 const dataCell = document.createElement('td');
-                dataCell.style.fontFamily = "Roboto Mono, monospace";
+                dataCell.style.fontFamily = 'Roboto Mono, monospace';
                 if (column === 'rank') {
                     dataCell.appendChild(document.createTextNode(rank.toString()));
                 }
@@ -578,11 +618,120 @@ export class Sniffer {
                     tieCount++;
                 }
             }
-
             if (!tie) {
                 rank += (tieCount + 1);
                 tieCount = 0;
             }
+            lastMastery = row['mastery'];
+            lastStreak = row['streak'];
+
+            // Highlight the row of the current user
+            if (row['user_id'] === authData['user_id']) {
+                dataRow.classList.add('current-user');
+            }
+
+            // Add the row to the table
+            table.appendChild(dataRow);
+        })
+
+        leaderboardDataElement.innerHTML = '';
+        leaderboardDataElement.appendChild(table);
+    }
+
+    private async displaySALeaderboard(rocksnifferData: any): Promise<void> {
+        const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
+
+        const leaderboardDataElement = document.getElementById('leaderboard_data') as HTMLElement;
+
+        const scores = await this.getScoresSA(rocksnifferData);
+        console.log(scores);
+
+        if (scores.length === 0) {
+            const message = document.createElement('p');
+            message.innerHTML = 'And this is where I would put my scores... <em>IF I HAD ONE!</em>';
+            leaderboardDataElement.innerHTML = '';
+            leaderboardDataElement.appendChild(message);
+            return;
+        }
+
+        // Create the table element
+        const table = document.createElement('table');
+        table.style.width = '100%';
+
+        // Create the header row
+        const headerRow = document.createElement('tr');
+        const headers = ['Rank', 'Username', 'Last Played', 'Play Count', 'Score'];
+        headers.forEach((header) => {
+            const headerCell = document.createElement('th');
+            headerCell.style.fontFamily = 'Roboto Mono, monospace';
+            headerCell.appendChild(document.createTextNode(header));
+            headerRow.appendChild(headerCell);
+        });
+
+        table.appendChild(headerRow);
+
+        // Create data rows
+        const columns = ['rank', 'username', 'last_played', 'play_count', 'score'];
+        const columnsAlign = ['right', 'left', 'left', 'right', 'right'];
+
+        // Keep track of rank
+        let rank = 1;
+        let lastScore: number | null = null;
+        let lastBadges: number | null = null;
+        let tieCount = 0;
+        scores.forEach((row: any) => {
+            const dataRow = document.createElement('tr');
+
+            // Populate data for each column
+            let columnIndex = 0;
+            columns.forEach((column) => {
+                const dataCell = document.createElement('td');
+                dataCell.style.fontFamily = 'Roboto Mono, monospace';
+                if (column === 'rank') {
+                    dataCell.appendChild(document.createTextNode(rank.toString()));
+                }
+                else if (column === 'score') {
+
+                    const scoreElement = document.createElement('div');
+                    scoreElement.style.display = 'flex';
+                    scoreElement.style.flexDirection = 'row';
+                    
+                    const badgeElement = document.createElement('img');
+                    badgeElement.src = `./../../images/badge-icons/badge-${row['badges']}.png`;
+                    badgeElement.width = 15;
+                    badgeElement.height = 15;
+                    badgeElement.style.marginLeft = '5px';
+
+                    const scoreSpan = document.createElement('span');
+                    scoreSpan.appendChild(document.createTextNode(row[column].toLocaleString('en-US')));
+                    scoreSpan.style.marginLeft = 'auto';
+
+                    scoreElement.appendChild(badgeElement);
+                    scoreElement.appendChild(scoreSpan);
+
+                    dataCell.appendChild(scoreElement);
+                }
+                else {
+                    dataCell.appendChild(document.createTextNode(row[column]));
+                }
+                dataCell.style.textAlign = columnsAlign[columnIndex++];
+                dataRow.appendChild(dataCell);
+            });
+
+            // Handle the situation where a tie occurs
+            let tie = false;
+            if (lastScore !== null && lastBadges !== null) {
+                if (approxEqual(row['score'], lastScore) && approxEqual(row['badges'], lastBadges)) {
+                    tie = true;
+                    tieCount++;
+                }
+            }
+            if (!tie) {
+                rank += (tieCount + 1);
+                tieCount = 0;
+            }
+            lastScore = row['score'];
+            lastBadges = row['badges'];
 
             // Highlight the row of the current user
             if (row['user_id'] === authData['user_id']) {
