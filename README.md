@@ -59,9 +59,9 @@ The "Sniffer" page will follow Rocksniffer and display leaderboards for whatever
 - [x] Add Themes 
 - [x] Include charter in song info
 - [x] Add version check to ensure incompatible versions are phased out properly
-- [ ] Editable Streamer Theme including text and other elements
-- [ ] Leaderboards for score attack (hard mode)
-- [ ] Leaderboards for score attack (master mode) 
+- [x] Editable Streamer Theme including text and other elements
+- [x] Leaderboards for score attack (hard mode)
+- [x] Leaderboards for score attack (master mode) 
 - [ ] Bulk import to import ALL scores for a user at once
 - [ ] Leaderboard search page
 
