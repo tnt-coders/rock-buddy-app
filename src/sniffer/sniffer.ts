@@ -660,7 +660,7 @@ export class Sniffer {
 
         // Create the header row
         const headerRow = document.createElement('tr');
-        const headers = ['Rank', 'Username', 'Last Played', 'Play Count', 'Badges', 'Score'];
+        const headers = ['Rank', 'Username', 'Last Played', 'Play Count', 'Score'];
         headers.forEach((header) => {
             const headerCell = document.createElement('th');
             headerCell.style.fontFamily = 'Roboto Mono, monospace';
@@ -671,8 +671,8 @@ export class Sniffer {
         table.appendChild(headerRow);
 
         // Create data rows
-        const columns = ['rank', 'username', 'last_played', 'play_count', 'badges', 'score'];
-        const columnsAlign = ['right', 'left', 'left', 'right', 'right', 'right'];
+        const columns = ['rank', 'username', 'last_played', 'play_count', 'score'];
+        const columnsAlign = ['right', 'left', 'left', 'right', 'right'];
 
         // Keep track of rank
         let rank = 1;
@@ -691,14 +691,25 @@ export class Sniffer {
                     dataCell.appendChild(document.createTextNode(rank.toString()));
                 }
                 else if (column === 'score') {
-                    dataCell.appendChild(document.createTextNode(row[column].toLocaleString('en-US')))
-                }
-                else if (column === 'badges'){
-                    var img = document.createElement('img');
-                    img.src = `./../../images/badge-icons/badge-${lastBadges}.png`;
-                    img.width=25;
-                    img.height=25;
-                    dataCell.appendChild(img)
+
+                    const scoreElement = document.createElement('div');
+                    scoreElement.style.display = 'flex';
+                    scoreElement.style.flexDirection = 'row';
+                    
+                    const badgeElement = document.createElement('img');
+                    badgeElement.src = `./../../images/badge-icons/badge-${row['badges']}.png`;
+                    badgeElement.width = 15;
+                    badgeElement.height = 15;
+                    badgeElement.style.marginLeft = '5px';
+
+                    const scoreSpan = document.createElement('span');
+                    scoreSpan.appendChild(document.createTextNode(row[column].toLocaleString('en-US')));
+                    scoreSpan.style.marginLeft = 'auto';
+
+                    scoreElement.appendChild(badgeElement);
+                    scoreElement.appendChild(scoreSpan);
+
+                    dataCell.appendChild(scoreElement);
                 }
                 else {
                     dataCell.appendChild(document.createTextNode(row[column]));
