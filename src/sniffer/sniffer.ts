@@ -372,6 +372,11 @@ export class Sniffer {
             }
         }
 
+        // If it has been over 10 seconds since the last snort, enable the snort button
+        if (!this._snort && this._timeSinceLastSnort / 1000 >= 10) {
+            snortButton.disabled = false;
+        }
+
         // If enough time has passed and we have not already snorted, snort
         if (this._snorted === false && this._snortCountdown <= 0 && this._timeSinceLastSnort > Sniffer.snortRate) {
             this._snort = true;
@@ -721,7 +726,7 @@ export class Sniffer {
             // Handle the situation where a tie occurs
             let tie = false;
             if (lastScore !== null && lastBadges !== null) {
-                if (approxEqual(row['score'], lastScore) && approxEqual(row['badges'], lastBadges)) {
+                if (approxEqual(row['badges'], lastBadges) && approxEqual(row['score'], lastScore)) {
                     tie = true;
                     tieCount++;
                 }
