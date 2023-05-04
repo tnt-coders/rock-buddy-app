@@ -1,4 +1,3 @@
-import { Mutex } from 'async-mutex';
 import { Rocksmith } from './rocksmith';
 import { Rocksniffer } from './rocksniffer';
 import { UserData } from '../common/user_data';
@@ -165,6 +164,7 @@ export class Sniffer {
             this.updateSongInfo(rocksnifferData);
             this.updateLiveFeed(rocksnifferData);
             this.updatePath(rocksnifferData);
+            this.monitorProgress(rocksnifferData);
 
             // Check if it is time to snort
             await this.checkSnort(rocksnifferData);
@@ -212,7 +212,7 @@ export class Sniffer {
         const liveFeedIconElement = document.getElementById('live_feed_icon') as HTMLElement;
 
         // If song time is greater than 0 we are in a song
-        if (songTime > 0) {
+        if (!approxEqual(songTime, 0)) {
             liveFeedIconElement.style.backgroundColor = 'green';
 
             const statsLASElement = document.getElementById('stats_las') as HTMLElement;
@@ -346,6 +346,35 @@ export class Sniffer {
                     return;
                 }
             });
+        }
+    }
+
+    private monitorProgress(rocksnifferData: any): void {
+
+        // Cannot proceed until we have a previous data set to work with
+        if (this._previousRocksnifferData === null) {
+            return;
+        }
+
+        const songTime = rocksnifferData['memoryReadout']['songTimer'];
+        const previousSongTime = this._previousRocksnifferData['memoryReadout']['songTimer'];
+
+        // Currently in a song
+        if (!approxEqual(songTime, 0) && !approxEqual(previousSongTime, 0)) {
+            console.log("in a song");
+            //TODO
+        }
+
+        // Song is starting
+        else if (!approxEqual(songTime, 0)) {
+            console.log("SONG STARTING");
+            //TODO
+        }
+
+        // Song is ending
+        else if (!approxEqual(previousSongTime, 0)) {
+            console.log("SONG ENDING");
+            //TODO
         }
     }
 
