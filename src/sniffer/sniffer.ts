@@ -4,6 +4,12 @@ import { UserData } from '../common/user_data';
 import { showError, showExclusive } from './functions';
 import { approxEqual, durationString, getAvailablePaths, post } from '../common/functions';
 
+enum VerificationState {
+    Verified,
+    MaybeVerified,
+    Unverified,
+}
+
 export class Sniffer {
     // Refresh rate in milliseconds
     private static readonly refreshRate: number = 100; // milliseconds
@@ -23,10 +29,20 @@ export class Sniffer {
 
     // Rocksniffer data from last refresh
     private _previousRocksnifferData: any = null;
+    
+    // Progress monitor data
+    private _verified: boolean = true;
+    private _inSong: boolean = false;
+    private _progressTimer: number = 0;
+    private _maybePaused: boolean = false;
+    private _isPaused: boolean = false;
+    private _pauseTimer: number = 0;
+    private _pauseTime: number = 0;
+    private _lastPauseTime: number = 0;
 
     // Snort data
-    private _snort = true; // Set true on startup to ensure initial snorting
-    private _snorted = false; // Set false on startup to ensure initial snorting
+    private _snort: boolean = true; // Set true on startup to ensure initial snorting
+    private _snorted: boolean = false; // Set false on startup to ensure initial snorting
     private _snortCountdown: number = 10; // seconds
     private _timeSinceLastSnort: number = 0;
 
@@ -124,20 +140,41 @@ export class Sniffer {
             }
         });
 
-        // Setup sussy warning
-        const sussyWarningElement = document.getElementById('sussy_warning') as HTMLElement;
-        const sussyWarningCloseElement = document.getElementById('sussy_warning_close') as HTMLElement;
+        // Setup verification elements
+        const verifiedElement = document.getElementById('verified') as HTMLElement;
+        const verifiedPopupElement = document.getElementById('verified_popup') as HTMLElement;
+        const closeVerifiedPopupElement = document.getElementById('close_verified_popup') as HTMLElement;
 
-        sussyWarningCloseElement.addEventListener('click', () => {
-            sussyWarningElement.style.display = 'none';
+        verifiedElement.addEventListener('click', async () => {
+            verifiedPopupElement.style.display = 'block';
         });
 
-        // Setup sussy error
-        const sussyErrorElement = document.getElementById('sussy_error') as HTMLElement;
-        const sussyErrorCloseElement = document.getElementById('sussy_error_close') as HTMLElement;
+        closeVerifiedPopupElement.addEventListener('click', async() => {
+            verifiedPopupElement.style.display = 'none';
+        });
 
-        sussyErrorCloseElement.addEventListener('click', () => {
-            sussyErrorElement.style.display = 'none';
+        const maybeVerifiedElement = document.getElementById('maybe_verified') as HTMLElement;
+        const maybeVerifiedPopupElement = document.getElementById('maybe_verified_popup') as HTMLElement;
+        const closeMaybeVerifiedPopupElement = document.getElementById('close_maybe_verified_popup') as HTMLElement;
+
+        maybeVerifiedElement.addEventListener('click', async () => {
+            maybeVerifiedPopupElement.style.display = 'block';
+        });
+
+        closeMaybeVerifiedPopupElement.addEventListener('click', async() => {
+            maybeVerifiedPopupElement.style.display = 'none';
+        });
+
+        const unverifiedElement = document.getElementById('unverified') as HTMLElement;
+        const unverifiedPopupElement = document.getElementById('unverified_popup') as HTMLElement;
+        const closeUnverifiedPopupElement = document.getElementById('close_unverified_popup') as HTMLElement;
+
+        unverifiedElement.addEventListener('click', async () => {
+            unverifiedPopupElement.style.display = 'block';
+        });
+
+        closeUnverifiedPopupElement.addEventListener('click', async() => {
+            unverifiedPopupElement.style.display = 'none';
         });
     }
 
@@ -152,6 +189,17 @@ export class Sniffer {
 
     private async refresh(): Promise<void> {
         this._timeSinceLastSnort += Sniffer.refreshRate;
+
+        // If we are in a song, update the progress timer
+        if (this._inSong) {
+            if (!this._isPaused) {
+                this._progressTimer += Sniffer.refreshRate;
+            }
+
+            if (this._maybePaused) {
+                this._pauseTimer += Sniffer.refreshRate;
+            }
+        }
 
         if (this._refreshActive === true) {
             return;
@@ -215,13 +263,19 @@ export class Sniffer {
         if (!approxEqual(songTime, 0)) {
             liveFeedIconElement.style.backgroundColor = 'green';
 
-            const statsLASElement = document.getElementById('stats_las') as HTMLElement;
-            const statsSAElement = document.getElementById('stats_sa') as HTMLElement;
+            const liveFeedLASElements = document.getElementsByClassName('live-data-las') as HTMLCollectionOf<HTMLElement>;
+            const liveFeedSAElements = document.getElementsByClassName('live-data-sa') as HTMLCollectionOf<HTMLElement>;
 
             // Mode 1 is learn a song
             if (mode === 1) {
-                statsSAElement.style.display = 'none';
-                statsLASElement.style.display = 'block';
+
+                Array.from(liveFeedLASElements).forEach(element => {
+                    element.style.display = 'flex';
+                });
+
+                Array.from(liveFeedSAElements).forEach(element => {
+                    element.style.display = 'none';
+                });
 
                 const notesHit = rocksnifferData['memoryReadout']['noteData']['TotalNotesHit'];
                 const totalNotes = rocksnifferData['memoryReadout']['noteData']['TotalNotes'];
@@ -250,8 +304,14 @@ export class Sniffer {
 
             // Mode 2 is score attack
             else if (mode === 2) {
-                statsLASElement.style.display = 'none';
-                statsSAElement.style.display = 'block';
+                
+                Array.from(liveFeedLASElements).forEach(element => {
+                    element.style.display = 'none';
+                });
+
+                Array.from(liveFeedSAElements).forEach(element => {
+                    element.style.display = 'flex';
+                });
 
                 const notesHit = rocksnifferData['memoryReadout']['noteData']['TotalNotesHit'];
                 const totalNotes = rocksnifferData['memoryReadout']['noteData']['TotalNotes'];
@@ -357,25 +417,189 @@ export class Sniffer {
         }
 
         const songTime = rocksnifferData['memoryReadout']['songTimer'];
+        const songLength = rocksnifferData['songDetails']['songLength'];
         const previousSongTime = this._previousRocksnifferData['memoryReadout']['songTimer'];
+        const previousSongLength = this._previousRocksnifferData['songDetails']['songLength'];
 
         // Currently in a song
         if (!approxEqual(songTime, 0) && !approxEqual(previousSongTime, 0)) {
-            console.log("in a song");
-            //TODO
+
+            // No point in doing work if the score is already not verified
+            if (this._verified === false) {
+                return;
+            }
+
+            // Sometimes when exiting a song the timer will be invalid and it will think the game is paused
+            // Because of this, just don't check for pausing after the end of a song
+            if (this._progressTimer / 1000 > songLength) {
+                return;
+            }
+
+            // Rock Buddy was started during a song (score cannot be verified)
+            if (approxEqual(this._progressTimer, 0)) {
+                this.setVerificationState(VerificationState.Unverified, "Rock Buddy was started mid-song.");
+                return;
+            }
+
+            // Song is paused
+            if (approxEqual(songTime, previousSongTime)) {
+
+                // Sometimes the previous data has the same time even without pausing
+                // This ensures that a full second passes before officially counting that a pause has occurred
+                this._maybePaused = true;
+                if (this._pauseTimer < 1000) {
+                    return;
+                }
+
+                // If we are already paused, return
+                if (this._isPaused) {
+                    return;
+                }
+
+                this.setVerificationState(VerificationState.MaybeVerified, "If you pause more than once in a 10 minute period, your score will not be verified.");
+                console.log("PAUSE: " + songTime);
+
+                // Record the pause time
+                this._isPaused = true;
+                this._pauseTime = songTime;
+
+                // Song was previously paused and it is not the same pause
+                if (!approxEqual(this._lastPauseTime, 0) && !approxEqual(this._pauseTime, this._lastPauseTime)) {
+
+                    // If the song was paused within the last 10 minutes, the score cannot be verified
+                    if (this._pauseTime - this._lastPauseTime < 600) {
+                        this.setVerificationState(VerificationState.Unverified, "The song was paused more than once within a 10 minute period.");
+                        return;
+                    }
+                }                
+            }
+            else {
+
+                // If the song was paused we need to update the progress timer (the game rewinds slightly)
+                if (this._isPaused) {
+
+                    // Subtract the one second we waited to ensure the song was paused
+                    // It takes 1 refresh to unpause so also subtract the refresh rate
+                    this._progressTimer -= 1000 + Sniffer.refreshRate;
+
+                    // Ensure that the progress timer and previous song time are within 0.1 second of each other
+                    // This prevents users from rewinding or fast forwarding the song
+                    if (approxEqual(this._progressTimer / 1000, previousSongTime, 0.1)) {
+                        this._progressTimer = songTime * 1000;
+                    }
+                    else {
+                        this.setVerificationState(VerificationState.Unverified, "Song timer did not match after resuming from pause.");
+                        console.log("PROGRESS TIMER: " + this._progressTimer / 1000);
+                        console.log("PREVIOUS SONG TIME: " + previousSongTime);
+                        return;
+                    }
+
+                    console.log("RESUME: " + songTime);
+                }
+
+                // If the progress timer gets 0.3 seconds out of sync with the song change to "unverified"
+                // 0.3 seconds allows it to be off for two refreshes
+                console.log("PROGRESS: " + this._progressTimer + " ... TIME: " + songTime);
+                if (!approxEqual(this._progressTimer / 1000, songTime, 0.3)) {
+                    this.setVerificationState(VerificationState.Unverified, "Song speed change detected.");
+                    return;
+                }
+
+                this._maybePaused = false;
+                this._isPaused = false;
+                this._pauseTimer = 0;
+                this._lastPauseTime = this._pauseTime;
+            }
         }
 
         // Song is starting
         else if (!approxEqual(songTime, 0)) {
+            this.setVerificationState(VerificationState.Verified, "No violations detected.");
+
             console.log("SONG STARTING");
-            //TODO
+            this._verified = true;
+            this._inSong = true;
+            this._progressTimer = songTime * 1000;
+            this._maybePaused = false;
+            this._isPaused = false;
+            this._pauseTimer = 0;
+            this._pauseTime = 0;
+            this._lastPauseTime = 0;
         }
 
         // Song is ending
         else if (!approxEqual(previousSongTime, 0)) {
             console.log("SONG ENDING");
-            //TODO
+
+            // Final verification steps
+            if (this._verified) {
+
+                // Check that the progress timer is within 5 seconds of the song length
+                if (approxEqual(this._progressTimer / 1000, previousSongLength, 5)) {
+                    this.setVerificationState(VerificationState.Verified, "Your score is verified!");
+                    console.log("THE SCORE IS VERIFIED!!!");
+
+                    //TODO: record verified score
+                }
+                else {
+                    this.setVerificationState(VerificationState.Unverified, "The song timer did not match the song length.");
+                    console.log("PROGRESS TIMER: " + this._progressTimer / 1000);
+                    console.log("PREVIOUS SONG TIME: " + previousSongLength);
+                }
+            }
+
+            this._inSong = false;
+            this._progressTimer = 0;
+            this._maybePaused = false;
+            this._isPaused = false;
+            this._pauseTimer = 0;
+            this._pauseTime = 0;
+            this._lastPauseTime = 0;
         }
+    }
+
+    private setVerificationState(state: VerificationState, message: string): void {
+        const verifiedElement = document.getElementById('verified') as HTMLElement;
+        const verifiedMessageElement = document.getElementById('verified_message') as HTMLElement;
+
+        const maybeVerifiedElement = document.getElementById('maybe_verified') as HTMLElement;
+        const maybeVerifiedMessageElement = document.getElementById('maybe_verified_message') as HTMLElement;
+
+        const unverifiedElement = document.getElementById('unverified') as HTMLElement;
+        const unverifiedMessageElement = document.getElementById('unverified_message') as HTMLElement;
+
+        switch (state) {
+            case VerificationState.Verified:
+                verifiedElement.style.display = 'block';
+                maybeVerifiedElement.style.display = 'none';
+                unverifiedElement.style.display = 'none';
+
+                verifiedMessageElement.innerText = message;
+
+                this._verified = true;
+                break;
+
+            case VerificationState.MaybeVerified:
+                verifiedElement.style.display = 'none';
+                maybeVerifiedElement.style.display = 'block';
+                unverifiedElement.style.display = 'none';
+
+                maybeVerifiedMessageElement.innerText = message;
+
+                break;
+
+            case VerificationState.Unverified:
+                verifiedElement.style.display = 'none';
+                maybeVerifiedElement.style.display = 'none';
+                unverifiedElement.style.display = 'block';
+
+                unverifiedMessageElement.innerText = message;
+
+                this._verified = false;
+                break;
+        }
+
+        return;
     }
 
     private async checkSnort(rocksnifferData: any): Promise<void> {

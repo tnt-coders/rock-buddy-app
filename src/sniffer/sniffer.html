@@ -47,40 +47,49 @@
             </div>
           </div>
         </div>
-        <div class="live-data" style="display: flex; flex-direction: row; width: 40%; min-width: 320px;">
-          <div style="display:flex; flex-direction: row; width: 50%; align-items: center; align-self: flex-start;">
+        <div class="live-data" style="display: grid; grid-template-columns: repeat(2); gap: 0px; width: 40%; min-width: 320px;">
+          <div style="grid-column: 1; grid-row: 1; display: flex; flex-direction: row; align-items: center; align-self: flex-start;">
             <div class="circle" id="live_feed_icon" style="margin-right: 10px;"></div>
             <div><b>Live Feed</b></div>
           </div>
-          <div id="stats_las" style="display:flex; flex-direction: column; margin-left: auto; display: none;">
-            <div style="display:flex; flex-direction: row; margin-left: auto;">
-              <span style="margin-right: 10px;"><b>Accuracy:</b></span><span id="las_notes_hit">0</span>/<span
-                id="las_total_notes">0</span>&nbsp;(<span id="las_accuracy">NaN</span>)
-            </div>
-            <div style="display:flex; flex-direction: row; margin-left: auto;">
-              <span style="margin-left: auto; margin-right: 10px;"><b>Streak:</b></span><span id="las_streak">0</span>/<span
-                id="las_highest_streak">0</span>
-            </div>
-            <br>
-            <div style="display:flex; flex-direction: row; margin-left: auto;">
-              <span style="margin-left: auto;margin-right: 10px;"><b>Time:</b></span><span
-                id="las_song_timer">00:00</span>/<span id="las_song_length">00:00</span>
-            </div>
+
+          <!-- LAS live feed -->
+          <div class="live-data-las" style="grid-column: 2; grid-row: 1; display: none; flex-direction: row; margin-left: auto;">
+            <span style="margin-left: auto; margin-right: 10px;"><b>Accuracy:</b></span><span id="las_notes_hit">0</span>/<span
+              id="las_total_notes">0</span>&nbsp;(<span id="las_accuracy">NaN</span>)
           </div>
-          <div id="stats_sa" style="display:flex; flex-direction: column; margin-left: auto; display: none;">
-            <div style="display:flex; flex-direction: row; margin-left: auto;">
-              <span style="margin-right: 10px;"><b>Accuracy:</b></span><span id="sa_notes_hit">0</span>/<span
-                id="sa_total_notes">0</span>&nbsp;(<span id="sa_accuracy">NaN</span>)
-            </div>
-            <div style="display:flex; flex-direction: row; margin-left: auto;">
-              <span style="margin-left: auto; margin-right: 10px;"><b>Streak:</b></span><span id="sa_streak">0</span>/<span
-                id="sa_highest_streak">0</span>
-            </div>
-            <br>
-            <div style="display:flex; flex-direction: row; margin-left: auto;">
-              <span style="margin-left: auto;margin-right: 10px;"><b>Time:</b></span><span
-                id="sa_song_timer">00:00</span>/<span id="sa_song_length">00:00</span>
-            </div>
+          <div class="live-data-las" style="grid-column: 2; grid-row: 2; display: none; flex-direction: row; margin-left: auto;">
+            <span style="margin-left: auto; margin-right: 10px;"><b>Streak:</b></span><span id="las_streak">0</span>/<span
+              id="las_highest_streak">0</span>
+          </div>
+          <div class="live-data-las" style="grid-column: 1/2; grid-row: 3; height: 20px;"></div>
+          <div class="live-data-las" style="grid-column: 2; grid-row: 4; display: none; flex-direction: row; margin-left: auto;">
+            <span style="margin-left: auto; margin-right: 10px;"><b>Time:</b></span><span
+              id="las_song_timer">00:00</span>/<span id="las_song_length">00:00</span>
+          </div>
+          <div id="verified" style="grid-column: 1; grid-row: 4; display: none; margin-right: auto; cursor: pointer;">
+            <img style="height: 20px;" src="../../images/verification-icons/verified.png"/>
+          </div>
+          <div id="maybe_verified" style="grid-column: 1; grid-row: 4; display: none; margin-right: auto; cursor: pointer;">
+            <img style="height: 20px;" src="../../images/verification-icons/maybe-verified.png"/>
+          </div>
+          <div id="unverified" style="grid-column: 1; grid-row: 4; display: none; margin-right: auto; cursor: pointer;">
+            <img style="height: 20px;" src="../../images/verification-icons/unverified.png"/>
+          </div>
+
+          <!-- SA live feed -->
+          <div class="live-data-sa" style="grid-column: 2; grid-row: 1; display: none; flex-direction: row; margin-left: auto;">
+            <span style="margin-left: auto; margin-right: 10px;"><b>Accuracy:</b></span><span id="sa_notes_hit">0</span>/<span
+              id="sa_total_notes">0</span>&nbsp;(<span id="sa_accuracy">NaN</span>)
+          </div>
+          <div  class="live-data-sa" style="grid-column: 2; grid-row: 2; display: none; flex-direction: row; margin-left: auto;">
+            <span style="margin-left: auto; margin-right: 10px;"><b>Streak:</b></span><span id="sa_streak">0</span>/<span
+              id="sa_highest_streak">0</span>
+          </div>
+          <div class="live-data-sa" style="grid-column: 1/2; grid-row: 3; height: 20px;"></div>
+          <div class="live-data-sa" style="grid-column: 2; grid-row: 4; display: none; flex-direction: row; margin-left: auto;">
+            <span style="margin-left: auto; margin-right: 10px;"><b>Time:</b></span><span
+              id="sa_song_timer">00:00</span>/<span id="sa_song_length">00:00</span>
           </div>
         </div>
       </div>
@@ -125,34 +134,33 @@
     <div id="leaderboard_data" style="min-width: 800px;">
     </div>
   </div>
-  <div id="sussy_warning" class="modal">
-    <span id="sussy_warning_close">&times;</span>
-    <center>
-      <h1>Warning</h1>
-      <p>Your song may not be verified if you:</p>
-      <ul>
-        <li>Pause more than once in 10 minutes</li>
-        <li>Rewind the song</li>
-        <li>Alter the song speed</li>
-      </ul>
-    </center>
-    <img src="./../../images/warning.png">
+  <div id="verified_popup" class="modal">
+    <span id="close_verified_popup" class="close">&times;</span>
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%;">
+      <img style="height: 50px;" src="../../images/verification-icons/verified.png"/>
+      <br>
+      <p id="verified_message"></p>
+    </div>
   </div>
-  <div id="sussy_error" class="modal">
-    <span id="sussy_error_close">&times;</span>
-    <center>
-      <h1>Sussy behavior detected!</h1>
-      <p>Your score will not be verified for one of the following reasons:</p>
-      <ul>
-        <li>Pausing more than once in 10 minutes</li>
-        <li>Rewinding the song</li>
-        <li>Altering the song speed</li>
-      </ul>
-    </center>
-    <img src="./../../images/error.png">
+  <div id="maybe_verified_popup" class="modal">
+    <span id="close_maybe_verified_popup" class="close">&times;</span>
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%;">
+      <img style="height: 50px;" src="../../images/verification-icons/maybe-verified.png"/>
+      <br>
+      <p id="maybe_verified_message"></p>
+    </div>
   </div>
-  <div id="modal" class="modal">
-    <span class="close">&times;</span>
+  <div id="unverified_popup" class="modal">
+    <span id="close_unverified_popup" class="close">&times;</span>
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%;">
+      <img style="height: 50px;" src="../../images/verification-icons/unverified.png"/>
+      <br>
+      <p>Your score is not verified for the following reason:</p>
+      <p id="unverified_message"></p>
+    </div>
+  </div>
+  <div id="boulder_bro_popup" class="modal">
+    <span id="close_boulder_bro_popup" class="close">&times;</span>
     <center>
       <h3>You found Boulder Bro, Rock Buddy's big brother!</h3>
     </center>

@@ -2,8 +2,8 @@
 
 const pressed = [];
 const secretCode = 'ArrowUpArrowUpArrowDownArrowDownArrowLeftArrowRightArrowLeftArrowRightba';
-const modal = document.getElementById('modal');
-const closeBtn = document.querySelector('.close');
+const modal = document.getElementById('boulder_bro_popup');
+const closeBtn = document.getElementById('close_boulder_bro_popup');
 
 window.addEventListener('keyup', (e) => {
     pressed.push(e.key);
