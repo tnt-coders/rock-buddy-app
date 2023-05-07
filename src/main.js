@@ -310,6 +310,11 @@ function createWindow() {
         fs.writeFileSync(file, contents);
     });
 
+    // Append to a file
+    ipcMain.handle('append-file', (event, file, contents) => {
+        fs.appendFileSync(file, contents);
+    });
+
     // Semver check
     ipcMain.handle('semver-gte', (event, version1, version2) => {
         const semver = require('semver');

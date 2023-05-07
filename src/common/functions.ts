@@ -1,3 +1,8 @@
+export function logMessage(message: string) {
+    window.api.appendFile('rock-buddy-log.txt', message + "\n");
+    console.log(message);
+}
+
 export function approxEqual(a: number, b: number, tolerance = 0.0001): boolean {
     return Math.abs(a - b) <= tolerance;
 }
