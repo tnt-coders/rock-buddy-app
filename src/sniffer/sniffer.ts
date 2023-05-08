@@ -442,11 +442,11 @@ export class Sniffer {
             previous_song_length: previousSongLength,
         };
 
-        // Check if the song was restarted
-        if (this._inSong && songTime < previousSongTime && songTime < 5 && totalNotes === 0) {
-            logMessage("SONG RESTARTING");
-            logMessage(JSON.stringify(data));
+        // Song is starting
+        if (approxEqual(previousSongTime, 0) && !approxEqual(songTime, 0) && totalNotes === 0) {
+            logMessage("SONG STARTING");
             this.setVerificationState(VerificationState.Verified, "No violations detected.");
+            logMessage(JSON.stringify(data));
 
             this._inSong = true;
             this._progressTimer = songTime * 1000;
@@ -459,7 +459,6 @@ export class Sniffer {
 
         // Currently in a song
         else if (!approxEqual(songTime, 0) && !approxEqual(previousSongTime, 0)) {
-            logMessage(JSON.stringify(data));
 
             // No point in doing work if the score is already not verified
             if (this._verified === false) {
@@ -469,6 +468,7 @@ export class Sniffer {
             // Rock Buddy was started during a song (score cannot be verified)
             if (approxEqual(this._progressTimer, 0)) {
                 this.setVerificationState(VerificationState.Unverified, "Rock Buddy was started mid-song.");
+                logMessage(JSON.stringify(data));
                 this._inSong = true;
                 return;
             }
@@ -491,12 +491,13 @@ export class Sniffer {
                 // If we are at the end of the song don't check for pause
                 if (approxEqual(songTime, songLength, 0.1)) {
                     logMessage("AT END OF SONG");
-                    this._ending = true;
+                    logMessage(JSON.stringify(data));
                     return;
                 }
 
-                this.setVerificationState(VerificationState.MaybeVerified, "If you pause more than once in a 10 minute period, your score will not be verified.");
                 logMessage("SONG PAUSED");
+                this.setVerificationState(VerificationState.MaybeVerified, "If you pause more than once in a 10 minute period, your score will not be verified.");
+                logMessage(JSON.stringify(data));
 
                 // Record the pause time
                 this._isPaused = true;
@@ -508,6 +509,7 @@ export class Sniffer {
                     // If the song was paused within the last 10 minutes, the score cannot be verified
                     if (this._pauseTime - this._lastPauseTime < 600) {
                         this.setVerificationState(VerificationState.Unverified, "The song was paused more than once within a 10 minute period.");
+                        logMessage(JSON.stringify(data));
                         return;
                     }
                 }                
@@ -516,6 +518,26 @@ export class Sniffer {
 
                 // If the song was paused we need to update the progress timer (the game rewinds slightly)
                 if (this._isPaused) {
+
+                    // Check if the song was restarted (only check after resuming from pause)
+                    if (songTime < previousSongTime && songTime < 10 && totalNotes === 0) {
+                        logMessage("SONG RESTARTING");
+                        this.setVerificationState(VerificationState.Verified, "No violations detected.");
+                        logMessage(JSON.stringify(data));
+
+                        this._inSong = true;
+                        this._progressTimer = songTime * 1000;
+                        this._maybePaused = false;
+                        this._isPaused = false;
+                        this._pauseTimer = 0;
+                        this._pauseTime = 0;
+                        this._lastPauseTime = 0;
+
+                        return;
+                    }
+
+                    logMessage("SONG RESUMING");
+                    logMessage(JSON.stringify(data));
 
                     // Subtract the 0.5 seconds we waited to ensure the song was paused
                     // It takes 1 refresh to unpause so also subtract the refresh rate
@@ -528,6 +550,7 @@ export class Sniffer {
                     }
                     else {
                         this.setVerificationState(VerificationState.Unverified, "Song timer did not match after resuming from pause.");
+                        logMessage(JSON.stringify(data));
                         return;
                     }
                 }
@@ -536,6 +559,7 @@ export class Sniffer {
                 // 0.3 seconds allows it to be off for two refreshes
                 if (!approxEqual(this._progressTimer / 1000, songTime, 0.3)) {
                     this.setVerificationState(VerificationState.Unverified, "Song speed change detected.");
+                    logMessage(JSON.stringify(data));
                     return;
                 }
 
@@ -546,39 +570,25 @@ export class Sniffer {
             }
         }
 
-        // Song is starting
-        else if (!approxEqual(songTime, 0) && totalNotes === 0) {
-            logMessage("SONG STARTING");
-            logMessage(JSON.stringify(data));
-
-            this.setVerificationState(VerificationState.Verified, "No violations detected.");
-
-            this._inSong = true;
-            this._progressTimer = songTime * 1000;
-            this._maybePaused = false;
-            this._isPaused = false;
-            this._pauseTimer = 0;
-            this._pauseTime = 0;
-            this._lastPauseTime = 0;
-        }
-
         // Song is ending
-        else if (!approxEqual(previousSongTime, 0) || (this._inSong && approxEqual(songTime, 0) && approxEqual(previousSongTime, 0))) {
+        else if (this._inSong && approxEqual(songTime, 0) && approxEqual(previousSongTime, 0)) {
             logMessage("SONG ENDING");
             logMessage(JSON.stringify(data));
 
             // Final verification steps
             if (this._verified) {
 
-                // Check that the progress timer is within 5 seconds of the song length
-                if (approxEqual(this._progressTimer / 1000, previousSongLength, 5)) {
-                    this.setVerificationState(VerificationState.Verified, "Your score is verified!");
+                // Check that the progress timer is within 10 seconds of the song length
+                if (approxEqual(this._progressTimer / 1000, previousSongLength, 10)) {
                     logMessage("VERIFIED");
+                    this.setVerificationState(VerificationState.Verified, "Your score is verified!");
+                    logMessage(JSON.stringify(data));
 
                     //TODO: record verified score
                 }
                 else {
                     this.setVerificationState(VerificationState.Unverified, "The song timer did not match the song length.");
+                    logMessage(JSON.stringify(data));
                 }
             }
 
