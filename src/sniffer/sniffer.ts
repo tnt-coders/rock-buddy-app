@@ -455,6 +455,7 @@ export class Sniffer {
             this._pauseTimer = 0;
             this._pauseTime = 0;
             this._lastPauseTime = 0;
+            this._ending = false;
         }
 
         // Currently in a song
@@ -465,11 +466,24 @@ export class Sniffer {
                 return;
             }
 
+            // If we've already determined that the song is ending then don't check for pause/speed chagne
+            if (this._ending) {
+                return;
+            }
+
             // Rock Buddy was started during a song (score cannot be verified)
             if (approxEqual(this._progressTimer, 0)) {
                 this.setVerificationState(VerificationState.Unverified, "Rock Buddy was started mid-song.");
                 logMessage(JSON.stringify(data));
                 this._inSong = true;
+                return;
+            }
+
+            // If we are at the end of the song don't check for pause
+            if (approxEqual(songTime, songLength, 0.1)) {
+                logMessage("AT END OF SONG");
+                logMessage(JSON.stringify(data));
+                this._ending = true;
                 return;
             }
 
@@ -485,13 +499,6 @@ export class Sniffer {
 
                 // If we are already paused, return
                 if (this._isPaused) {
-                    return;
-                }
-
-                // If we are at the end of the song don't check for pause
-                if (approxEqual(songTime, songLength, 0.1)) {
-                    logMessage("AT END OF SONG");
-                    logMessage(JSON.stringify(data));
                     return;
                 }
 
@@ -532,6 +539,7 @@ export class Sniffer {
                         this._pauseTimer = 0;
                         this._pauseTime = 0;
                         this._lastPauseTime = 0;
+                        this._ending = false;
 
                         return;
                     }
@@ -554,6 +562,7 @@ export class Sniffer {
                         return;
                     }
                 }
+
 
                 // If the progress timer gets 0.3 seconds out of sync with the song change to "unverified"
                 // 0.3 seconds allows it to be off for two refreshes
@@ -579,6 +588,7 @@ export class Sniffer {
             if (this._verified) {
 
                 // Check that the progress timer is within 10 seconds of the song length
+                // This check should really never fail but it is just for good measure
                 if (approxEqual(this._progressTimer / 1000, previousSongLength, 10)) {
                     logMessage("VERIFIED");
                     this.setVerificationState(VerificationState.Verified, "Your score is verified!");
@@ -599,6 +609,7 @@ export class Sniffer {
             this._pauseTimer = 0;
             this._pauseTime = 0;
             this._lastPauseTime = 0;
+            this._ending = false;
         }
     }
 
