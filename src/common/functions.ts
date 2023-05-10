@@ -1,6 +1,12 @@
-export function logMessage(message: string) {
-    window.api.appendFile('rock-buddy-log.txt', message + "\n");
+export function logMessage(message: any) {
     console.log(message);
+
+    let text = message;
+    if (typeof message !== "string") {
+        text = JSON.stringify(message);
+    }
+
+    window.api.appendFile('rock-buddy-log.txt', text + "\n");
 }
 
 export function approxEqual(a: number, b: number, tolerance = 0.0001): boolean {

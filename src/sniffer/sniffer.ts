@@ -5,6 +5,7 @@ import { showError, showExclusive } from './functions';
 import { approxEqual, durationString, getAvailablePaths, logMessage, post } from '../common/functions';
 
 enum VerificationState {
+    None,
     Verified,
     MaybeVerified,
     Unverified,
@@ -214,7 +215,9 @@ export class Sniffer {
             this.updateSongInfo(rocksnifferData);
             this.updateLiveFeed(rocksnifferData);
             this.updatePath(rocksnifferData);
-            this.monitorProgress(rocksnifferData);
+
+            // Monitor progress
+            await this.monitorProgress(rocksnifferData);
 
             // Check if it is time to snort
             await this.checkSnort(rocksnifferData);
@@ -411,42 +414,55 @@ export class Sniffer {
         }
     }
 
-    private monitorProgress(rocksnifferData: any): void {
+    private async monitorProgress(rocksnifferData: any): Promise<void> {
 
         // Cannot proceed until we have a previous data set to work with
         if (this._previousRocksnifferData === null) {
             return;
         }
 
-        const songName = rocksnifferData['songDetails']['songName'];
-        const artistName = rocksnifferData['songDetails']['artistName'];
+        // Verified scores are not supported for nonstop play or score attack
+        // - Nonstop play due to the arrangement hash being invalid in Rocksniffer
+        // - Score attack because the game is already strict with verifying score attack scores (although theoretically you could pause a bunch)
+        const gameStage = rocksnifferData['memoryReadout']['gameStage'];
+        const mode = rocksnifferData['memoryReadout']['mode'];
+        if (gameStage === 'nonstopplaygame' || mode === 2) {
+            logMessage("Nonstop play or score attack detected.");
+            this.setVerificationState(VerificationState.None);
+            return;
+        }
+
         const songTime = rocksnifferData['memoryReadout']['songTimer'];
         const songLength = rocksnifferData['songDetails']['songLength'];
-        const totalNotes = rocksnifferData['memoryReadout']['noteData']['TotalNotes'];
         const previousSongTime = this._previousRocksnifferData['memoryReadout']['songTimer'];
         const previousSongLength = this._previousRocksnifferData['songDetails']['songLength'];
 
-        let data: { [key: string]: any } = {
-            song_name: songName,
-            artist_name: artistName,
-            in_song: this._inSong,
-            maybe_paused: this._maybePaused,
-            is_paused: this._isPaused,
-            pause_timer: this._pauseTimer,
-            pause_time: this._pauseTime,
-            last_pause_time: this._lastPauseTime,
-            progress_timer: this._progressTimer,
-            song_time: songTime,
-            previous_song_time: previousSongTime,
-            song_length: songLength,
-            previous_song_length: previousSongLength,
-        };
+        const debugInfo = {
+            songTime: songTime,
+            songLength: songLength,
+            previousSongTime: previousSongTime,
+            previousSongLength: previousSongLength,
+            inSong: this._inSong,
+            progressTimer: this._progressTimer,
+            maybePaused: this._maybePaused,
+            isPaused: this._isPaused,
+            pauseTimer: this._pauseTimer,
+            pauseTime: this._pauseTime,
+            lastPauseTime: this._lastPauseTime,
+            ending: this._ending,
+        }
+
+        // Make sure note data exists before pulling it
+        let totalNotes = 0;
+        if (rocksnifferData['memoryReadout']['noteData'] !== null) {
+            totalNotes = rocksnifferData['memoryReadout']['noteData']['TotalNotes'];
+        }
 
         // Song is starting
         if (approxEqual(previousSongTime, 0) && !approxEqual(songTime, 0) && totalNotes === 0) {
             logMessage("SONG STARTING");
             this.setVerificationState(VerificationState.Verified, "No violations detected.");
-            logMessage(JSON.stringify(data));
+            logMessage(debugInfo);
 
             this._inSong = true;
             this._progressTimer = songTime * 1000;
@@ -459,7 +475,7 @@ export class Sniffer {
         }
 
         // Currently in a song
-        else if (!approxEqual(songTime, 0) && !approxEqual(previousSongTime, 0)) {
+        else if (!approxEqual(songTime, 0)) {
 
             // No point in doing work if the score is already not verified
             if (this._verified === false) {
@@ -473,16 +489,16 @@ export class Sniffer {
 
             // Rock Buddy was started during a song (score cannot be verified)
             if (approxEqual(this._progressTimer, 0)) {
+                logMessage("ROCK BUDDY STARTED MID SONG");
                 this.setVerificationState(VerificationState.Unverified, "Rock Buddy was started mid-song.");
-                logMessage(JSON.stringify(data));
+                logMessage(debugInfo);
+
                 this._inSong = true;
                 return;
             }
 
             // If we are at the end of the song don't check for pause
             if (approxEqual(songTime, songLength, 0.1)) {
-                logMessage("AT END OF SONG");
-                logMessage(JSON.stringify(data));
                 this._ending = true;
                 return;
             }
@@ -504,7 +520,7 @@ export class Sniffer {
 
                 logMessage("SONG PAUSED");
                 this.setVerificationState(VerificationState.MaybeVerified, "If you pause more than once in a 10 minute period, your score will not be verified.");
-                logMessage(JSON.stringify(data));
+                logMessage(debugInfo);
 
                 // Record the pause time
                 this._isPaused = true;
@@ -515,8 +531,10 @@ export class Sniffer {
 
                     // If the song was paused within the last 10 minutes, the score cannot be verified
                     if (this._pauseTime - this._lastPauseTime < 600) {
+                        logMessage("SONG REPEATEDLY PAUSED");
                         this.setVerificationState(VerificationState.Unverified, "The song was paused more than once within a 10 minute period.");
-                        logMessage(JSON.stringify(data));
+                        logMessage(debugInfo);
+
                         return;
                     }
                 }                
@@ -528,9 +546,9 @@ export class Sniffer {
 
                     // Check if the song was restarted (only check after resuming from pause)
                     if (songTime < previousSongTime && songTime < 10 && totalNotes === 0) {
-                        logMessage("SONG RESTARTING");
+                        logMessage("SONG RESTARTED");
                         this.setVerificationState(VerificationState.Verified, "No violations detected.");
-                        logMessage(JSON.stringify(data));
+                        logMessage(debugInfo);
 
                         this._inSong = true;
                         this._progressTimer = songTime * 1000;
@@ -544,8 +562,7 @@ export class Sniffer {
                         return;
                     }
 
-                    logMessage("SONG RESUMING");
-                    logMessage(JSON.stringify(data));
+                    logMessage("SONG RESUMED");
 
                     // Subtract the 0.5 seconds we waited to ensure the song was paused
                     // It takes 1 refresh to unpause so also subtract the refresh rate
@@ -558,7 +575,7 @@ export class Sniffer {
                     }
                     else {
                         this.setVerificationState(VerificationState.Unverified, "Song timer did not match after resuming from pause.");
-                        logMessage(JSON.stringify(data));
+                        logMessage(debugInfo);
                         return;
                     }
                 }
@@ -568,7 +585,7 @@ export class Sniffer {
                 // 0.3 seconds allows it to be off for two refreshes
                 if (!approxEqual(this._progressTimer / 1000, songTime, 0.3)) {
                     this.setVerificationState(VerificationState.Unverified, "Song speed change detected.");
-                    logMessage(JSON.stringify(data));
+                    logMessage(debugInfo);
                     return;
                 }
 
@@ -580,9 +597,9 @@ export class Sniffer {
         }
 
         // Song is ending
-        else if (this._inSong && approxEqual(songTime, 0) && approxEqual(previousSongTime, 0)) {
+        else if (this._inSong && approxEqual(songTime, 0) && !approxEqual(previousSongTime, 0)) {
+
             logMessage("SONG ENDING");
-            logMessage(JSON.stringify(data));
 
             // Final verification steps
             if (this._verified) {
@@ -590,17 +607,19 @@ export class Sniffer {
                 // Check that the progress timer is within 10 seconds of the song length
                 // This check should really never fail but it is just for good measure
                 if (approxEqual(this._progressTimer / 1000, previousSongLength, 10)) {
-                    logMessage("VERIFIED");
                     this.setVerificationState(VerificationState.Verified, "Your score is verified!");
-                    logMessage(JSON.stringify(data));
 
-                    //TODO: record verified score
+                    // Record verified score
+                    await this.recordVerifiedScore(this._previousRocksnifferData);
                 }
                 else {
                     this.setVerificationState(VerificationState.Unverified, "The song timer did not match the song length.");
-                    logMessage(JSON.stringify(data));
+                    logMessage(debugInfo);
                 }
             }
+
+            // Create a blank line in the log
+            logMessage("");
 
             this._inSong = false;
             this._progressTimer = 0;
@@ -613,7 +632,7 @@ export class Sniffer {
         }
     }
 
-    private setVerificationState(state: VerificationState, message: string): void {
+    private setVerificationState(state: VerificationState, message: string = ""): void {
         const verifiedElement = document.getElementById('verified') as HTMLElement;
         const verifiedMessageElement = document.getElementById('verified_message') as HTMLElement;
 
@@ -658,9 +677,47 @@ export class Sniffer {
 
                 this._verified = false;
                 break;
+            case VerificationState.None:
+                logMessage("VERIFICATION STATUS CHANGED TO NONE");
+
+                verifiedElement.style.display = 'none';
+                maybeVerifiedElement.style.display = 'none';
+                unverifiedElement.style.display = 'none';
+
+                this._verified = false;
+                break;
+        }
+    }
+
+    private async recordVerifiedScore(rocksnifferData: any): Promise<void> {
+        
+        // Define object to hold snort data
+        let data: any = {};
+
+        // Get basic song metadata
+        data['song_key'] = rocksnifferData['songDetails']['songID'];
+        data['psarc_hash'] = rocksnifferData['songDetails']['psarcFileHash'];
+        data['arrangement_hash'] = rocksnifferData['memoryReadout']['arrangementID'];
+        data['streak'] = rocksnifferData['memoryReadout']['noteData']['HighestHitStreak'];
+        data['mastery'] = rocksnifferData['memoryReadout']['noteData']['Accuracy'] / 100;
+
+        logMessage("RECORDING SCORE");
+        logMessage(data);
+
+        const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
+
+        const host = await window.api.getHost();
+        const response = await post(host + '/api/data/record_verified_score.php', {
+            auth_data: authData,
+            song_data: data
+        });
+
+        if ('error' in response) {
+            window.api.error(response['error']);
         }
 
-        return;
+        // Show the leaderboard
+        await this.showLeaderboard(rocksnifferData);
     }
 
     private async checkSnort(rocksnifferData: any): Promise<void> {
@@ -681,7 +738,7 @@ export class Sniffer {
             // If new profile data is available AND the song is changing, snort the previous song data
             // This fixes a bug where rock buddy data would not be updated after playing a song in nonstop play
             if (newProfileDataAvailable && rocksnifferData['memoryReadout']['gameStage'] === 'NonStopPlay_Hub') {
-                this.snort(this._previousRocksnifferData);
+                await this.snort(this._previousRocksnifferData);
                 return;
             }
         }
@@ -703,13 +760,13 @@ export class Sniffer {
 
         if (this._snort) {
             this._snort = false;
-            this.snort(rocksnifferData);
+            await this.snort(rocksnifferData);
         }
         else if (!this._snorted) {
             const leaderboardDataElement = document.getElementById('leaderboard_data') as HTMLElement;
             leaderboardDataElement.innerHTML = '';
             leaderboardDataElement.appendChild(document.createTextNode('Snorting data in ' + Math.ceil(this._snortCountdown)));
-            this._snortCountdown -= Sniffer.refreshRate / 1000; // convert to secondss
+            this._snortCountdown -= Sniffer.refreshRate / 1000; // convert to seconds
         }
     }
 
@@ -760,7 +817,6 @@ export class Sniffer {
             const saDataExists = rocksmithData['SongsSA'].hasOwnProperty(hash);
             if (lasDataExists) {
                 arrangementData['mastery'] = rocksmithData['Stats']['Songs'][hash]['MasteryPeak'];
-                arrangementData['last_accuracy'] = rocksmithData['Stats']['Songs'][hash]['AccuracyGlobal'];
                 arrangementData['streak'] = rocksmithData['Stats']['Songs'][hash]['Streak'];
                 arrangementData['las_last_played'] = rocksmithData['Stats']['Songs'][hash]['DateLAS'];
                 arrangementData['las_play_count'] = rocksmithData['Stats']['Songs'][hash]['PlayedCount'];
@@ -919,8 +975,26 @@ export class Sniffer {
                     dataCell.appendChild(document.createTextNode(rank.toString()));
                 }
                 else if (column === 'mastery') {
-                    const percentage = (row[column] * 100).toFixed(2) + '%';
-                    dataCell.appendChild(document.createTextNode(percentage));
+                    const masteryElement = document.createElement('div');
+                    masteryElement.style.display = 'flex';
+                    masteryElement.style.flexDirection = 'row';
+                    
+                    if (row['verified']) {
+                        const verifiedElement = document.createElement('img');
+                        verifiedElement.src = `./../../images/verification-icons/verified-badge.png`;
+                        verifiedElement.width = 15;
+                        verifiedElement.height = 15;
+                        verifiedElement.style.alignSelf = 'center';
+                        verifiedElement.style.marginLeft = '5px';
+                        masteryElement.appendChild(verifiedElement);
+                    }
+
+                    const scoreSpan = document.createElement('span');
+                    scoreSpan.appendChild(document.createTextNode((row[column] * 100).toFixed(2) + '%'));
+                    scoreSpan.style.marginLeft = 'auto';
+                    masteryElement.appendChild(scoreSpan);
+
+                    dataCell.appendChild(masteryElement);
                 }
                 else {
                     dataCell.appendChild(document.createTextNode(row[column]));
@@ -963,7 +1037,6 @@ export class Sniffer {
         const leaderboardDataElement = document.getElementById('leaderboard_data') as HTMLElement;
 
         const scores = await this.getScoresSA(rocksnifferData);
-        console.log(scores);
 
         if (scores.length === 0) {
             const message = document.createElement('p');
@@ -1019,6 +1092,7 @@ export class Sniffer {
                     badgeElement.src = `./../../images/badge-icons/badge-${row['badges']}.png`;
                     badgeElement.width = 15;
                     badgeElement.height = 15;
+                    badgeElement.style.alignSelf = 'center';
                     badgeElement.style.marginLeft = '5px';
 
                     const scoreSpan = document.createElement('span');
