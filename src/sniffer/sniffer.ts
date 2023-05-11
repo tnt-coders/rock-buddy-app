@@ -65,6 +65,18 @@ export class Sniffer {
     }
 
     public start(): void {
+
+        // Create a fresh log file
+        const currentDate = new Date();
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1;
+        const day = currentDate.getDate();
+        const hours = currentDate.getHours();
+        const minutes = currentDate.getMinutes();
+        const seconds = currentDate.getSeconds();
+        const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        window.api.writeFile("rock-buddy-log.txt", "Rock buddy started: " + formattedDate + "\n\n");
+
         setInterval(this.refresh.bind(this), Sniffer.refreshRate);
     }
 
