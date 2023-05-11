@@ -39,18 +39,3 @@ export function showExclusive(group: string, name: string): void {
         }
     });
 }
-
-export function sussyWarning(): void {
-    const sussyWarningElement = document.getElementById('sussy_warning') as HTMLElement;
-    sussyWarningElement.style.display = 'block';
-}
-
-export function clearSussyWarning(): void {
-    const sussyWarningElement = document.getElementById('sussy_warning') as HTMLElement;
-    sussyWarningElement.style.display = 'none';
-}
-
-export function sussyError(): void {
-    const sussyErrorElement = document.getElementById('sussy_error') as HTMLElement;
-    sussyErrorElement.style.display = 'block';
-}
