@@ -438,6 +438,8 @@ export class Sniffer {
         const previousSongLength = this._previousRocksnifferData['songDetails']['songLength'];
 
         const debugInfo = {
+            songName: rocksnifferData['songDetails']['songName'],
+            artistName: rocksnifferData['songDetails']['artistName'],
             songTime: songTime,
             songLength: songLength,
             previousSongTime: previousSongTime,
@@ -487,6 +489,12 @@ export class Sniffer {
                 return;
             }
 
+            // If we are at the end of the song don't check for pause or for starting mid song
+            if (approxEqual(songTime, songLength, 0.1) || approxEqual(previousSongTime, songLength, 0.1)) {
+                this._ending = true;
+                return;
+            }
+
             // Rock Buddy was started during a song (score cannot be verified)
             if (approxEqual(this._progressTimer, 0)) {
                 logMessage("ROCK BUDDY STARTED MID SONG");
@@ -494,12 +502,6 @@ export class Sniffer {
                 logMessage(debugInfo);
 
                 this._inSong = true;
-                return;
-            }
-
-            // If we are at the end of the song don't check for pause
-            if (approxEqual(songTime, songLength, 0.1)) {
-                this._ending = true;
                 return;
             }
 
