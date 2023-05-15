@@ -502,7 +502,7 @@ export class Sniffer {
             }
 
             // If we are at the end of the song don't check for pause or for starting mid song
-            if (approxEqual(songTime, songLength, 0.1) || approxEqual(previousSongTime, songLength, 0.1)) {
+            if (approxEqual(songTime, songLength, 0.3) || approxEqual(previousSongTime, songLength, 0.3)) {
                 this._ending = true;
                 return;
             }
@@ -973,12 +973,27 @@ export class Sniffer {
         const columnsAlign = ['right', 'left', 'left', 'right', 'right', 'right'];
 
         // Keep track of rank
-        let rank = 1;
+        let rank = 0;
+        let lastVerified: boolean | null = null;
         let lastMastery: number | null = null;
         let lastStreak: number | null = null;
         let tieCount = 0;
+
         scores.forEach((row: any) => {
             const dataRow = document.createElement('tr');
+
+            // Handle the situation where a tie occurs
+            let tie = false;
+            if (lastVerified !== null && lastMastery !== null && lastStreak !== null) {
+                if (row['verified'] === lastVerified && approxEqual(row['mastery'], lastMastery) && approxEqual(row['streak'], lastStreak)) {
+                    tie = true;
+                    tieCount++;
+                }
+            }
+            if (!tie) {
+                rank += (tieCount + 1);
+                tieCount = 0;
+            }
 
             // Populate data for each column
             let columnIndex = 0;
@@ -1017,21 +1032,6 @@ export class Sniffer {
                 dataRow.appendChild(dataCell);
             });
 
-            // Handle the situation where a tie occurs
-            let tie = false;
-            if (lastMastery !== null && lastStreak !== null) {
-                if (approxEqual(row['mastery'], lastMastery) && approxEqual(row['streak'], lastStreak)) {
-                    tie = true;
-                    tieCount++;
-                }
-            }
-            if (!tie) {
-                rank += (tieCount + 1);
-                tieCount = 0;
-            }
-            lastMastery = row['mastery'];
-            lastStreak = row['streak'];
-
             // Highlight the row of the current user
             if (row['user_id'] === authData['user_id']) {
                 dataRow.classList.add('current-user');
@@ -1039,6 +1039,10 @@ export class Sniffer {
 
             // Add the row to the table
             table.appendChild(dataRow);
+
+            lastVerified = row['verified'];
+            lastMastery = row['mastery'];
+            lastStreak = row['streak'];
         })
 
         leaderboardDataElement.innerHTML = '';
@@ -1081,12 +1085,26 @@ export class Sniffer {
         const columnsAlign = ['right', 'left', 'left', 'right', 'right'];
 
         // Keep track of rank
-        let rank = 1;
+        let rank = 0;
         let lastScore: number | null = null;
         let lastBadges: number | null = null;
         let tieCount = 0;
+
         scores.forEach((row: any) => {
             const dataRow = document.createElement('tr');
+
+            // Handle the situation where a tie occurs
+            let tie = false;
+            if (lastScore !== null && lastBadges !== null) {
+                if (approxEqual(row['badges'], lastBadges) && approxEqual(row['score'], lastScore)) {
+                    tie = true;
+                    tieCount++;
+                }
+            }
+            if (!tie) {
+                rank += (tieCount + 1);
+                tieCount = 0;
+            }
 
             // Populate data for each column
             let columnIndex = 0;
@@ -1125,21 +1143,6 @@ export class Sniffer {
                 dataRow.appendChild(dataCell);
             });
 
-            // Handle the situation where a tie occurs
-            let tie = false;
-            if (lastScore !== null && lastBadges !== null) {
-                if (approxEqual(row['badges'], lastBadges) && approxEqual(row['score'], lastScore)) {
-                    tie = true;
-                    tieCount++;
-                }
-            }
-            if (!tie) {
-                rank += (tieCount + 1);
-                tieCount = 0;
-            }
-            lastScore = row['score'];
-            lastBadges = row['badges'];
-
             // Highlight the row of the current user
             if (row['user_id'] === authData['user_id']) {
                 dataRow.classList.add('current-user');
@@ -1147,6 +1150,9 @@ export class Sniffer {
 
             // Add the row to the table
             table.appendChild(dataRow);
+
+            lastScore = row['score'];
+            lastBadges = row['badges'];
         })
 
         leaderboardDataElement.innerHTML = '';
