@@ -385,7 +385,7 @@ export class Sniffer {
 
         // If the user is in a song, follow the path they are playing
         const songTime = rocksnifferData['memoryReadout']['songTimer'];
-        if (songTime > 0) {
+        if (!approxEqual(songTime, 0)) {
 
             // Follow the correct arrangment with Rocksniffer
             const arrangementHash = rocksnifferData['memoryReadout']['arrangementID'];
@@ -404,11 +404,11 @@ export class Sniffer {
 
         // If we are in a new song update the path to the preferred path
         // If that path doesn't exist choose the first available path instead
-        else if (this._previousRocksnifferData !== null &&
+        else if (this._previousRocksnifferData === null ||
             rocksnifferData['songDetails']['songID'] !== this._previousRocksnifferData['songDetails']['songID']) {
 
             // Default to the preferred path
-            if (this._preferredPath in hashMap) {
+            if (Object.values(hashMap).includes(this._preferredPath)) {
                 this._path = this._preferredPath;
             }
             else {
