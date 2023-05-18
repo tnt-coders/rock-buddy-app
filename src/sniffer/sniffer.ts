@@ -502,7 +502,7 @@ export class Sniffer {
             }
 
             // If we are at the end of the song don't check for pause or for starting mid song
-            if (approxEqual(songTime, songLength, 0.3) || approxEqual(previousSongTime, songLength, 0.3)) {
+            if (approxEqual(songTime, songLength, 0.5) || approxEqual(previousSongTime, songLength, 0.5)) {
                 this._ending = true;
                 return;
             }
