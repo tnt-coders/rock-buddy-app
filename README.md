@@ -1,5 +1,3 @@
-
-
 <a name="readme-top"></a>
 <!-- PROJECT LOGO -->
 <br />
@@ -20,9 +18,6 @@
   </p>
 </div>
 
-
-
-
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 <p align="center">
@@ -33,9 +28,6 @@ Rock Buddy is a tool that provides leaderboards for Rocksmith, including for cus
 <br /><br />
 <b>Installation:</b>
 The latest version can be found in the new-releases channel. Simply download the zip file and run the provided ".exe".
-<br /><br />
-<b>Prerequisites:</b>
-Rock Buddy requires RockSniffer to be installed and running in order to operate properly. The latest release of RockSniffer can be found here: https://github.com/kokolihapihvi/RockSniffer/releases
 <br /><br />
 <b>Creating an Account:</b>
 To create an account, click the "Sign Up" button on the login page and enter your account info. Once the account is created, log in and follow the steps on screen to verify your email address.
@@ -51,7 +43,6 @@ The "Sniffer" page will follow Rocksniffer and display leaderboards for whatever
 <b><i>NOTE</i></b> that there is an intentional 10 second delay when switching songs to prevent the server from being overloaded with requests. If you want to load data for a song immediately without waiting 10 seconds you can click the "Snort" button to force the app to immediately load the new song.
 <br />
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 <!-- ROADMAP -->
 ## Roadmap
@@ -69,7 +60,18 @@ See the [open issues](https://github.com/tnt-coders/rock-buddy-app/issues) for a
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+<!-- BUILD INSTRUCTIONS -->
+## Build Requirements
 
+- NodeJS - https://nodejs.org/en/download
+- MSBuild - https://visualstudio.microsoft.com/downloads/
+
+You must define the %MsbuildPath% environment variable to point to the installation path of MSBuild in order for RockSnfifer to be properly compiled.
+
+To build the application open it in VSCode and run the following commands from the command line in the project directory:
+
+  npm install
+  npm run build
 
 <!-- CONTACT -->
 ## Contact
@@ -80,11 +82,10 @@ TnTMusicStudios - - tntmusicstudios2018@gmail.com
 
 
 
-<!-- TeAM -->
+<!-- TEAM -->
 ## Team
 
 TNTMusicStudios - Founder / Lead Developer<br /><br />
 Recontastic - UI Design / Rubber Ducky
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-

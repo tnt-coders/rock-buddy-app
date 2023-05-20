@@ -1,10 +1,10 @@
 {
     "name": "rock-buddy",
-    "version": "1.0.3-beta",
+    "version": "1.1.0-beta",
     "description": "Rock Buddy",
     "main": "./src/main.js",
     "scripts": {
-        "build": "tsc && webpack --mode=development",
+        "build": "node rocksniffer_build.js && tsc && webpack --mode=development",
         "start": "npm run build && electron .",
         "dev": "npm run build && electron . http://raspberrypi:8080",
         "release": "npm run build && electron-builder"
@@ -21,6 +21,7 @@
     "devDependencies": {
         "electron": "^23.0.0",
         "electron-builder": "^24.0.0",
+        "msbuild": "^1.2.0",
         "typescript": "^4.9.5",
         "webpack": "^5.76.2",
         "webpack-cli": "^5.0.1"
@@ -31,6 +32,10 @@
         "nsis": {
             "oneClick": false,
             "allowToChangeInstallationDirectory": true
+        },
+        "extraFiles": {
+            "from": "RockSniffer/RockSniffer/bin/x64/Release/net6.0-windows",
+            "to": "Rocksniffer"
         },
         "directories": {
             "output": "release"
