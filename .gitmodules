@@ -1,0 +1,3 @@
+[submodule "RockSniffer"]
+	path = RockSniffer
+	url = https://github.com/tnt-coders/RockSniffer.git
