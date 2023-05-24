@@ -2,7 +2,7 @@
 export function showError(error: any): void {
     if (error instanceof Error) {
         const p = document.createElement('p');
-        p.textContent = error.message;
+        p.innerHTML = error.message;
         const errorElement = document.getElementById('error');
 
         if (errorElement !== null) {

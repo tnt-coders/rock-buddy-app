@@ -1,22 +1,13 @@
 const { execSync } = require('child_process');
-const _msbuild = require('msbuild');
 
-let msbuild = new _msbuild();
-msbuild.sourcePath = './RockSniffer/Rocksniffer.sln';
-msbuild.configuration = 'Release';
-
-// Suppress warnings (I know this is bad practice but this isn't my code lol)
-let overrideParams = [];
-overrideParams.push('/p:Platform=x64');
-overrideParams.push('/p:WarningLevel=0');
-
-msbuild.config('overrideParams', overrideParams);
-
+// Note: RockSniffer has lots of warnings in the build
+//TODO: Eventually go through all warnings in RockSniffer and resolve them
 try {
-    const output = execSync('dotnet restore', { cwd: './Rocksniffer/Rocksniffer' });
-    console.log(`Command output:\n${output}`);
-} catch (error) {
-    console.error(`Error executing command: ${error.message}`);
+    console.log('Executing dotnet build on RockSniffer...');
+    const output = execSync('dotnet build /p:Configuration=Release /p:Platform=x64', { cwd: './RockSniffer' });
+    console.log(`RockSniffer Build Output:\n${output}`)
 }
 
-msbuild.build();
+catch (error) {
+    console.error(`Error executing dotnet build: ${error.message}`);
+}

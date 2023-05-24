@@ -66,8 +66,6 @@ See the [open issues](https://github.com/tnt-coders/rock-buddy-app/issues) for a
 - NodeJS - https://nodejs.org/en/download
 - MSBuild - https://visualstudio.microsoft.com/downloads/
 
-You must define the %MsbuildPath% environment variable to point to the installation path of MSBuild in order for RockSnfifer to be properly compiled.
-
 To build the application open it in VSCode and run the following commands from the command line in the project directory:
 
   npm install

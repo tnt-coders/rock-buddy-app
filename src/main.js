@@ -4,7 +4,9 @@ const Store = require('electron-store');
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
+const glob = require('glob');
 const aesjs = require('aes-js');
+const { execFile } = require('child_process');
 const { unzipSync } = require('node:zlib');
 
 // Process input args
@@ -98,9 +100,13 @@ function getRocksmithProfiles(steamUserDataPath, steamProfile) {
     return profiles;
 }
 
-function getRocksmithProfileData(steamUserDataPath, steamProfile, rocksmithProfile) {
-    const rocksmithProfilePath = path.join(steamUserDataPath, steamProfile.toString(), rocksmithAppId.toString(), 'remote', rocksmithProfile + '_PRFLDB');
-    return readRocksmithData(rocksmithProfilePath);
+function getRocksnifferPath() {
+    let rocksnifferPath = 'RockSniffer';
+    if (isDev) {
+        rocksnifferPath = 'RockSniffer/RockSniffer/bin/x64/Release/net6.0-windows';
+    }
+
+    return rocksnifferPath;
 }
 
 // Creates the main window
@@ -184,6 +190,36 @@ function createWindow() {
         }
 
         server.close();
+    });
+
+    ipcMain.on('clear-rocksniffer-cache', (event) => {
+        const rocksnifferPath = getRocksnifferPath();
+
+        const pattern = rocksnifferPath + '/cache.sqlite*';
+
+        try {
+            const files = glob.sync(pattern, {});
+            files.forEach((file) => {
+                fs.unlinkSync(file);
+            });
+        }
+        catch (error) {
+            console.error('Failed to clear RockSniffer cache: ', error);
+        }
+    });
+
+    ipcMain.handle('get-rocksniffer-path', (event) => {
+        return getRocksnifferPath();
+    });
+
+    ipcMain.on('launch-rocksniffer', (event) => {
+        const rocksnifferPath = getRocksnifferPath();
+
+        execFile('RockSniffer.exe', [], { cwd: rocksnifferPath }, (error) => {
+            if (error) {
+                console.error('Failed to start RockSniffer: ', error);
+            }
+        });
     });
 
     ipcMain.handle('get-src-dir', (event) => {

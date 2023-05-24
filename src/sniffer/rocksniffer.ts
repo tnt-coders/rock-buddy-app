@@ -15,19 +15,13 @@ export class Rocksniffer {
     }
 
     public static async create() {
-        const rocksnifferPath = await UserData.get('rocksniffer_path');
-        if (rocksnifferPath !== null) {
-            const rocksniffer = new Rocksniffer(rocksnifferPath);
+        const rocksnifferPath = await window.api.getRocksnifferPath();
 
-            await rocksniffer.verifyPath();
+        const rocksniffer = new Rocksniffer(rocksnifferPath);
 
-            await rocksniffer.configure();
+        await rocksniffer.configure();
 
-            return rocksniffer;
-        }
-        else {
-            throw new Error('Rocksniffer path not set, please check the config.');
-        }
+        return rocksniffer;
     }
 
     public async sniff(): Promise<any> {
@@ -36,29 +30,28 @@ export class Rocksniffer {
             controller.abort();
         }, Rocksniffer.timeout);
 
+        let waiting = true;
+
         try {
             const response = await fetch('http://' + this._host + ':' + this._port, { signal: controller.signal });
             const data = await response.json();
             clearTimeout(timeout);
+            waiting = false;
 
             if (data.hasOwnProperty('Version')) {
                 const version = data['Version'];
                 const versionRegex = /-buddy$/;
                 if (!await window.api.semverGte(version, Rocksniffer.requiredVersion) || !versionRegex.test(version)) {
-                    if (!warningEmitted) {
-                        window.api.warning("Unsupported version of Rocksniffer detected, please use the version packaged with Rock Buddy: Rocksniffer " + Rocksniffer.requiredVersion + ".");
-                        warningEmitted = true;
-                    }
+                    throw new Error("<p>Unsupported version of RockSniffer detected. Please close RockSniffer and use the version packaged with Rock Buddy.<br>"
+                                  + "<br>"
+                                  + "Note: Rock Buddy should start the correct version of RockSniffer automatically when it is started.</p>");
                 }
             }
             else {
-                if (!warningEmitted) {
-                    window.api.warning("Rocksniffer version could not be verified.\n\nRock Buddy may not function as expected.")
-                    warningEmitted = true;
-                }
+                throw new Error("RockSniffer version could not be verified.\n\nRock Buddy may not function as expected.")
             }
 
-            if (data.hasOwnProperty('success') && data.success === true) {
+            if (data.hasOwnProperty('success')) {
                 return data;
             }
             else {
@@ -67,13 +60,12 @@ export class Rocksniffer {
         }
         catch (error) {
             clearTimeout(timeout);
-            throw new Error('Waiting for Rocksniffer...');
-        }
-    }
 
-    private async verifyPath(): Promise<void> {
-        if (!await window.api.directoryExists(this._path)) {
-            throw new Error('Rocksniffer path not found.');
+            if (waiting) {
+                throw new Error('Waiting for Rocksniffer...');
+            }
+            
+            throw error;
         }
     }
 

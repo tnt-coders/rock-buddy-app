@@ -112,15 +112,6 @@ async function getRocksmithProfiles() {
     });
 }
 
-async function getRocksnifferPath() {
-    const rocksnifferPath = await api.getPath();
-    if (rocksnifferPath !== null) {
-        document.getElementById('rocksniffer_path').innerText = rocksnifferPath;
-        api.storeSet('user_data.' + userId + '.rocksniffer_path', rocksnifferPath);
-        sessionStorage.setItem('rocksniffer_path', rocksnifferPath);
-    }
-}
-
 async function getPreferences() {
     const preferredPath = await api.storeGet('user_data.' + userId + '.preferred_path');
 
@@ -251,12 +242,6 @@ async function main() {
 
     // Populate the combo box for Rocksmith profiles
     await getRocksmithProfiles();
-
-    // Populate Rocksniffer path if there is a default set
-    const rocksnifferPath = await api.storeGet('user_data.' + userId + '.rocksniffer_path');
-    if (rocksnifferPath !== null) {
-        document.getElementById('rocksniffer_path').innerText = rocksnifferPath;
-    }
 
     await initAddonConfig();
 }

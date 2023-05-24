@@ -195,9 +195,25 @@ export class Sniffer {
 
     private async sniff(): Promise<any> {
         const rocksnifferData = await this._rocksniffer.sniff();
-        if (rocksnifferData === null || !rocksnifferData['success']) {
-            throw new Error('Navigate to a song in Rocksmith to begin sniffing.');
+        if (rocksnifferData === null) {
+            throw new Error("RockSniffer is starting...");
         }
+
+        else if (!rocksnifferData['success']) {
+            if (rocksnifferData['memoryReadout'] === null) {
+                throw new Error("RockSniffer is starting...");
+            }
+            else {
+                const gameStage = rocksnifferData['memoryReadout']['gameStage'];
+                if (gameStage === 'LAS_SongsList' || gameStage === 'SA_SongsList' || gameStage === 'NonStopPlay_Hub') {
+                    throw new Error('RockSniffer is enumerating DLC, please wait...');
+                }
+                else {
+                    throw new Error('Navigate to a song in Rocksmith to begin sniffing.');
+                }
+            }
+        }
+        console.log(rocksnifferData);
 
         return rocksnifferData;
     }
@@ -472,6 +488,11 @@ export class Sniffer {
             totalNotes = rocksnifferData['memoryReadout']['noteData']['TotalNotes'];
         }
 
+        let previousTotalNotes = 0;
+        if (this._previousRocksnifferData['memoryReadout']['noteData'] !== null) {
+            previousTotalNotes = this._previousRocksnifferData['memoryReadout']['noteData']['TotalNotes'];
+        }
+
         // Song is starting
         if (approxEqual(previousSongTime, 0) && !approxEqual(songTime, 0) && totalNotes === 0) {
             logMessage("SONG STARTING");
@@ -490,6 +511,26 @@ export class Sniffer {
 
         // Currently in a song
         else if (!approxEqual(songTime, 0)) {
+
+            // Check if the song restarted (only check after resuming from pause)
+            if (!approxEqual(songTime, previousSongTime) && this._isPaused) {
+                if (songTime < previousSongTime && songTime < 10 && totalNotes === 0) {
+                    logMessage("SONG RESTARTED");
+                    this.setVerificationState(VerificationState.Verified, "No violations detected.");
+                    logMessage(debugInfo);
+
+                    this._inSong = true;
+                    this._progressTimer = songTime * 1000;
+                    this._maybePaused = false;
+                    this._isPaused = false;
+                    this._pauseTimer = 0;
+                    this._pauseTime = 0;
+                    this._lastPauseTime = 0;
+                    this._ending = false;
+
+                    return;
+                }
+            }
 
             // No point in doing work if the score is already not verified
             if (this._verified === false) {
@@ -557,28 +598,9 @@ export class Sniffer {
 
                 // If the song was paused we need to update the progress timer (the game rewinds slightly)
                 if (this._isPaused) {
-
-                    // Check if the song was restarted (only check after resuming from pause)
-                    if (songTime < previousSongTime && songTime < 10 && totalNotes === 0) {
-                        logMessage("SONG RESTARTED");
-                        this.setVerificationState(VerificationState.Verified, "No violations detected.");
-                        logMessage(debugInfo);
-
-                        this._inSong = true;
-                        this._progressTimer = songTime * 1000;
-                        this._maybePaused = false;
-                        this._isPaused = false;
-                        this._pauseTimer = 0;
-                        this._pauseTime = 0;
-                        this._lastPauseTime = 0;
-                        this._ending = false;
-
-                        return;
-                    }
-
                     logMessage("SONG RESUMED");
 
-                    // Subtract the 0.5 seconds we waited to ensure the song was paused
+                    // Subtract the time we waited to ensure the song was paused
                     // It takes 1 refresh to unpause so also subtract the refresh rate
                     this._progressTimer -= Sniffer.pauseThreshold + Sniffer.refreshRate;
 
@@ -589,6 +611,13 @@ export class Sniffer {
                     }
                     else {
                         this.setVerificationState(VerificationState.Unverified, "Song timer did not match after resuming from pause.");
+                        logMessage(debugInfo);
+                        return;
+                    }
+
+                    // If the user enters riff repeater, total notes will be reset to 0
+                    if (totalNotes < previousTotalNotes) {
+                        this.setVerificationState(VerificationState.Unverified, "The user entered riff repeater.");
                         logMessage(debugInfo);
                         return;
                     }
@@ -620,16 +649,32 @@ export class Sniffer {
 
                 // Check that the progress timer is within 10 seconds of the song length
                 // This check should really never fail but it is just for good measure
-                if (approxEqual(this._progressTimer / 1000, previousSongLength, 10)) {
-                    this.setVerificationState(VerificationState.Verified, "Your score is verified!");
-
-                    // Record verified score
-                    await this.recordVerifiedScore(this._previousRocksnifferData);
-                }
-                else {
+                if (!approxEqual(this._progressTimer / 1000, previousSongLength, 10)) {
                     this.setVerificationState(VerificationState.Unverified, "The song timer did not match the song length.");
                     logMessage(debugInfo);
+                    return;
                 }
+
+                // If there are less notes than expected (or more although that shouldn't happen)
+                // Assume the user had dynamic difficulty on and played on an easier difficulty
+                const arrangementID = this._previousRocksnifferData['memoryReadout']['arrangementID'];
+                const arrangementDetails = this._previousRocksnifferData['songDetails']['arrangements'].find(
+                    (arrangement: any) => arrangement['arrangementID'] === arrangementID
+                );
+                const arrangementNotes = arrangementDetails['maxNotes'];
+                if (previousTotalNotes !== arrangementNotes) {
+                    this.setVerificationState(VerificationState.Unverified, "The total number of notes seen doesn't match the total note count of the arrangement. (Make sure dynamic difficulty is disabled.)");
+                    logMessage(debugInfo);
+                    logMessage("TOTAL NOTES: " + previousTotalNotes);
+                    logMessage("ARRANGEMENT NOTES: " + arrangementNotes);
+                    return;
+                }
+
+                // THE SCORE IS VERIFIED!
+                this.setVerificationState(VerificationState.Verified, "Your score is verified!");
+
+                // Record verified score
+                await this.recordVerifiedScore(this._previousRocksnifferData);
             }
 
             // Create a blank line in the log

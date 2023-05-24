@@ -8,6 +8,8 @@ async function main() {
     const version = await getVersion();
     document.title += ' v' + version;
 
+    window.api.launchRocksniffer();
+
     try {
         sniffer = await Sniffer.create();
         sniffer.start();

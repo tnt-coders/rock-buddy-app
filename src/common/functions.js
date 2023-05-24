@@ -52,6 +52,11 @@ async function authenticate(authData) {
     }
 
     if (response['success']) {
+        if (response['updated']) {
+            console.log("Version update detected. Clearing RockSniffer cache.");
+            window.api.clearRocksnifferCache();
+        }
+
         // User has been authenticated, set the auth data for the active session
         sessionStorage.setItem('auth_data', JSON.stringify(authData));
         sessionStorage.setItem('user_id', authData['user_id']);
