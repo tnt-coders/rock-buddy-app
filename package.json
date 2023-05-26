@@ -40,8 +40,12 @@
                 "to": "Rocksniffer"
             },
             {
+                "from": "rock-buddy-addons",
+                "to": "addons/rock-buddy"
+            },
+            {
                 "from": "RockSniffer/addons",
-                "to": "RockSnifferAddons"
+                "to": "addons/RockSniffer"
             }
         ],
         "directories": {
