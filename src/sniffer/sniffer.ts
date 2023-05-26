@@ -201,7 +201,7 @@ export class Sniffer {
 
         else if (!rocksnifferData['success']) {
             if (rocksnifferData['memoryReadout'] === null) {
-                throw new Error("RockSniffer is starting...");
+                throw new Error("Waiting for Rocksmith...");
             }
             else {
                 const gameStage = rocksnifferData['memoryReadout']['gameStage'];
@@ -573,13 +573,13 @@ export class Sniffer {
                     return;
                 }
 
-                logMessage("SONG PAUSED");
-                this.setVerificationState(VerificationState.MaybeVerified, "If you pause more than once in a 10 minute period, your score will not be verified.");
-                logMessage(debugInfo);
-
                 // Record the pause time
                 this._isPaused = true;
                 this._pauseTime = songTime;
+
+                logMessage("SONG PAUSED");
+                this.setVerificationState(VerificationState.MaybeVerified, "If you pause more than once in a 10 minute period, your score will not be verified.");
+                logMessage(debugInfo);
 
                 // Song was previously paused and it is not the same pause
                 if (!approxEqual(this._lastPauseTime, 0) && !approxEqual(this._pauseTime, this._lastPauseTime)) {
