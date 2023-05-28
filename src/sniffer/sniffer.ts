@@ -213,7 +213,6 @@ export class Sniffer {
                 }
             }
         }
-        console.log(rocksnifferData);
 
         return rocksnifferData;
     }
@@ -460,8 +459,34 @@ export class Sniffer {
             return;
         }
 
+        // No song data available
+        if (rocksnifferData['songDetails'] === null || this._previousRocksnifferData['songDetails'] === null) {
+            return;
+        } 
+
+        // Gather arrangement details
+        const arrangementID = rocksnifferData['memoryReadout']['arrangementID'];
+        const arrangementDetails = rocksnifferData['songDetails']['arrangements'].find(
+            (arrangement: any) => arrangement['arrangementID'] === arrangementID
+        );
+        const previousArrangementID = this._previousRocksnifferData['memoryReadout']['arrangementID'];
+        const previousArrangementDetails = this._previousRocksnifferData['songDetails']['arrangements'].find(
+            (arrangement: any) => arrangement['arrangementID'] === previousArrangementID
+        );   
+
+        // Get the notes in the arrangement
+        let arrangementNotes =  null;
+        let previousArrangementNotes = null;
+        if (arrangementDetails !== undefined && previousArrangementDetails !== undefined) {
+            arrangementNotes = arrangementDetails['maxNotes'];
+            previousArrangementNotes = previousArrangementDetails['maxNotes'];
+        }
+
+        // Get current sniff details
         const songTime = rocksnifferData['memoryReadout']['songTimer'];
         const songLength = rocksnifferData['songDetails']['songLength'];
+
+        // Get previous sniff details
         const previousSongTime = this._previousRocksnifferData['memoryReadout']['songTimer'];
         const previousSongLength = this._previousRocksnifferData['songDetails']['songLength'];
 
@@ -537,13 +562,13 @@ export class Sniffer {
                 return;
             }
 
-            // If we've already determined that the song is ending then don't check for pause/speed chagne
+            // If we've already determined that the song is ending then don't check for pause/speed change
             if (this._ending) {
                 return;
             }
 
             // If we are at the end of the song don't check for pause or for starting mid song
-            if (approxEqual(songTime, songLength, 0.5) || approxEqual(previousSongTime, songLength, 0.5)) {
+            if (totalNotes === arrangementNotes) {
                 this._ending = true;
                 return;
             }
@@ -652,21 +677,18 @@ export class Sniffer {
                 if (!approxEqual(this._progressTimer / 1000, previousSongLength, 10)) {
                     this.setVerificationState(VerificationState.Unverified, "The song timer did not match the song length.");
                     logMessage(debugInfo);
+                    logMessage("");
                     return;
                 }
 
                 // If there are less notes than expected (or more although that shouldn't happen)
                 // Assume the user had dynamic difficulty on and played on an easier difficulty
-                const arrangementID = this._previousRocksnifferData['memoryReadout']['arrangementID'];
-                const arrangementDetails = this._previousRocksnifferData['songDetails']['arrangements'].find(
-                    (arrangement: any) => arrangement['arrangementID'] === arrangementID
-                );
-                const arrangementNotes = arrangementDetails['maxNotes'];
-                if (previousTotalNotes !== arrangementNotes) {
+                if (previousTotalNotes !== previousArrangementNotes) {
                     this.setVerificationState(VerificationState.Unverified, "The total number of notes seen doesn't match the total note count of the arrangement. (Make sure dynamic difficulty is disabled.)");
                     logMessage(debugInfo);
                     logMessage("TOTAL NOTES: " + previousTotalNotes);
                     logMessage("ARRANGEMENT NOTES: " + arrangementNotes);
+                    logMessage("");
                     return;
                 }
 
