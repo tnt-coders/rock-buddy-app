@@ -669,6 +669,20 @@ export class Sniffer {
 
             logMessage("SONG ENDING");
 
+            // If there are less notes than expected (or more although that shouldn't happen)
+            // Assume the user had dynamic difficulty on and played on an easier difficulty
+            if (previousTotalNotes !== previousArrangementNotes) {
+                const errorMessage = "The total number of notes seen doesn't match the total note count of the arrangement. (Make sure dynamic difficulty is disabled.)\n"
+                                   + "\n"
+                                   + "Note: Arrangements that contain \"ignored\" notes do not currently work with verified scores because the \"ignored\" notes throw off the note count. This is a known issue and I am working on resolving it.";
+                this.setVerificationState(VerificationState.Unverified, errorMessage);
+                logMessage(debugInfo);
+                logMessage("TOTAL NOTES: " + previousTotalNotes);
+                logMessage("ARRANGEMENT NOTES: " + arrangementNotes);
+                logMessage("");
+                return;
+            }
+
             // Final verification steps
             if (this._verified) {
 
@@ -677,17 +691,6 @@ export class Sniffer {
                 if (!approxEqual(this._progressTimer / 1000, previousSongLength, 10)) {
                     this.setVerificationState(VerificationState.Unverified, "The song timer did not match the song length.");
                     logMessage(debugInfo);
-                    logMessage("");
-                    return;
-                }
-
-                // If there are less notes than expected (or more although that shouldn't happen)
-                // Assume the user had dynamic difficulty on and played on an easier difficulty
-                if (previousTotalNotes !== previousArrangementNotes) {
-                    this.setVerificationState(VerificationState.Unverified, "The total number of notes seen doesn't match the total note count of the arrangement. (Make sure dynamic difficulty is disabled.)");
-                    logMessage(debugInfo);
-                    logMessage("TOTAL NOTES: " + previousTotalNotes);
-                    logMessage("ARRANGEMENT NOTES: " + arrangementNotes);
                     logMessage("");
                     return;
                 }
