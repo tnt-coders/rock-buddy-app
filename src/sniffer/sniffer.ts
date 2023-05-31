@@ -478,8 +478,8 @@ export class Sniffer {
         let arrangementNotes =  null;
         let previousArrangementNotes = null;
         if (arrangementDetails !== undefined && previousArrangementDetails !== undefined) {
-            arrangementNotes = arrangementDetails['maxNotes'];
-            previousArrangementNotes = previousArrangementDetails['maxNotes'];
+            arrangementNotes = arrangementDetails['totalNotes'];
+            previousArrangementNotes = previousArrangementDetails['totalNotes'];
         }
 
         // Get current sniff details
