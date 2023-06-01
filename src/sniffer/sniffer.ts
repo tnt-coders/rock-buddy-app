@@ -490,6 +490,11 @@ export class Sniffer {
         const previousSongTime = this._previousRocksnifferData['memoryReadout']['songTimer'];
         const previousSongLength = this._previousRocksnifferData['songDetails']['songLength'];
 
+        let seenNotes = null;
+        if (rocksnifferData['memoryReadout']['noteData'] !== null) {
+            seenNotes = rocksnifferData['memoryReadout']['noteData']['totalNotes'];
+        }
+
         const debugInfo = {
             songName: rocksnifferData['songDetails']['songName'],
             artistName: rocksnifferData['songDetails']['artistName'],
@@ -497,6 +502,9 @@ export class Sniffer {
             songLength: songLength,
             previousSongTime: previousSongTime,
             previousSongLength: previousSongLength,
+            arrangementNotes: arrangementNotes,
+            previousArrangementNotes: previousArrangementNotes,
+            seenNotes: seenNotes,
             inSong: this._inSong,
             progressTimer: this._progressTimer,
             maybePaused: this._maybePaused,
@@ -669,12 +677,19 @@ export class Sniffer {
 
             logMessage("SONG ENDING");
 
-            // If there are less notes than expected (or more although that shouldn't happen)
-            // Assume the user had dynamic difficulty on and played on an easier difficulty
-            if (previousTotalNotes !== previousArrangementNotes) {
-                const errorMessage = "The total number of notes seen doesn't match the total note count of the arrangement. (Make sure dynamic difficulty is disabled.)\n"
-                                   + "\n"
-                                   + "Note: Arrangements that contain \"ignored\" notes do not currently work with verified scores because the \"ignored\" notes throw off the note count. This is a known issue and I am working on resolving it.";
+            // Check that the progress timer is within 10 seconds of the song length
+            if (!approxEqual(this._progressTimer / 1000, previousSongLength, 10)) {
+                this.setVerificationState(VerificationState.Unverified, "The song timer did not match the song length.");
+                logMessage(debugInfo);
+                logMessage("");
+                return;
+            }
+
+            // If there are less notes than expected assume the user had dynamic difficulty on and played on an easier difficulty
+            if (previousTotalNotes < previousArrangementNotes) {
+                const errorMessage = "<p>The total number of notes seen was less than the total note count of the arrangement. (Make sure dynamic difficulty is disabled.)<br>"
+                                   + "<br>"
+                                   + "If you do not have dynamic difficulty enabled please report that this chart is broken <a href=\"#\" onclick=\"openGithubIssue58()\">here</a>.</p>"
                 this.setVerificationState(VerificationState.Unverified, errorMessage);
                 logMessage(debugInfo);
                 logMessage("TOTAL NOTES: " + previousTotalNotes);
@@ -683,17 +698,17 @@ export class Sniffer {
                 return;
             }
 
-            // Final verification steps
-            if (this._verified) {
+            // If there are more notes than expected report an error (although this shouldn't happen)
+            if (previousTotalNotes > previousArrangementNotes) {
+                this.setVerificationState(VerificationState.Unverified, "The total number of notes seen was greater than the total note count of the arrangement. Something appears to have gone wrong internally with RockSniffer.");
+                logMessage(debugInfo);
+                logMessage("TOTAL NOTES: " + previousTotalNotes);
+                logMessage("ARRANGEMENT NOTES: " + arrangementNotes);
+                logMessage("");
+                return;
+            }
 
-                // Check that the progress timer is within 10 seconds of the song length
-                // This check should really never fail but it is just for good measure
-                if (!approxEqual(this._progressTimer / 1000, previousSongLength, 10)) {
-                    this.setVerificationState(VerificationState.Unverified, "The song timer did not match the song length.");
-                    logMessage(debugInfo);
-                    logMessage("");
-                    return;
-                }
+            if (this._verified) {
 
                 // THE SCORE IS VERIFIED!
                 this.setVerificationState(VerificationState.Verified, "Your score is verified!");
@@ -734,7 +749,7 @@ export class Sniffer {
                 maybeVerifiedElement.style.display = 'none';
                 unverifiedElement.style.display = 'none';
 
-                verifiedMessageElement.innerText = message;
+                verifiedMessageElement.innerHTML = message;
 
                 this._verified = true;
                 break;
@@ -746,7 +761,7 @@ export class Sniffer {
                 maybeVerifiedElement.style.display = 'block';
                 unverifiedElement.style.display = 'none';
 
-                maybeVerifiedMessageElement.innerText = message;
+                maybeVerifiedMessageElement.innerHTML = message;
 
                 break;
 
@@ -757,7 +772,7 @@ export class Sniffer {
                 maybeVerifiedElement.style.display = 'none';
                 unverifiedElement.style.display = 'block';
 
-                unverifiedMessageElement.innerText = message;
+                unverifiedMessageElement.innerHTML = message;
 
                 this._verified = false;
                 break;

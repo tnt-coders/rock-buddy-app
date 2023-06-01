@@ -4,6 +4,17 @@ import { showError } from "./functions";
 
 let sniffer: Sniffer | null = null;
 
+export function openTwitchAboutPage() {
+    window.api.openExternalLink("https://www.twitch.tv/tntmusicstudios/about");
+}
+
+export function openGithubIssue58() {
+    window.api.openExternalLink("https://github.com/tnt-coders/rock-buddy-app/issues/58");
+}
+
+(window as any).openTwitchAboutPage = openTwitchAboutPage;
+(window as any).openGithubIssue58 = openGithubIssue58;
+
 async function main() {
     const version = await getVersion();
     document.title += ' v' + version;

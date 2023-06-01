@@ -351,6 +351,23 @@ function createWindow() {
         fs.appendFileSync(file, contents);
     });
 
+    // Check if a file exists
+    ipcMain.handle('file-exists', (event, file) => {
+        return fs.existsSync(file);
+    })
+
+    // Wait for a file to exist (return false on timeout)
+    ipcMain.handle('wait-for-file', (event, file, timeout) => {
+        const startTime = Date.now();
+        let fileExists = fs.existsSync(file);
+
+        while (!fileExists && Date.now() - startTime < timeout) {
+            fileExists = fs.existsSync(file);
+        }
+
+        return fileExists;
+    });
+
     // Semver check
     ipcMain.handle('semver-gte', (event, version1, version2) => {
         const semver = require('semver');
