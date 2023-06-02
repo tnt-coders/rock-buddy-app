@@ -491,8 +491,15 @@ export class Sniffer {
         const previousSongLength = this._previousRocksnifferData['songDetails']['songLength'];
 
         let seenNotes = null;
+        let totalNotesHit = 0;
         if (rocksnifferData['memoryReadout']['noteData'] !== null) {
             seenNotes = rocksnifferData['memoryReadout']['noteData']['totalNotes'];
+            totalNotesHit = rocksnifferData['memoryReadout']['noteData']['totalNotesHit'];
+        }
+
+        let previousTotalNotesHit = 0;
+        if (this._previousRocksnifferData['memoryReadout']['noteData'] !== null) {
+            previousTotalNotesHit = this._previousRocksnifferData['memoryReadout']['noteData']['totalNotesHit'];
         }
 
         const debugInfo = {
@@ -578,6 +585,13 @@ export class Sniffer {
             // If we are at the end of the song don't check for pause or for starting mid song
             if (totalNotes === arrangementNotes) {
                 this._ending = true;
+                return;
+            }
+
+            // Ensure the note count has not been tampered with
+            if (totalNotesHit < previousTotalNotesHit) {
+                this.setVerificationState(VerificationState.Unverified, "Note data has been tampered with.");
+                logMessage(debugInfo);
                 return;
             }
 
