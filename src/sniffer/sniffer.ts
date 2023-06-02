@@ -687,10 +687,7 @@ export class Sniffer {
 
             // If there are less notes than expected assume the user had dynamic difficulty on and played on an easier difficulty
             if (previousTotalNotes < previousArrangementNotes) {
-                const errorMessage = "<p>The total number of notes seen was less than the total note count of the arrangement. (Make sure dynamic difficulty is disabled.)<br>"
-                                   + "<br>"
-                                   + "If you do not have dynamic difficulty enabled please report that this chart is broken <a href=\"#\" onclick=\"openGithubIssue58()\">here</a>.</p>"
-                this.setVerificationState(VerificationState.Unverified, errorMessage);
+                this.setVerificationState(VerificationState.Unverified, "The total number of notes seen was less than the total note count of the arrangement. (Make sure dynamic difficulty is disabled.)");
                 logMessage(debugInfo);
                 logMessage("TOTAL NOTES: " + previousTotalNotes);
                 logMessage("ARRANGEMENT NOTES: " + arrangementNotes);
@@ -749,7 +746,7 @@ export class Sniffer {
                 maybeVerifiedElement.style.display = 'none';
                 unverifiedElement.style.display = 'none';
 
-                verifiedMessageElement.innerHTML = message;
+                verifiedMessageElement.innerText = message;
 
                 this._verified = true;
                 break;
@@ -761,7 +758,7 @@ export class Sniffer {
                 maybeVerifiedElement.style.display = 'block';
                 unverifiedElement.style.display = 'none';
 
-                maybeVerifiedMessageElement.innerHTML = message;
+                maybeVerifiedMessageElement.innerText = message;
 
                 break;
 
@@ -772,7 +769,7 @@ export class Sniffer {
                 maybeVerifiedElement.style.display = 'none';
                 unverifiedElement.style.display = 'block';
 
-                unverifiedMessageElement.innerHTML = message;
+                unverifiedMessageElement.innerText = message;
 
                 this._verified = false;
                 break;
