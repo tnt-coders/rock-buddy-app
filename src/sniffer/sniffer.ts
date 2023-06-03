@@ -33,6 +33,8 @@ export class Sniffer {
     private _previousRocksnifferData: any = null;
     
     // Progress monitor data
+    private _nonstopPlayOrScoreAttack: boolean = false;
+    private _modsActiveMessageSent: boolean = false;
     private _verified: boolean = true;
     private _inSong: boolean = false;
     private _progressTimer: number = 0;
@@ -454,7 +456,33 @@ export class Sniffer {
         const gameStage = rocksnifferData['memoryReadout']['gameStage'];
         const mode = rocksnifferData['memoryReadout']['mode'];
         if (gameStage === 'nonstopplaygame' || mode === 2) {
-            logMessage("Nonstop play or score attack detected.");
+            if (this._nonstopPlayOrScoreAttack === false) {
+                this._nonstopPlayOrScoreAttack = true;
+                logMessage("Verified scores disabled: Nonstop play or score attack detected.");
+            }
+
+            this.setVerificationState(VerificationState.None);
+            return;
+        }
+
+        this._nonstopPlayOrScoreAttack = false;
+
+        // Verify the u ser has the latest RSMods
+        const modsActive = rocksnifferData['memoryReadout']['modsActive'];
+        if (!modsActive) {
+            if (this._modsActiveMessageSent === false) {
+                this._modsActiveMessageSent = true;
+                logMessage("Verified scores disabled: Requires RSMods v1.2.7.3 or later.");
+
+                const rsmodsRequiredPopupElement = document.getElementById('rsmods_required_popup') as HTMLElement;
+                const closeRsmodsRequiredPopupElement = document.getElementById('close_rsmods_required_popup') as HTMLElement;
+                rsmodsRequiredPopupElement.style.display = 'block';
+
+                closeRsmodsRequiredPopupElement.addEventListener('click', async() => {
+                    rsmodsRequiredPopupElement.style.display = 'none';
+                });
+            }
+
             this.setVerificationState(VerificationState.None);
             return;
         }
@@ -588,13 +616,6 @@ export class Sniffer {
                 return;
             }
 
-            // Ensure the note count has not been tampered with
-            if (totalNotesHit < previousTotalNotesHit) {
-                this.setVerificationState(VerificationState.Unverified, "Note data has been tampered with.");
-                logMessage(debugInfo);
-                return;
-            }
-
             // Rock Buddy was started during a song (score cannot be verified)
             if (approxEqual(this._progressTimer, 0)) {
                 logMessage("ROCK BUDDY STARTED MID SONG");
@@ -670,11 +691,17 @@ export class Sniffer {
                     }
                 }
 
-
                 // If the progress timer gets 0.3 seconds out of sync with the song change to "unverified"
                 // 0.3 seconds allows it to be off for two refreshes
                 if (!approxEqual(this._progressTimer / 1000, songTime, 0.3)) {
                     this.setVerificationState(VerificationState.Unverified, "Song speed change detected.");
+                    logMessage(debugInfo);
+                    return;
+                }
+
+                // Ensure the note count has not been tampered with
+                if (totalNotesHit < previousTotalNotesHit) {
+                    this.setVerificationState(VerificationState.Unverified, "Note data has been tampered with. Offenses will be recorded and repeated offenses may result in a ban.");
                     logMessage(debugInfo);
                     return;
                 }
@@ -788,8 +815,6 @@ export class Sniffer {
                 this._verified = false;
                 break;
             case VerificationState.None:
-                logMessage("VERIFICATION STATUS CHANGED TO NONE");
-
                 verifiedElement.style.display = 'none';
                 maybeVerifiedElement.style.display = 'none';
                 unverifiedElement.style.display = 'none';

@@ -12,8 +12,13 @@ export function openGithubIssue58() {
     window.api.openExternalLink("https://github.com/tnt-coders/rock-buddy-app/issues/58");
 }
 
+export function openRSModsDownloadPage() {
+    window.api.openExternalLink("https://github.com/Lovrom8/RSMods/releases");
+}
+
 (window as any).openTwitchAboutPage = openTwitchAboutPage;
 (window as any).openGithubIssue58 = openGithubIssue58;
+(window as any).openRSModsDownloadPage = openRSModsDownloadPage;
 
 async function main() {
     const version = await getVersion();
