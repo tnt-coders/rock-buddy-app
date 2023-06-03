@@ -37,10 +37,7 @@
         "extraFiles": [
             {
                 "from": "RockSniffer/RockSniffer/bin/x64/Release/net6.0-windows",
-                "to": "Rocksniffer",
-                "filePatterns": [
-                    "!**/cache.sqlite*"
-                ]
+                "to": "Rocksniffer"
             },
             {
                 "from": "rock-buddy-addons",
