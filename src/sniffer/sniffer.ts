@@ -450,6 +450,11 @@ export class Sniffer {
             return;
         }
 
+        // If there is no noteData there is nothing to do here
+        if (rocksnifferData['memoryReadout']['noteData'] === null) {
+            return;
+        }
+
         // Verified scores are not supported for nonstop play or score attack
         // - Nonstop play due to the arrangement hash being invalid in Rocksniffer
         // - Score attack because the game is already strict with verifying score attack scores (although theoretically you could pause a bunch)
