@@ -472,6 +472,16 @@ export class Sniffer {
 
         this._nonstopPlayOrScoreAttack = false;
 
+        // No song data available
+        if (rocksnifferData['songDetails'] === null || this._previousRocksnifferData['songDetails'] === null) {
+            this._modsActiveMessageSent = false;
+
+            const rsmodsRequiredPopupElement = document.getElementById('rsmods_required_popup') as HTMLElement;
+            rsmodsRequiredPopupElement.style.display = 'none';
+
+            return;
+        } 
+
         // Verify the u ser has the latest RSMods
         const modsActive = rocksnifferData['memoryReadout']['modsActive'];
         if (!modsActive) {
@@ -491,11 +501,6 @@ export class Sniffer {
             this.setVerificationState(VerificationState.None);
             return;
         }
-
-        // No song data available
-        if (rocksnifferData['songDetails'] === null || this._previousRocksnifferData['songDetails'] === null) {
-            return;
-        } 
 
         // Gather arrangement details
         const arrangementID = rocksnifferData['memoryReadout']['arrangementID'];
