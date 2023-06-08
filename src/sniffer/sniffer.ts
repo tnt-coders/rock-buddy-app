@@ -34,7 +34,6 @@ export class Sniffer {
     
     // Progress monitor data
     private _nonstopPlayOrScoreAttack: boolean = false;
-    private _modsActiveMessageSent: boolean = false;
     private _verified: boolean = true;
     private _inSong: boolean = false;
     private _progressTimer: number = 0;
@@ -474,33 +473,8 @@ export class Sniffer {
 
         // No song data available
         if (rocksnifferData['songDetails'] === null || this._previousRocksnifferData['songDetails'] === null) {
-            this._modsActiveMessageSent = false;
-
-            const rsmodsRequiredPopupElement = document.getElementById('rsmods_required_popup') as HTMLElement;
-            rsmodsRequiredPopupElement.style.display = 'none';
-
             return;
         } 
-
-        // Verify the u ser has the latest RSMods
-        const modsActive = rocksnifferData['memoryReadout']['modsActive'];
-        if (!modsActive) {
-            if (this._modsActiveMessageSent === false) {
-                this._modsActiveMessageSent = true;
-                logMessage("Verified scores disabled: Requires RSMods v1.2.7.3 or later.");
-
-                const rsmodsRequiredPopupElement = document.getElementById('rsmods_required_popup') as HTMLElement;
-                const closeRsmodsRequiredPopupElement = document.getElementById('close_rsmods_required_popup') as HTMLElement;
-                rsmodsRequiredPopupElement.style.display = 'block';
-
-                closeRsmodsRequiredPopupElement.addEventListener('click', async() => {
-                    rsmodsRequiredPopupElement.style.display = 'none';
-                });
-            }
-
-            this.setVerificationState(VerificationState.None);
-            return;
-        }
 
         // Gather arrangement details
         const arrangementID = rocksnifferData['memoryReadout']['arrangementID'];
@@ -589,6 +563,14 @@ export class Sniffer {
 
         // Currently in a song
         else if (!approxEqual(songTime, 0)) {
+
+            // Verify the u ser has the latest RSMods
+            const modsActive = rocksnifferData['memoryReadout']['modsActive'];
+            if (!modsActive) {
+                this.setVerificationState(VerificationState.Unverified, "Verified scores disabled: Requires RSMods v1.2.7.3 or later.");
+                logMessage(debugInfo);
+                return;
+            }
 
             // Check if the song restarted (only check after resuming from pause)
             if (!approxEqual(songTime, previousSongTime) && this._isPaused) {
