@@ -223,7 +223,7 @@ export class Sniffer {
 
         // If we are in a song, update the progress timer
         if (this._inSong) {
-            if (!this._isPaused) {
+            if (!this._isPaused && !this._ending) {
                 this._progressTimer += Sniffer.refreshRate;
             }
 
