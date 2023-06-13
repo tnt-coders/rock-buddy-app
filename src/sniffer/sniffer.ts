@@ -710,35 +710,35 @@ export class Sniffer {
 
             logMessage("SONG ENDING");
 
-            // Check that the progress timer is within 10 seconds of the song length
-            if (!approxEqual(this._progressTimer / 1000, previousSongLength, 10)) {
-                this.setVerificationState(VerificationState.Unverified, "The song timer did not match the song length.");
-                logMessage(debugInfo);
-                logMessage("");
-                return;
-            }
-
-            // If there are less notes than expected assume the user had dynamic difficulty on and played on an easier difficulty
-            if (previousTotalNotes < previousArrangementNotes) {
-                this.setVerificationState(VerificationState.Unverified, "The total number of notes seen was less than the total note count of the arrangement. (Make sure dynamic difficulty is disabled.)");
-                logMessage(debugInfo);
-                logMessage("TOTAL NOTES: " + previousTotalNotes);
-                logMessage("ARRANGEMENT NOTES: " + arrangementNotes);
-                logMessage("");
-                return;
-            }
-
-            // If there are more notes than expected report an error (although this shouldn't happen)
-            if (previousTotalNotes > previousArrangementNotes) {
-                this.setVerificationState(VerificationState.Unverified, "The total number of notes seen was greater than the total note count of the arrangement. Something appears to have gone wrong internally with RockSniffer.");
-                logMessage(debugInfo);
-                logMessage("TOTAL NOTES: " + previousTotalNotes);
-                logMessage("ARRANGEMENT NOTES: " + arrangementNotes);
-                logMessage("");
-                return;
-            }
-
             if (this._verified) {
+
+                // If there are less notes than expected assume the user had dynamic difficulty on and played on an easier difficulty
+                if (previousTotalNotes < previousArrangementNotes) {
+                    this.setVerificationState(VerificationState.Unverified, "The total number of notes seen was less than the total note count of the arrangement. (Make sure dynamic difficulty is disabled.)");
+                    logMessage(debugInfo);
+                    logMessage("TOTAL NOTES: " + previousTotalNotes);
+                    logMessage("ARRANGEMENT NOTES: " + arrangementNotes);
+                    logMessage("");
+                    return;
+                }
+
+                // If there are more notes than expected report an error (although this shouldn't happen)
+                if (previousTotalNotes > previousArrangementNotes) {
+                    this.setVerificationState(VerificationState.Unverified, "The total number of notes seen was greater than the total note count of the arrangement. Something appears to have gone wrong internally with RockSniffer.");
+                    logMessage(debugInfo);
+                    logMessage("TOTAL NOTES: " + previousTotalNotes);
+                    logMessage("ARRANGEMENT NOTES: " + arrangementNotes);
+                    logMessage("");
+                    return;
+                }
+
+                // Check that the progress timer is within 10 seconds of the song length
+                if (!approxEqual(this._progressTimer / 1000, previousSongLength, 10)) {
+                    this.setVerificationState(VerificationState.Unverified, "The song timer did not match the song length.");
+                    logMessage(debugInfo);
+                    logMessage("");
+                    return;
+                }
 
                 // THE SCORE IS VERIFIED!
                 this.setVerificationState(VerificationState.Verified, "Your score is verified!");
