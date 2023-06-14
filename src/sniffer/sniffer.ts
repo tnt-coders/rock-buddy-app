@@ -732,14 +732,6 @@ export class Sniffer {
                     return;
                 }
 
-                // Check that the progress timer is within 10 seconds of the song length
-                if (!approxEqual(this._progressTimer / 1000, previousSongLength, 10)) {
-                    this.setVerificationState(VerificationState.Unverified, "The song timer did not match the song length.");
-                    logMessage(debugInfo);
-                    logMessage("");
-                    return;
-                }
-
                 // THE SCORE IS VERIFIED!
                 this.setVerificationState(VerificationState.Verified, "Your score is verified!");
 
