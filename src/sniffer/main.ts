@@ -8,8 +8,8 @@ export function openTwitchAboutPage() {
     window.api.openExternalLink("https://www.twitch.tv/tntmusicstudios/about");
 }
 
-export function openGithubIssue58() {
-    window.api.openExternalLink("https://github.com/tnt-coders/rock-buddy-app/issues/58");
+export function openGithubIssue63() {
+    window.api.openExternalLink("https://github.com/tnt-coders/rock-buddy-app/issues/63");
 }
 
 export function openRSModsDownloadPage() {
@@ -17,7 +17,7 @@ export function openRSModsDownloadPage() {
 }
 
 (window as any).openTwitchAboutPage = openTwitchAboutPage;
-(window as any).openGithubIssue58 = openGithubIssue58;
+(window as any).openGithubIssue63 = openGithubIssue63;
 (window as any).openRSModsDownloadPage = openRSModsDownloadPage;
 
 async function main() {
