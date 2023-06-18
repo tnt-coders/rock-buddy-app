@@ -611,7 +611,7 @@ export class Sniffer {
             // Rock Buddy was started during a song (score cannot be verified)
             if (approxEqual(this._progressTimer, 0)) {
                 logMessage("ROCK BUDDY STARTED MID SONG");
-                this.setVerificationState(VerificationState.Unverified, "Rock Buddy was started mid-song.");
+                this.setVerificationState(VerificationState.Unverified, "Leaderboard sniffer was entered mid-song.");
                 logMessage(debugInfo);
 
                 this._inSong = true;
@@ -638,7 +638,10 @@ export class Sniffer {
                 this._pauseTime = songTime;
 
                 logMessage("SONG PAUSED");
-                this.setVerificationState(VerificationState.MaybeVerified, "If you pause more than once in a 10 minute period, your score will not be verified.");
+                const warningMessage = "If you pause more than once in a 10 minute period, your score will not be verified.\n"
+                                     + "\n"
+                                     + "Note: If you pause a song right as a note is being played it can cause the internal note counter within Rocksmith to malfunction resulting in an unverified score. This is a known issue and I am trying to find a workaround.";
+                this.setVerificationState(VerificationState.MaybeVerified, warningMessage);
                 logMessage(debugInfo);
 
                 // Song was previously paused and it is not the same pause
@@ -721,7 +724,10 @@ export class Sniffer {
 
             // If there are more notes than expected report an error (although this shouldn't happen)
             else if (previousTotalNotes > previousArrangementNotes) {
-                this.setVerificationState(VerificationState.Unverified, "The total number of notes seen was greater than the total note count of the arrangement. Something appears to have gone wrong internally with RockSniffer.");
+                const errorMessage = "The total number of notes seen was greater than the total note count of the arrangement.\n"
+                                   + "\n"
+                                   + "Note: If you pause a song right as a note is being played it can cause the internal note counter within Rocksmith to malfunction resulting in an unverified score. This is a known issue and I am trying to find a workaround.";
+                this.setVerificationState(VerificationState.Unverified, errorMessage);
                 logMessage(debugInfo);
                 logMessage("TOTAL NOTES: " + previousTotalNotes);
                 logMessage("ARRANGEMENT NOTES: " + arrangementNotes);

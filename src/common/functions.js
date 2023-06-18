@@ -28,10 +28,15 @@ async function post(url, data) {
             console.error(response.status + ': ' + response.statusText);
         }
 
-        const responseJson = await response.json();
-        if (responseJson.hasOwnProperty('error') && responseJson['error'] === 'Invalid API key.') {
-            api.error("Your API key has expired.\n\nPlease log back in to verify your identity.");
-            window.location.href = './logout.html';
+        let responseJson = await response.json();
+        if (responseJson.hasOwnProperty('error')) {
+            if (responseJson['error'] === 'Invalid API key.') {
+                response['error'] = "Your API key has expired.\n\nPlease log back in to verify your identity.";
+                window.location.href = './logout.html';
+            }
+            else if (responseJson['error'].startsWith("Version mismatch.")) {
+                window.api.loadURL('https://github.com/tnt-coders/rock-buddy-app/releases');
+            }
         }
 
         return responseJson;

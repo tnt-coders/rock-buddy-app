@@ -261,6 +261,10 @@ function createWindow() {
         });
     });
 
+    ipcMain.on('load-url', (event, url) => {
+        win.loadURL(url);
+    });
+
     ipcMain.on('open-external-link', (event, url) => {
         shell.openExternal(url);
     });

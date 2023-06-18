@@ -12,6 +12,7 @@ export const API = {
     error: (message: string) => ipcRenderer.send('error', message),
     getWindowSize: async () => ipcRenderer.invoke('get-window-size'),
     setWindowSize: async (width: number, height: number) => ipcRenderer.send('set-window-size', width, height),
+    loadURL: async(url: string) => ipcRenderer.send('load-url', url),
     openExternalLink: (url: string) => ipcRenderer.send('open-external-link', url),
     getVersion: async () => ipcRenderer.invoke('get-version'),
     getHost: async () => ipcRenderer.invoke('get-host'),
