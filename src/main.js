@@ -44,7 +44,6 @@ function checkForUpdates(win) {
             //TODO ignore pre-release versions
             
             if (semver.gt(version, currentVersion)) {
-                console.log("GOT THERE");
 
                 // Create popup
                 const options = {
@@ -58,7 +57,6 @@ function checkForUpdates(win) {
                 dialog.showMessageBox(options).then(response => {
                     if (response.response === 0) {
                         const url = `https://github.com/tnt-coders/rock-buddy-app/releases/tag/${version}`;
-                        console.log("LOADING");
                         win.loadURL(url);
                     }
                 });
