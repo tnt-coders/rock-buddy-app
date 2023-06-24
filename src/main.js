@@ -1,6 +1,7 @@
 const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron');
 const isDev = require('electron-is-dev');
 const Store = require('electron-store');
+const { autoUpdater } = require('electron-updater');
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
@@ -18,6 +19,34 @@ const store = new Store();
 
 // Define Rocksmith app ID
 const rocksmithAppId = 221680;
+
+function checkForUpdates() {
+    console.log("Checking for updates...");
+
+    // Setup auto-updater
+    autoUpdater.setFeedURL({
+        provider: 'generic',
+        url: 'https://github.com/tnt-coders/rock-buddy-app/releases',
+    });
+
+    autoUpdater.checkForUpdates();
+
+    autoUpdater.on('update-available', () => {
+        console.log("UPDATE AVAILABLE");
+    });
+
+    autoUpdater.on('update-not-available', () => {
+        console.log('UPDATE NOT AVAILABLE');
+    })
+
+    autoUpdater.on('error', (error) => {
+        console.log(error);
+    });
+
+    autoUpdater.on('update-downloaded', () => {
+        console.log("UPDATE DOWNLOADED");
+    });
+}
 
 // Initialize some app data
 function init() {
@@ -111,6 +140,9 @@ function getRocksnifferPath() {
 
 // Creates the main window
 function createWindow() {
+
+    checkForUpdates();
+
     init();
 
     // Get screen width/height
