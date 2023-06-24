@@ -32,16 +32,19 @@ async function getAllReleases(owner, repo) {
     }
 }
 
-function checkForUpdates() {
+function checkForUpdates(win) {
     console.log("Checking for updates...");
 
     getAllReleases('tnt-coders', 'rock-buddy-app').then((releases) => {
         const currentVersion = require('../package.json').version;
 
-        releases.forEach((version) => {
+        for (let i = 0; i < releases.length; i++) {
+            let version = releases[i];
+
             //TODO ignore pre-release versions
             
             if (semver.gt(version, currentVersion)) {
+                console.log("GOT THERE");
 
                 // Create popup
                 const options = {
@@ -49,11 +52,20 @@ function checkForUpdates() {
                     buttons: ['Proceed to download page', 'Close'],
                     defaultId: 0,
                     title: 'Update Available',
-                    message: 'A new version of Rock Buddy is available! Proceed to the download page for more information.'
+                    message: 'A new version of Rock Buddy is available!'
                 };
 
+                dialog.showMessageBox(options).then(response => {
+                    if (response.response === 0) {
+                        const url = `https://github.com/tnt-coders/rock-buddy-app/releases/tag/${version}`;
+                        console.log("LOADING");
+                        win.loadURL(url);
+                    }
+                });
+
+                break;
             }
-        });
+        };
     });
 }
 
@@ -149,9 +161,6 @@ function getRocksnifferPath() {
 
 // Creates the main window
 function createWindow() {
-
-    checkForUpdates();
-
     init();
 
     // Get screen width/height
@@ -483,6 +492,8 @@ function createWindow() {
     }
 
     win.loadFile('src/index.html');
+
+    checkForUpdates(win);
 }
 
 app.on('ready', createWindow);
