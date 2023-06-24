@@ -1,12 +1,13 @@
 const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron');
 const isDev = require('electron-is-dev');
 const Store = require('electron-store');
-const { autoUpdater } = require('electron-updater');
+const aesjs = require('aes-js');
+const axios = require('axios');
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const glob = require('glob');
-const aesjs = require('aes-js');
+const semver = require('semver');
 const { execFile } = require('child_process');
 const { unzipSync } = require('node:zlib');
 
@@ -20,32 +21,39 @@ const store = new Store();
 // Define Rocksmith app ID
 const rocksmithAppId = 221680;
 
+async function getAllReleases(owner, repo) {
+    try {
+        const response = await axios.get(`https://api.github.com/repos/${owner}/${repo}/releases`);
+        const releases = response.data.map((release) => release.tag_name);
+        return releases;
+    } catch (error) {
+        console.error('Error fetching releases:', error);
+        return [];
+    }
+}
+
 function checkForUpdates() {
     console.log("Checking for updates...");
 
-    // Setup auto-updater
-    autoUpdater.setFeedURL({
-        provider: 'github',
-        owner: 'tnt-coders',
-        repo: 'rock-buddy-app'
-    });
+    getAllReleases('tnt-coders', 'rock-buddy-app').then((releases) => {
+        const currentVersion = require('../package.json').version;
 
-    autoUpdater.checkForUpdates();
+        releases.forEach((version) => {
+            //TODO ignore pre-release versions
+            
+            if (semver.gt(version, currentVersion)) {
 
-    autoUpdater.on('update-available', () => {
-        console.log("UPDATE AVAILABLE");
-    });
+                // Create popup
+                const options = {
+                    type: 'question',
+                    buttons: ['Proceed to download page', 'Close'],
+                    defaultId: 0,
+                    title: 'Update Available',
+                    message: 'A new version of Rock Buddy is available! Proceed to the download page for more information.'
+                };
 
-    autoUpdater.on('update-not-available', () => {
-        console.log('UPDATE NOT AVAILABLE');
-    })
-
-    autoUpdater.on('error', (error) => {
-        console.log(error);
-    });
-
-    autoUpdater.on('update-downloaded', () => {
-        console.log("UPDATE DOWNLOADED");
+            }
+        });
     });
 }
 
@@ -407,7 +415,6 @@ function createWindow() {
 
     // Semver check
     ipcMain.handle('semver-gte', (event, version1, version2) => {
-        const semver = require('semver');
         return semver.gte(version1, version2);
     });
 
