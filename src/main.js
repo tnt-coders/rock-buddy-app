@@ -35,13 +35,19 @@ async function getAllReleases(owner, repo) {
 function checkForUpdates(win) {
     console.log("Checking for updates...");
 
-    getAllReleases('tnt-coders', 'rock-buddy-app').then((releases) => {
+    const owner = 'tnt-coders';
+    const repo = 'rock-buddy-app';
+
+    getAllReleases(owner, repo).then((releases) => {
         const currentVersion = require('../package.json').version;
 
         for (let i = 0; i < releases.length; i++) {
             let version = releases[i];
 
-            //TODO ignore pre-release versions
+            // Ignore pre-release versions
+            if (semver.prerelease(version)) {
+                continue;
+            }
             
             if (semver.gt(version, currentVersion)) {
 
@@ -56,7 +62,7 @@ function checkForUpdates(win) {
 
                 dialog.showMessageBox(options).then(response => {
                     if (response.response === 0) {
-                        const url = `https://github.com/tnt-coders/rock-buddy-app/releases/tag/${version}`;
+                        const url = `https://github.com/${owner}/${repo}/releases/tag/${version}`;
                         win.loadURL(url);
                     }
                 });

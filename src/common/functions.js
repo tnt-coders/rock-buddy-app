@@ -34,9 +34,6 @@ async function post(url, data) {
                 response['error'] = "Your API key has expired.\n\nPlease log back in to verify your identity.";
                 window.location.href = './logout.html';
             }
-            else if (responseJson['error'].startsWith("Version mismatch.")) {
-                window.api.loadURL('https://github.com/tnt-coders/rock-buddy-app/releases');
-            }
         }
 
         return responseJson;
