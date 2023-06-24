@@ -25,8 +25,9 @@ function checkForUpdates() {
 
     // Setup auto-updater
     autoUpdater.setFeedURL({
-        provider: 'generic',
-        url: 'https://github.com/tnt-coders/rock-buddy-app/releases',
+        provider: 'github',
+        owner: 'tnt-coders',
+        repo: 'rock-buddy-app'
     });
 
     autoUpdater.checkForUpdates();
