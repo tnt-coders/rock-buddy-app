@@ -487,9 +487,17 @@ export class Sniffer {
         );   
 
         // Get the notes in the arrangement
+        let startTime = null;
         let arrangementNotes =  null;
         let previousArrangementNotes = null;
         if (arrangementDetails !== undefined && previousArrangementDetails !== undefined) {
+            
+            // Get data from the first phrase
+            const firstPhrase = arrangementDetails['phraseIterations'].find(
+                (phrase: any) => phrase['phraseId'] === 0
+            );
+            startTime = firstPhrase['startTime'];
+
             arrangementNotes = arrangementDetails['totalNotes'];
             previousArrangementNotes = previousArrangementDetails['totalNotes'];
         }
@@ -574,7 +582,7 @@ export class Sniffer {
 
             // Check if the song restarted (only check after resuming from pause)
             if (!approxEqual(songTime, previousSongTime) && this._isPaused) {
-                if (songTime < previousSongTime && songTime < 10 && totalNotes === 0) {
+                if (songTime < previousSongTime && songTime < startTime && totalNotes === 0) {
                     logMessage("SONG RESTARTED");
                     this.setVerificationState(VerificationState.Verified, "No violations detected.");
                     logMessage(debugInfo);
