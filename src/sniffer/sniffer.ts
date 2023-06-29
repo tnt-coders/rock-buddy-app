@@ -675,6 +675,9 @@ export class Sniffer {
                     // It takes 1 refresh to unpause so also subtract the refresh rate
                     this._progressTimer -= Sniffer.pauseThreshold + Sniffer.refreshRate;
 
+                    // Save the last pause time
+                    this._lastPauseTime = this._pauseTime;
+
                     // Ensure that the progress timer and previous song time are within 0.3 second of each other
                     // This prevents users from rewinding or fast forwarding the song
                     if (approxEqual(this._progressTimer / 1000, previousSongTime, 0.3)) {
@@ -692,6 +695,13 @@ export class Sniffer {
                         logMessage(debugInfo);
                         return;
                     }
+                }
+
+                // Check if 10 minutes have passed since last pause
+                if (this._verified === true && songTime - this._lastPauseTime > 600) {
+                    logMessage("10 MINUTES PASSED SINCE LAST PAUSE");
+                    this.setVerificationState(VerificationState.Verified, "No violations detected.");
+                    logMessage(debugInfo);
                 }
 
                 // If the progress timer gets 0.3 seconds out of sync with the song change to "unverified"
@@ -712,7 +722,6 @@ export class Sniffer {
                 this._maybePaused = false;
                 this._isPaused = false;
                 this._pauseTimer = 0;
-                this._lastPauseTime = this._pauseTime;
             }
         }
 
