@@ -493,9 +493,7 @@ export class Sniffer {
         if (arrangementDetails !== undefined && previousArrangementDetails !== undefined) {
             
             // Get data from the first phrase
-            const firstPhrase = arrangementDetails['phraseIterations'].find(
-                (phrase: any) => phrase['phraseId'] === 0
-            );
+            const firstPhrase = arrangementDetails['phraseIterations'][0];
             startTime = firstPhrase['startTime'];
 
             arrangementNotes = arrangementDetails['totalNotes'];
