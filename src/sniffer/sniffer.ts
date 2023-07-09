@@ -520,6 +520,17 @@ export class Sniffer {
             previousTotalNotesHit = this._previousRocksnifferData['memoryReadout']['noteData']['totalNotesHit'];
         }
 
+        // Make sure note data exists before pulling it
+        let totalNotes = 0;
+        if (rocksnifferData['memoryReadout']['noteData'] !== null) {
+            totalNotes = rocksnifferData['memoryReadout']['noteData']['TotalNotes'];
+        }
+
+        let previousTotalNotes = 0;
+        if (this._previousRocksnifferData['memoryReadout']['noteData'] !== null) {
+            previousTotalNotes = this._previousRocksnifferData['memoryReadout']['noteData']['TotalNotes'];
+        }
+
         const debugInfo = {
             songName: rocksnifferData['songDetails']['songName'],
             artistName: rocksnifferData['songDetails']['artistName'],
@@ -538,17 +549,8 @@ export class Sniffer {
             pauseTime: this._pauseTime,
             lastPauseTime: this._lastPauseTime,
             ending: this._ending,
-        }
-
-        // Make sure note data exists before pulling it
-        let totalNotes = 0;
-        if (rocksnifferData['memoryReadout']['noteData'] !== null) {
-            totalNotes = rocksnifferData['memoryReadout']['noteData']['TotalNotes'];
-        }
-
-        let previousTotalNotes = 0;
-        if (this._previousRocksnifferData['memoryReadout']['noteData'] !== null) {
-            previousTotalNotes = this._previousRocksnifferData['memoryReadout']['noteData']['TotalNotes'];
+            totalNotes: totalNotes,
+            previousTotalNotes: previousTotalNotes
         }
 
         // Song is starting
@@ -569,12 +571,12 @@ export class Sniffer {
 
         // Currently in a song
         else if (!approxEqual(songTime, 0)) {
+            logMessage(debugInfo);
 
             // Verify the u ser has the latest RSMods
             const modsActive = rocksnifferData['memoryReadout']['modsActive'];
             if (!modsActive) {
                 this.setVerificationState(VerificationState.Unverified, "Verified scores disabled: Requires RSMods v1.2.7.3 or later.");
-                logMessage(debugInfo);
                 return;
             }
 
@@ -583,7 +585,6 @@ export class Sniffer {
                 if (songTime < previousSongTime && songTime < startTime && totalNotes === 0) {
                     logMessage("SONG RESTARTED");
                     this.setVerificationState(VerificationState.Verified, "No violations detected.");
-                    logMessage(debugInfo);
 
                     this._inSong = true;
                     this._progressTimer = songTime * 1000;
@@ -618,7 +619,6 @@ export class Sniffer {
             if (approxEqual(this._progressTimer, 0)) {
                 logMessage("ROCK BUDDY STARTED MID SONG");
                 this.setVerificationState(VerificationState.Unverified, "Leaderboard sniffer was entered mid-song.");
-                logMessage(debugInfo);
 
                 this._inSong = true;
                 return;
@@ -648,7 +648,6 @@ export class Sniffer {
                                      + "\n"
                                      + "Note: If you pause a song right as a note is being played it can cause the internal note counter within Rocksmith to malfunction resulting in an unverified score. This is a known issue and I am trying to find a workaround.";
                 this.setVerificationState(VerificationState.MaybeVerified, warningMessage);
-                logMessage(debugInfo);
 
                 // Song was previously paused and it is not the same pause
                 if (!approxEqual(this._lastPauseTime, 0) && !approxEqual(this._pauseTime, this._lastPauseTime)) {
@@ -657,7 +656,6 @@ export class Sniffer {
                     if (this._pauseTime - this._lastPauseTime < 600) {
                         logMessage("SONG REPEATEDLY PAUSED");
                         this.setVerificationState(VerificationState.Unverified, "The song was paused more than once within a 10 minute period.");
-                        logMessage(debugInfo);
 
                         return;
                     }
@@ -683,14 +681,12 @@ export class Sniffer {
                     }
                     else {
                         this.setVerificationState(VerificationState.Unverified, "Song timer did not match after resuming from pause.");
-                        logMessage(debugInfo);
                         return;
                     }
 
                     // If the user enters riff repeater, total notes will be reset to 0
                     if (totalNotes < previousTotalNotes) {
                         this.setVerificationState(VerificationState.Unverified, "The user entered riff repeater.");
-                        logMessage(debugInfo);
                         return;
                     }
                 }
@@ -699,21 +695,18 @@ export class Sniffer {
                 if (this._verified === true && songTime - this._lastPauseTime > 600) {
                     logMessage("10 MINUTES PASSED SINCE LAST PAUSE");
                     this.setVerificationState(VerificationState.Verified, "No violations detected.");
-                    logMessage(debugInfo);
                 }
 
                 // If the progress timer gets 0.3 seconds out of sync with the song change to "unverified"
                 // 0.3 seconds allows it to be off for two refreshes
                 if (!approxEqual(this._progressTimer / 1000, songTime, 0.3)) {
                     this.setVerificationState(VerificationState.Unverified, "Song speed change detected.");
-                    logMessage(debugInfo);
                     return;
                 }
 
                 // Ensure the note count has not been tampered with
                 if (totalNotesHit < previousTotalNotesHit) {
                     this.setVerificationState(VerificationState.Unverified, "Note data has been tampered with. Offenses will be recorded and repeated offenses may result in a ban.");
-                    logMessage(debugInfo);
                     return;
                 }
 
@@ -731,7 +724,6 @@ export class Sniffer {
             // If there are less notes than expected assume the user had dynamic difficulty on and played on an easier difficulty
             if (previousTotalNotes < previousArrangementNotes) {
                 this.setVerificationState(VerificationState.Unverified, "The total number of notes seen was less than the total note count of the arrangement. (Make sure dynamic difficulty is disabled.)");
-                logMessage(debugInfo);
                 logMessage("TOTAL NOTES: " + previousTotalNotes);
                 logMessage("ARRANGEMENT NOTES: " + arrangementNotes);
                 logMessage("");
@@ -743,7 +735,6 @@ export class Sniffer {
                                    + "\n"
                                    + "Note: If you pause a song right as a note is being played it can cause the internal note counter within Rocksmith to malfunction resulting in an unverified score. This is a known issue and I am trying to find a workaround.";
                 this.setVerificationState(VerificationState.Unverified, errorMessage);
-                logMessage(debugInfo);
                 logMessage("TOTAL NOTES: " + previousTotalNotes);
                 logMessage("ARRANGEMENT NOTES: " + arrangementNotes);
                 logMessage("");
