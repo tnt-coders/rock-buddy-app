@@ -37,9 +37,11 @@ export class Sniffer {
     private _verified: boolean = true;
     private _inSong: boolean = false;
     private _progressTimer: number = 0;
+    private _progressTimerSyncOffset: number = 0; // Sometimes more than one refresh occurs between updates on slower PCs
+    private _pauseTimer: number = 0;
+    private _pauseTimerSyncOffset: number = 0; // Sometimes more than one refresh occurs between updates on slower PCs
     private _maybePaused: boolean = false;
     private _isPaused: boolean = false;
-    private _pauseTimer: number = 0;
     private _pauseTime: number = 0;
     private _lastPauseTime: number = 0;
     private _ending: boolean = false;
@@ -221,23 +223,36 @@ export class Sniffer {
     private async refresh(): Promise<void> {
         this._timeSinceLastSnort += Sniffer.refreshRate;
 
-        // If we are in a song, update the progress timer
-        if (this._inSong) {
-            if (!this._isPaused && !this._ending) {
-                this._progressTimer += Sniffer.refreshRate;
-            }
-
-            if (this._maybePaused) {
-                this._pauseTimer += Sniffer.refreshRate;
-            }
-        }
-
         if (this._refreshActive === true) {
+
+            // If a refresh is currently active we need to keep track of how much time has passed to properly sync the progress and pause timers
+            if (this._inSong) {
+                if (!this._isPaused && !this._ending) {
+                    this._progressTimerSyncOffset += Sniffer.refreshRate;
+                }
+
+                if (this._maybePaused) {
+                    this._pauseTimerSyncOffset += Sniffer.refreshRate;
+                }
+            }
+
             return;
         }
         this._refreshActive = true;
 
         try {
+
+            // If we are in a song, update the progress timer
+            if (this._inSong) {
+                if (!this._isPaused && !this._ending) {
+                    this._progressTimer += Sniffer.refreshRate;
+                }
+
+                if (this._maybePaused) {
+                    this._pauseTimer += Sniffer.refreshRate;
+                }
+            }
+            
             const rocksnifferData = await this.sniff();
 
             this.updateSongInfo(rocksnifferData);
@@ -257,6 +272,13 @@ export class Sniffer {
             this._refreshActive = false;
             return;
         }
+
+        // Keep the progress timer in sync even if there was some latency
+        // No need to check if we are in a song or paused since these values will be 0 if we are not in a song
+        this._progressTimer += this._progressTimerSyncOffset;
+        this._progressTimerSyncOffset = 0;
+        this._pauseTimer += this._pauseTimerSyncOffset;
+        this._pauseTimerSyncOffset = 0;
 
         // Update the status
         const statusElement = document.getElementById('status') as HTMLElement;
@@ -443,7 +465,6 @@ export class Sniffer {
     }
 
     private async monitorProgress(rocksnifferData: any): Promise<void> {
-
         // Cannot proceed until we have a previous data set to work with
         if (this._previousRocksnifferData === null) {
             return;
@@ -529,6 +550,11 @@ export class Sniffer {
         let previousTotalNotes = 0;
         if (this._previousRocksnifferData['memoryReadout']['noteData'] !== null) {
             previousTotalNotes = this._previousRocksnifferData['memoryReadout']['noteData']['TotalNotes'];
+        }
+
+        // If the Rocksniffer gets hung up for more than a full second, mark the score as unverified
+        if (this._progressTimerSyncOffset > 1000 || this._pauseTimerSyncOffset > 1000) {
+            this.setVerificationState(VerificationState.Unverified, "Rocksniffer is not responding quickly enough to verify your score. Make sure you are not running any unnecessary programs to minimize system load.");
         }
 
         const debugInfo = {
