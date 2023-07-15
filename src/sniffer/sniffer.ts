@@ -1085,6 +1085,11 @@ export class Sniffer {
 
         const scores = await this.getScoresLAS(rocksnifferData);
 
+        // If scores are null we ran into an error that should already be displayed
+        if (scores === null) {
+            return;
+        }
+
         if (scores.length === 0) {
             const message = document.createElement('p');
             message.innerHTML = 'And this is where I would put my scores... <em>IF I HAD ONE!</em>';
@@ -1196,6 +1201,11 @@ export class Sniffer {
         const leaderboardDataElement = document.getElementById('leaderboard_data') as HTMLElement;
 
         const scores = await this.getScoresSA(rocksnifferData);
+
+        // If scores are null we ran into an error that should already be displayed
+        if (scores === null) {
+            return;
+        }
 
         if (scores.length === 0) {
             const message = document.createElement('p');
