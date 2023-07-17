@@ -78,7 +78,7 @@ export class Sniffer {
         const minutes = currentDate.getMinutes();
         const seconds = currentDate.getSeconds();
         const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-        window.api.writeFile("rock-buddy-log.txt", "Rock buddy started: " + formattedDate + "\n\n");
+        window.api.writeFile("rock-buddy-log.txt", "Sniffer started: " + formattedDate + "\n\n");
 
         setInterval(this.refresh.bind(this), Sniffer.refreshRate);
     }

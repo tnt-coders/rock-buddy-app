@@ -6,7 +6,16 @@ export function logMessage(message: any) {
         text = JSON.stringify(message);
     }
 
-    window.api.appendFile('rock-buddy-log.txt', text + "\n");
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth() + 1;
+    const day = currentDate.getDate();
+    const hours = currentDate.getHours();
+    const minutes = currentDate.getMinutes();
+    const seconds = currentDate.getSeconds();
+    const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+
+    window.api.appendFile('rock-buddy-log.txt', formattedDate + ': ' + text + "\n");
 }
 
 export function approxEqual(a: number, b: number, tolerance = 0.0001): boolean {
