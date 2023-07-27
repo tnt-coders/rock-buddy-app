@@ -26,7 +26,7 @@ async function post(url, data) {
         // If the response is not OK log the response text
         if (!response.ok) {
             console.error(response.status + ': ' + response.statusText);
-            console.error(response.text());
+            console.error(await response.text());
 
             // Cloudflare returns a status of 530 when communication with the server is lost
             if (response.status === 530) {
@@ -47,15 +47,17 @@ async function post(url, data) {
 
         return responseJson;
     } catch (error) {
-        return JSON.stringify({
+        return {
             error: error.toString()
-        });
+        };
     }
 }
 
 async function authenticate(authData) {
     const host = await api.getHost();
     const response = await post(host + '/api/auth/authenticate.php', authData);
+
+    console.log(response);
 
     if ('error' in response) {
         api.error(response['error']);

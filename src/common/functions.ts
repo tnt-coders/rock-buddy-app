@@ -264,6 +264,15 @@ export async function post(url: string, data: any) {
     // If the response is not OK log the response text
     if (!response.ok) {
         console.error(response.status + ': ' + response.statusText);
+        console.error(await response.text());
+
+        // Cloudflare returns a status of 530 when communication with the server is lost
+        if (response.status === 530) {
+            window.api.error("Communication with server lost.");
+        }
+        else {
+            window.api.error("Bad response returned from server. See console for details.");
+        }
     }
 
     const responseJson = await response.json();
