@@ -63,7 +63,7 @@ function checkForUpdates(win) {
                 dialog.showMessageBox(options).then(response => {
                     if (response.response === 0) {
                         const url = `https://github.com/${owner}/${repo}/releases/tag/${version}`;
-                        win.loadURL(url);
+                        shell.openExternal(url);
                     }
                 });
 
