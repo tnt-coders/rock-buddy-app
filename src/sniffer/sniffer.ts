@@ -52,6 +52,9 @@ export class Sniffer {
     private _snortCountdown: number = 10; // seconds
     private _timeSinceLastSnort: number = 0;
 
+    // Debug fields
+    private _extraLogging: boolean = false;
+
     private constructor(rocksmith: Rocksmith, rocksniffer: Rocksniffer) {
         this._rocksmith = rocksmith;
         this._rocksniffer = rocksniffer;
@@ -72,11 +75,11 @@ export class Sniffer {
         // Create a fresh log file
         const currentDate = new Date();
         const year = currentDate.getFullYear();
-        const month = currentDate.getMonth() + 1;
-        const day = currentDate.getDate();
-        const hours = currentDate.getHours();
-        const minutes = currentDate.getMinutes();
-        const seconds = currentDate.getSeconds();
+        const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+        const day = currentDate.getDate().toString().padStart(2, '0');
+        const hours = currentDate.getHours().toString().padStart(2, '0');
+        const minutes = currentDate.getMinutes().toString().padStart(2, '0');
+        const seconds = currentDate.getSeconds().toString().padStart(2, '0');
         const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
         window.api.writeFile("rock-buddy-log.txt", "Sniffer started: " + formattedDate + "\n\n");
 
@@ -194,6 +197,8 @@ export class Sniffer {
         closeUnverifiedPopupElement.addEventListener('click', async() => {
             unverifiedPopupElement.style.display = 'none';
         });
+
+        this._extraLogging = JSON.parse(window.sessionStorage.getItem('extra_logging') as any);
     }
 
     private async sniff(): Promise<any> {
@@ -597,7 +602,9 @@ export class Sniffer {
 
         // Currently in a song
         else if (!approxEqual(songTime, 0)) {
-            logMessage(debugInfo);
+            if (this._extraLogging) {
+                logMessage(debugInfo);
+            }
 
             // Verify the u ser has the latest RSMods
             const modsActive = rocksnifferData['memoryReadout']['modsActive'];
@@ -643,7 +650,7 @@ export class Sniffer {
 
             // Rock Buddy was started during a song (score cannot be verified)
             if (approxEqual(this._progressTimer, 0)) {
-                logMessage("ROCK BUDDY STARTED MID SONG");
+                logMessage("LEADERBOARD SNIFFER WAS ENTERED MID SONG");
                 this.setVerificationState(VerificationState.Unverified, "Leaderboard sniffer was entered mid-song.");
 
                 this._inSong = true;

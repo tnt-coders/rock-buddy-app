@@ -6,6 +6,7 @@ const userId = JSON.parse(sessionStorage.getItem('auth_data'))['user_id'];
 let addonsEnabled = false;
 let addonsHost = 'localhost';
 let addonsPort = 9001;
+let extraLogging = false;
 
 api.windowResized((event, width, height) => {
     const windowWidthEntry = document.getElementById('window_width');
@@ -219,6 +220,28 @@ async function initAddonConfig() {
     });
 }
 
+async function initDebugConfig() {
+    const extraLoggingCheckbox = document.querySelector('#extra_logging');
+
+    let savedExtraLogging = await api.storeGet('user_data.' + userId + '.extra_logging');
+    if (savedExtraLogging === null) {
+        api.storeSet('user_data.' + userId + '.extra_logging', extraLogging);
+    }
+    else {
+        extraLogging = savedExtraLogging;
+    }
+    extraLoggingCheckbox.checked = extraLogging;
+
+    extraLoggingCheckbox.addEventListener('change', async () => {
+        api.storeSet('user_data.' + userId + '.extra_logging', extraLoggingCheckbox.checked);
+        sessionStorage.setItem('extra_logging', extraLoggingCheckbox.checked);
+    });
+
+    if (extraLogging !== null) {
+        sessionStorage.setItem('extra_logging', extraLogging);
+    }
+}
+
 async function main() {
     const version = await getVersion();
     document.title += ' v' + version;
@@ -244,6 +267,8 @@ async function main() {
     await getRocksmithProfiles();
 
     await initAddonConfig();
+
+    await initDebugConfig();
 }
 
 main();
