@@ -597,7 +597,6 @@ export class Sniffer {
 
         // Currently in a song
         else if (!approxEqual(songTime, 0)) {
-            logMessage(debugInfo);
 
             // Verify the u ser has the latest RSMods
             const modsActive = rocksnifferData['memoryReadout']['modsActive'];
