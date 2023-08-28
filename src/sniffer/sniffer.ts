@@ -1107,9 +1107,11 @@ export class Sniffer {
 
         // Create the table element
         const table = document.createElement('table');
+        table.classList.add('leaderboard-data');
         table.style.width = '100%';
 
         // Create the header row
+        const headerSection = document.createElement('thead');
         const headerRow = document.createElement('tr');
         const headers = ['Rank', 'Username', 'Last Played', 'Play Count', 'Streak', 'Mastery'];
         headers.forEach((header) => {
@@ -1119,7 +1121,10 @@ export class Sniffer {
             headerRow.appendChild(headerCell);
         });
 
-        table.appendChild(headerRow);
+        headerSection.appendChild(headerRow);
+        table.appendChild(headerSection);
+
+        const bodySection = document.createElement('tbody');
 
         // Create data rows
         const columns = ['rank', 'username', 'last_played', 'play_count', 'streak', 'mastery'];
@@ -1191,12 +1196,14 @@ export class Sniffer {
             }
 
             // Add the row to the table
-            table.appendChild(dataRow);
+            bodySection.appendChild(dataRow);
 
             lastVerified = row['verified'];
             lastMastery = row['mastery'];
             lastStreak = row['streak'];
         })
+
+        table.appendChild(bodySection);
 
         leaderboardDataElement.innerHTML = '';
         leaderboardDataElement.appendChild(table);
@@ -1224,9 +1231,11 @@ export class Sniffer {
 
         // Create the table element
         const table = document.createElement('table');
+        table.classList.add('leaderboard-data');
         table.style.width = '100%';
 
         // Create the header row
+        const headerSection = document.createElement('thead');
         const headerRow = document.createElement('tr');
         const headers = ['Rank', 'Username', 'Last Played', 'Play Count', 'Score'];
         headers.forEach((header) => {
@@ -1236,7 +1245,10 @@ export class Sniffer {
             headerRow.appendChild(headerCell);
         });
 
-        table.appendChild(headerRow);
+        headerSection.appendChild(headerRow);
+        table.appendChild(headerSection);
+
+        const bodySection = document.createElement('tbody');
 
         // Create data rows
         const columns = ['rank', 'username', 'last_played', 'play_count', 'score'];
@@ -1307,11 +1319,13 @@ export class Sniffer {
             }
 
             // Add the row to the table
-            table.appendChild(dataRow);
+            bodySection.appendChild(dataRow);
 
             lastScore = row['score'];
             lastBadges = row['badges'];
         })
+
+        table.appendChild(bodySection);
 
         leaderboardDataElement.innerHTML = '';
         leaderboardDataElement.appendChild(table);
