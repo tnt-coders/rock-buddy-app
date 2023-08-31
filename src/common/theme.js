@@ -33,6 +33,10 @@ async function setTheme() {
     const theme = themeSelect.value;
     const themeLink = document.getElementById("theme");
 
+    if (theme !== "dark") {
+        api.warning('Themes other than "Dark" are not well tested.');
+    }
+
     if (theme === "streamer") {
         // ...
     } else {

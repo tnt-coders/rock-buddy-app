@@ -8,13 +8,14 @@
 </head>
 
 <body>
-  <div class="navtop">
-    <a href="../sniffer/sniffer.html">Sniffer</a> |
-    <a href="../search/search.html">Search</a> |
+  <div style="display: flex; flex-direction: row; align-items: center; gap: 5px; width: 100%; min-width: 800px;" class="navtop">
+    <a href="../sniffer/sniffer.html">Sniffer</a>|
+    <a href="../stats/stats.html">Stats</a>|
+    <a href="../rank/rank.html">Rank</a>
+    <a href="../config/config.html" style="margin-left: auto;">Config</a>|
     <a href="../account/account.html">Account</a>
-    <a href="../config/config.html" style="float: right;">Config</a>
   </div>
-  <h1>Leaderboard Search</h1>
+  <h1>Stats</h1>
   <p>This page is a work in progress...</p>
   <div id="boulder_bro_popup" class="modal">
     <span id="close_boulder_bro_popup" class="close">&times;</span>
@@ -33,10 +34,9 @@
     </div>
     </p>
   </footer>
+  <script src="../../dist/stats/bundle.js"></script>
   <script src="../common/boulder_bro.js"></script>
-  <script src="../common/functions.js"></script>
   <script src="../common/theme.js"></script>
-  <script src="./search.js"></script>
 
   <select style="display: none;" id="theme-select" onchange="setTheme()">
     <option value="light">Light theme</option>
