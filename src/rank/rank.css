@@ -1,0 +1,22 @@
+.rank, .king {
+    background-color: #2222225b;
+    border-radius: 12px;
+    padding: 1%;
+}
+
+.rank {
+    width: 240px;
+    max-width: 240px;
+}
+
+.gold {
+    color: rgb(180, 180, 50);
+}
+
+.silver {
+    color: rgb(150, 150, 150);
+}
+
+.bronze {
+    color: rgb(150, 100, 0)
+}

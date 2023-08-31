@@ -2,29 +2,195 @@
 <html lang="en">
 
 <head>
+  <link rel="stylesheet" href="./rank.css">
   <link rel="stylesheet" href="../common/footer.css">
   <link rel="stylesheet" href="../common/dark-theme.css" id="theme">
   <title>Rock Buddy</title>
 </head>
 
 <body>
-  <div style="display: flex; flex-direction: row; align-items: center; gap: 5px; width: 100%; min-width: 800px;" class="navtop">
+  <div style="display: flex; flex-direction: row; align-items: center; gap: 5px; width: 100%; min-width: 800px;"
+    class="navtop">
     <a href="../sniffer/sniffer.html">Sniffer</a>|
     <a href="../stats/stats.html">Stats</a>|
     <a href="../rank/rank.html">Rank</a>
     <a href="../config/config.html" style="margin-left: auto;">Config</a>|
     <a href="../account/account.html">Account</a>
   </div>
-  <div>
+  <div style="display: flex; flex-direction: row; align-items: baseline; gap: 20px;">
   <h1>Rank</h1>
+  <p style="margin-left: auto;"><i>*calculated daily</i></p>
   </div>
-  <h2>King of Rocksmith</h2>
-  <div style="display: flex; flex-direction: row; align-items: center; gap: 10px; width: 100%; min-width: 800px;">
-    <img src="./../../images/rock-king.png" style="align-self: center;">
-    <div style="display: flex; flex-direction: column; line-height: 0">
-      <h3 id="king" style="margin-bottom: 5px"></h3>
-      <div style="display: flex; flex-direction: row; align-items: center; gap: 10px; width: 100%; min-width: 800px;">
-        <p>Scores Vanquished: </p><div id="king_points"></div>
+  <div>
+    <h2>King of Rocksmith</h2>
+    <div style="display: flex; flex-direction: row; gap: 10px;">
+      <div class="king" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+        <img src="./../../images/rock-king.png" style="align-self: center;">
+        <div style="display: flex; flex-direction: column; line-height: 0">
+          <h3 id="king" style="margin-bottom: 5px"></h3>
+          <div style="display: flex; flex-direction: row; align-items: center; gap: 10px">
+            <p id="king_verb"></p>
+            <div id="king_points"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: row; align-items: center; gap: 10px">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <h3 style="margin-bottom: 5px">Overall</h3>
+        <div style="display: flex; flex-direction: row; gap: 5px;">
+          <div class="rank" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+            <h2 class="gold" style="align-self: center; margin-left: 5px">#1</h2>
+            <div style="display: flex; flex-direction: column; line-height: 0">
+              <h3 id="overall_1" style="margin-bottom: 5px"></h3>
+              <div style="display: flex; flex-direction: row; align-items: center; white-space: nowrap; margin-right: 5px; gap: 5px">
+                <p id="overall_1_verb"></p>
+                <div id="overall_1_points"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: row; gap: 5px;">
+          <div class="rank" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+            <h2 class="silver" style="align-self: center; margin-left: 5px">#2</h2>
+            <div style="display: flex; flex-direction: column; line-height: 0">
+              <h3 id="overall_2" style="margin-bottom: 5px"></h3>
+              <div style="display: flex; flex-direction: row; align-items: center; white-space: nowrap; margin-right: 5px; gap: 5px">
+                <p id="overall_2_verb"></p>
+                <div id="overall_2_points"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: row; gap: 5px;">
+          <div class="rank" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+            <h2 class="bronze" style="align-self: center; margin-left: 5px">#3</h2>
+            <div style="display: flex; flex-direction: column; line-height: 0">
+              <h3 id="overall_3" style="margin-bottom: 5px"></h3>
+              <div style="display: flex; flex-direction: row; align-items: center; white-space: nowrap; margin-right: 5px; gap: 5px">
+                <p id="overall_3_verb"></p>
+                <div id="overall_3_points"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <h3 style="margin-bottom: 5px">Lead</h3>
+        <div style="display: flex; flex-direction: row; gap: 5px;">
+          <div class="rank" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+            <h2 class="gold" style="align-self: center; margin-left: 5px">#1</h2>
+            <div style="display: flex; flex-direction: column; line-height: 0">
+              <h3 id="lead_1" style="margin-bottom: 5px"></h3>
+              <div style="display: flex; flex-direction: row; align-items: center; white-space: nowrap; margin-right: 5px; gap: 5px">
+                <p id="lead_1_verb"></p>
+                <div id="lead_1_points"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: row; gap: 5px;">
+          <div class="rank" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+            <h2 class="silver" style="align-self: center; margin-left: 5px">#2</h2>
+            <div style="display: flex; flex-direction: column; line-height: 0">
+              <h3 id="lead_2" style="margin-bottom: 5px"></h3>
+              <div style="display: flex; flex-direction: row; align-items: center; white-space: nowrap; margin-right: 5px; gap: 5px">
+                <p id="lead_2_verb"></p>
+                <div id="lead_2_points"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: row; gap: 5px;">
+          <div class="rank" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+            <h2 class="bronze" style="align-self: center; margin-left: 5px">#3</h2>
+            <div style="display: flex; flex-direction: column; line-height: 0">
+              <h3 id="lead_3" style="margin-bottom: 5px"></h3>
+              <div style="display: flex; flex-direction: row; align-items: center; white-space: nowrap; margin-right: 5px; gap: 5px">
+                <p id="lead_3_verb"></p>
+                <div id="lead_3_points"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <h3 style="margin-bottom: 5px">Rhythm</h3>
+        <div style="display: flex; flex-direction: row; gap: 5px;">
+          <div class="rank" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+            <h2 class="gold" style="align-self: center; margin-left: 5px">#1</h2>
+            <div style="display: flex; flex-direction: column; line-height: 0">
+              <h3 id="rhythm_1" style="margin-bottom: 5px"></h3>
+              <div style="display: flex; flex-direction: row; align-items: center; white-space: nowrap; margin-right: 5px; gap: 5px">
+                <p id="rhythm_1_verb"></p>
+                <div id="rhythm_1_points"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: row; gap: 5px;">
+          <div class="rank" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+            <h2 class="silver" style="align-self: center; margin-left: 5px">#2</h2>
+            <div style="display: flex; flex-direction: column; line-height: 0">
+              <h3 id="rhythm_2" style="margin-bottom: 5px"></h3>
+              <div style="display: flex; flex-direction: row; align-items: center; white-space: nowrap; margin-right: 5px; gap: 5px">
+                <p id="rhythm_2_verb"></p>
+                <div id="rhythm_2_points"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: row; gap: 5px;">
+          <div class="rank" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+            <h2 class="bronze" style="align-self: center; margin-left: 5px">#3</h2>
+            <div style="display: flex; flex-direction: column; line-height: 0">
+              <h3 id="rhythm_3" style="margin-bottom: 5px"></h3>
+              <div style="display: flex; flex-direction: row; align-items: center; white-space: nowrap; margin-right: 5px; gap: 5px">
+                <p id="rhythm_3_verb"></p>
+                <div id="rhythm_3_points"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <h3 style="margin-bottom: 5px">Bass</h3>
+        <div style="display: flex; flex-direction: row; gap: 5px;">
+          <div class="rank" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+            <h2 class="gold" style="align-self: center; margin-left: 5px">#1</h2>
+            <div style="display: flex; flex-direction: column; line-height: 0">
+              <h3 id="bass_1" style="margin-bottom: 5px"></h3>
+              <div style="display: flex; flex-direction: row; align-items: center; white-space: nowrap; margin-right: 5px; gap: 5px">
+                <p id="bass_1_verb"></p>
+                <div id="bass_1_points"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: row; gap: 5px;">
+          <div class="rank" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+            <h2 class="silver" style="align-self: center; margin-left: 5px">#2</h2>
+            <div style="display: flex; flex-direction: column; line-height: 0">
+              <h3 id="bass_2" style="margin-bottom: 5px"></h3>
+              <div style="display: flex; flex-direction: row; align-items: center; white-space: nowrap; margin-right: 5px; gap: 5px">
+                <p id="bass_2_verb"></p>
+                <div id="bass_2_points"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: row; gap: 5px;">
+          <div class="rank" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+            <h2 class="bronze" style="align-self: center; margin-left: 5px">#3</h2>
+            <div style="display: flex; flex-direction: column; line-height: 0">
+              <h3 id="bass_3" style="margin-bottom: 5px"></h3>
+              <div style="display: flex; flex-direction: row; align-items: center; white-space: nowrap; margin-right: 5px; gap: 5px">
+                <p id="bass_3_verb"></p>
+                <div id="bass_3_points"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
