@@ -11,7 +11,16 @@ async function main() {
         auth_data: authData,
     });
 
-    console.log(response);
+    if ('error' in response) {
+        window.api.error(response['error']);
+        return;
+    }
+
+    const kingElement = document.getElementById('king') as HTMLElement;
+    kingElement.innerText = response[0]['username'];
+
+    const kingPointsElement = document.getElementById('king_points') as HTMLElement;
+    kingPointsElement.innerText = response[0]['points'];
 }
 
 main();
