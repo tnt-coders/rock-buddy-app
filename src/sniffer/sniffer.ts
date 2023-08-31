@@ -1158,8 +1158,30 @@ export class Sniffer {
             columns.forEach((column) => {
                 const dataCell = document.createElement('td');
                 dataCell.style.fontFamily = 'Roboto Mono, monospace';
+                dataCell.style.paddingLeft = '5px';
+                dataCell.style.paddingRight = '5px';
                 if (column === 'rank') {
                     dataCell.appendChild(document.createTextNode(rank.toString()));
+                }
+                else if (column === 'username') {
+                    const usernameElement = document.createElement('div');
+                    usernameElement.style.display = 'flex';
+                    usernameElement.style.flexDirection = 'row';
+
+                    if (row['king']) {
+                        const kingElement = document.createElement('img');
+                        kingElement.src = `./../../images/crown.png`;
+                        kingElement.width = 15;
+                        kingElement.height = 15;
+                        kingElement.style.alignSelf = 'center';
+                        kingElement.style.marginRight = '5px';
+                        usernameElement.appendChild(kingElement);
+                    }
+
+                    const usernameText = document.createTextNode(row[column]);
+                    usernameElement.appendChild(usernameText);
+
+                    dataCell.appendChild(usernameElement);
                 }
                 else if (column === 'mastery') {
                     const masteryElement = document.createElement('div');
@@ -1172,7 +1194,6 @@ export class Sniffer {
                         verifiedElement.width = 15;
                         verifiedElement.height = 15;
                         verifiedElement.style.alignSelf = 'center';
-                        verifiedElement.style.marginLeft = '5px';
                         masteryElement.appendChild(verifiedElement);
                     }
 
@@ -1281,8 +1302,30 @@ export class Sniffer {
             columns.forEach((column) => {
                 const dataCell = document.createElement('td');
                 dataCell.style.fontFamily = 'Roboto Mono, monospace';
+                dataCell.style.paddingLeft = '5px';
+                dataCell.style.paddingRight = '5px';
                 if (column === 'rank') {
                     dataCell.appendChild(document.createTextNode(rank.toString()));
+                }
+                else if (column === 'username') {
+                    const usernameElement = document.createElement('div');
+                    usernameElement.style.display = 'flex';
+                    usernameElement.style.flexDirection = 'row';
+
+                    if (row['king']) {
+                        const kingElement = document.createElement('img');
+                        kingElement.src = `./../../images/crown.png`;
+                        kingElement.width = 15;
+                        kingElement.height = 15;
+                        kingElement.style.alignSelf = 'center';
+                        kingElement.style.marginRight = '5px';
+                        usernameElement.appendChild(kingElement);
+                    }
+
+                    const usernameText = document.createTextNode(row[column]);
+                    usernameElement.appendChild(usernameText);
+
+                    dataCell.appendChild(usernameElement);
                 }
                 else if (column === 'score') {
 
@@ -1295,7 +1338,6 @@ export class Sniffer {
                     badgeElement.width = 15;
                     badgeElement.height = 15;
                     badgeElement.style.alignSelf = 'center';
-                    badgeElement.style.marginLeft = '5px';
 
                     const scoreSpan = document.createElement('span');
                     scoreSpan.appendChild(document.createTextNode(row[column].toLocaleString('en-US')));

@@ -185,12 +185,45 @@ async function get_rank() {
         return;
     }
 
-    console.log(response);
+    // User overall rank
+    const overallUserRankElement = document.getElementById('overall_user_rank') as HTMLElement;
+    const overallUserVerbElement = document.getElementById('overall_user_verb') as HTMLElement;
+    const overallUserPointsElement = document.getElementById('overall_user_points') as HTMLElement;
+    overallUserRankElement.innerText = response['overall']['rank'];
+    overallUserVerbElement.innerText = "Scores " + getRandomVerb() + ":";
+    overallUserPointsElement.innerText = response['overall']['points'];
+
+    // User lead rank
+    const leadUserRankElement = document.getElementById('lead_user_rank') as HTMLElement;
+    const leadUserVerbElement = document.getElementById('lead_user_verb') as HTMLElement;
+    const leadUserPointsElement = document.getElementById('lead_user_points') as HTMLElement;
+    leadUserRankElement.innerText = response['lead']['rank'];
+    leadUserVerbElement.innerText = "Scores " + getRandomVerb() + ":";
+    leadUserPointsElement.innerText = response['lead']['points'];
+
+    // User rhythm rank
+    const rhythmUserRankElement = document.getElementById('rhythm_user_rank') as HTMLElement;
+    const rhythmUserVerbElement = document.getElementById('rhythm_user_verb') as HTMLElement;
+    const rhythmUserPointsElement = document.getElementById('rhythm_user_points') as HTMLElement;
+    rhythmUserRankElement.innerText = response['rhythm']['rank'];
+    rhythmUserVerbElement.innerText = "Scores " + getRandomVerb() + ":";
+    rhythmUserPointsElement.innerText = response['rhythm']['points'];
+
+    // User bass rank
+    const bassUserRankElement = document.getElementById('bass_user_rank') as HTMLElement;
+    const bassUserVerbElement = document.getElementById('bass_user_verb') as HTMLElement;
+    const bassUserPointsElement = document.getElementById('bass_user_points') as HTMLElement;
+    bassUserRankElement.innerText = response['bass']['rank'];
+    bassUserVerbElement.innerText = "Scores " + getRandomVerb() + ":";
+    bassUserPointsElement.innerText = response['bass']['points'];
 }
 
 async function main() {
     const version = await getVersion();
     document.title += ' v' + version;
+
+    const disclaimerElement = document.getElementById('disclaimer') as HTMLElement;
+    disclaimerElement.innerText = "*Rank data is calculated daily based on number of verified scores " + getRandomVerb().toLowerCase() + ".";
 
     get_ranks();
 
