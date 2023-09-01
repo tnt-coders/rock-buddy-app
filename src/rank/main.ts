@@ -69,7 +69,7 @@ async function get_ranks() {
     const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
 
     const host = await window.api.getHost();
-    const response = await post(host + '/api/data/get_ranks.php', {
+    const response = await post(host + '/api/data/get_ranks_top3.php', {
         auth_data: authData,
     });
 
