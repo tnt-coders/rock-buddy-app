@@ -4,6 +4,7 @@ function getRandomVerb() {
     const verbs: string[] = [
         "Annihilated",
         "Assaulted",
+        "Axed",
         "Battered",
         "Beaten",
         "Befouled",
@@ -40,6 +41,7 @@ function getRandomVerb() {
         "Ruined",
         "Shamed",
         "Shattered",
+        "Slashed",
         "Slaughtered",
         "Slayed",
         "Smacked",
@@ -185,37 +187,75 @@ async function get_rank() {
         return;
     }
 
+    console.log(response);
+
     // User overall rank
     const overallUserRankElement = document.getElementById('overall_user_rank') as HTMLElement;
     const overallUserVerbElement = document.getElementById('overall_user_verb') as HTMLElement;
     const overallUserPointsElement = document.getElementById('overall_user_points') as HTMLElement;
-    overallUserRankElement.innerText = response['overall']['rank'];
+    overallUserRankElement.innerText = response['current']['overall']['rank'];
     overallUserVerbElement.innerText = "Scores " + getRandomVerb() + ":";
-    overallUserPointsElement.innerText = response['overall']['points'];
+    overallUserPointsElement.innerText = response['current']['overall']['points'];
+
+    const overallUserNextPointsElement = document.getElementById('overall_user_next_points') as HTMLElement;
+    if (response['current']['overall']['rank'] > 1) {
+        const diff = response['next']['overall']['points'] - response['current']['overall']['points'];
+        overallUserNextPointsElement.innerText = diff.toString();
+    }
+    else {
+        overallUserNextPointsElement.innerText = 'N/A';
+    }
 
     // User lead rank
     const leadUserRankElement = document.getElementById('lead_user_rank') as HTMLElement;
     const leadUserVerbElement = document.getElementById('lead_user_verb') as HTMLElement;
     const leadUserPointsElement = document.getElementById('lead_user_points') as HTMLElement;
-    leadUserRankElement.innerText = response['lead']['rank'];
+    leadUserRankElement.innerText = response['current']['lead']['rank'];
     leadUserVerbElement.innerText = "Scores " + getRandomVerb() + ":";
-    leadUserPointsElement.innerText = response['lead']['points'];
+    leadUserPointsElement.innerText = response['current']['lead']['points'];
+
+    const leadUserNextPointsElement = document.getElementById('lead_user_next_points') as HTMLElement;
+    if (response['current']['lead']['rank'] > 1) {
+        const diff = response['next']['lead']['points'] - response['current']['lead']['points'];
+        leadUserNextPointsElement.innerText = diff.toString();
+    }
+    else {
+        leadUserNextPointsElement.innerText = 'N/A';
+    }
 
     // User rhythm rank
     const rhythmUserRankElement = document.getElementById('rhythm_user_rank') as HTMLElement;
     const rhythmUserVerbElement = document.getElementById('rhythm_user_verb') as HTMLElement;
     const rhythmUserPointsElement = document.getElementById('rhythm_user_points') as HTMLElement;
-    rhythmUserRankElement.innerText = response['rhythm']['rank'];
+    rhythmUserRankElement.innerText = response['current']['rhythm']['rank'];
     rhythmUserVerbElement.innerText = "Scores " + getRandomVerb() + ":";
-    rhythmUserPointsElement.innerText = response['rhythm']['points'];
+    rhythmUserPointsElement.innerText = response['current']['rhythm']['points'];
+
+    const rhythmUserNextPointsElement = document.getElementById('rhythm_user_next_points') as HTMLElement;
+    if (response['current']['rhythm']['rank'] > 1) {
+        const diff = response['next']['rhythm']['points'] - response['current']['rhythm']['points'];
+        rhythmUserNextPointsElement.innerText = diff.toString();
+    }
+    else {
+        rhythmUserNextPointsElement.innerText = 'N/A';
+    }
 
     // User bass rank
     const bassUserRankElement = document.getElementById('bass_user_rank') as HTMLElement;
     const bassUserVerbElement = document.getElementById('bass_user_verb') as HTMLElement;
     const bassUserPointsElement = document.getElementById('bass_user_points') as HTMLElement;
-    bassUserRankElement.innerText = response['bass']['rank'];
+    bassUserRankElement.innerText = response['current']['bass']['rank'];
     bassUserVerbElement.innerText = "Scores " + getRandomVerb() + ":";
-    bassUserPointsElement.innerText = response['bass']['points'];
+    bassUserPointsElement.innerText = response['current']['bass']['points'];
+
+    const bassUserNextPointsElement = document.getElementById('bass_user_next_points') as HTMLElement;
+    if (response['current']['bass']['rank'] > 1) {
+        const diff = response['next']['bass']['points'] - response['current']['bass']['points'];
+        bassUserNextPointsElement.innerText = diff.toString();
+    }
+    else {
+        bassUserNextPointsElement.innerText = 'N/A';
+    }
 }
 
 async function main() {
@@ -223,7 +263,7 @@ async function main() {
     document.title += ' v' + version;
 
     const disclaimerElement = document.getElementById('disclaimer') as HTMLElement;
-    disclaimerElement.innerText = "*Rank data is calculated daily based on number of verified scores " + getRandomVerb().toLowerCase() + ".";
+    disclaimerElement.innerText = "*Rank data is calculated hourly based on number of verified scores " + getRandomVerb().toLowerCase() + ".";
 
     get_ranks();
 
