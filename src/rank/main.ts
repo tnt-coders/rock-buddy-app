@@ -46,6 +46,7 @@ function getRandomVerb() {
         "Slayed",
         "Smacked",
         "Soiled",
+        "Squashed",
         "Squelched",
         "Stomped",
         "Sullied",
@@ -263,7 +264,7 @@ async function main() {
     document.title += ' v' + version;
 
     const disclaimerElement = document.getElementById('disclaimer') as HTMLElement;
-    disclaimerElement.innerText = "*Rank data is calculated hourly based on number of verified scores " + getRandomVerb().toLowerCase() + ".";
+    disclaimerElement.innerText = "*Your rank is calculated hourly based on number of verified scores you beat.";
 
     get_ranks();
 
