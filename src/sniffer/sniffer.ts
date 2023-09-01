@@ -1222,7 +1222,7 @@ export class Sniffer {
             lastVerified = row['verified'];
             lastMastery = row['mastery'];
             lastStreak = row['streak'];
-        })
+        });
 
         table.appendChild(bodySection);
 

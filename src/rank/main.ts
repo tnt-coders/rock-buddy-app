@@ -65,7 +65,7 @@ function getRandomVerb() {
     return verbs[randomIndex];
 }
 
-async function get_ranks() {
+async function get_ranks_top3() {
     const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
 
     const host = await window.api.getHost();
@@ -175,11 +175,10 @@ async function get_ranks() {
     bass3PointsElement.innerText = response['bass'][2]['points'];
 }
 
-async function get_rank() {
+async function display_leaderboard(type: string) {
     const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
-
     const host = await window.api.getHost();
-    const response = await post(host + '/api/data/get_rank.php', {
+    const response = await post(host + '/api/data/get_ranks_' + type + '.php', {
         auth_data: authData,
     });
 
@@ -188,75 +187,159 @@ async function get_rank() {
         return;
     }
 
-    console.log(response);
+    const ranks = response;
 
-    // User overall rank
-    const overallUserRankElement = document.getElementById('overall_user_rank') as HTMLElement;
-    const overallUserVerbElement = document.getElementById('overall_user_verb') as HTMLElement;
-    const overallUserPointsElement = document.getElementById('overall_user_points') as HTMLElement;
-    overallUserRankElement.innerText = response['current']['overall']['rank'];
-    overallUserVerbElement.innerText = "Scores " + getRandomVerb() + ":";
-    overallUserPointsElement.innerText = response['current']['overall']['points'];
+    // Create the table element
+    const table = document.createElement('table');
+    table.classList.add('leaderboard-data');
+    table.style.width = '100%';
 
-    const overallUserNextPointsElement = document.getElementById('overall_user_next_points') as HTMLElement;
-    if (response['current']['overall']['rank'] > 1) {
-        const diff = response['next']['overall']['points'] - response['current']['overall']['points'];
-        overallUserNextPointsElement.innerText = diff.toString();
-    }
-    else {
-        overallUserNextPointsElement.innerText = 'N/A';
-    }
+    // Create the header row
+    const headerSection = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    const headers = ['Rank', 'Username', 'Scores Defeated'];
+    headers.forEach((header) => {
+        const headerCell = document.createElement('th');
+        headerCell.style.fontFamily = 'Roboto Mono, monospace';
+        headerCell.appendChild(document.createTextNode(header));
+        headerRow.appendChild(headerCell);
+    });
 
-    // User lead rank
-    const leadUserRankElement = document.getElementById('lead_user_rank') as HTMLElement;
-    const leadUserVerbElement = document.getElementById('lead_user_verb') as HTMLElement;
-    const leadUserPointsElement = document.getElementById('lead_user_points') as HTMLElement;
-    leadUserRankElement.innerText = response['current']['lead']['rank'];
-    leadUserVerbElement.innerText = "Scores " + getRandomVerb() + ":";
-    leadUserPointsElement.innerText = response['current']['lead']['points'];
+    headerSection.appendChild(headerRow);
+    table.appendChild(headerSection);
 
-    const leadUserNextPointsElement = document.getElementById('lead_user_next_points') as HTMLElement;
-    if (response['current']['lead']['rank'] > 1) {
-        const diff = response['next']['lead']['points'] - response['current']['lead']['points'];
-        leadUserNextPointsElement.innerText = diff.toString();
-    }
-    else {
-        leadUserNextPointsElement.innerText = 'N/A';
-    }
+    const bodySection = document.createElement('tbody');
 
-    // User rhythm rank
-    const rhythmUserRankElement = document.getElementById('rhythm_user_rank') as HTMLElement;
-    const rhythmUserVerbElement = document.getElementById('rhythm_user_verb') as HTMLElement;
-    const rhythmUserPointsElement = document.getElementById('rhythm_user_points') as HTMLElement;
-    rhythmUserRankElement.innerText = response['current']['rhythm']['rank'];
-    rhythmUserVerbElement.innerText = "Scores " + getRandomVerb() + ":";
-    rhythmUserPointsElement.innerText = response['current']['rhythm']['points'];
+    // Create data rows
+    const columns = ['rank', 'username', 'points'];
+    const columnsAlign = ['right', 'left', 'right'];
 
-    const rhythmUserNextPointsElement = document.getElementById('rhythm_user_next_points') as HTMLElement;
-    if (response['current']['rhythm']['rank'] > 1) {
-        const diff = response['next']['rhythm']['points'] - response['current']['rhythm']['points'];
-        rhythmUserNextPointsElement.innerText = diff.toString();
-    }
-    else {
-        rhythmUserNextPointsElement.innerText = 'N/A';
-    }
+    // Keep track of rank
+    let rank = 0;
 
-    // User bass rank
-    const bassUserRankElement = document.getElementById('bass_user_rank') as HTMLElement;
-    const bassUserVerbElement = document.getElementById('bass_user_verb') as HTMLElement;
-    const bassUserPointsElement = document.getElementById('bass_user_points') as HTMLElement;
-    bassUserRankElement.innerText = response['current']['bass']['rank'];
-    bassUserVerbElement.innerText = "Scores " + getRandomVerb() + ":";
-    bassUserPointsElement.innerText = response['current']['bass']['points'];
+    // Build each row
+    ranks.forEach((row: any) => {
+        const dataRow = document.createElement('tr');
 
-    const bassUserNextPointsElement = document.getElementById('bass_user_next_points') as HTMLElement;
-    if (response['current']['bass']['rank'] > 1) {
-        const diff = response['next']['bass']['points'] - response['current']['bass']['points'];
-        bassUserNextPointsElement.innerText = diff.toString();
-    }
-    else {
-        bassUserNextPointsElement.innerText = 'N/A';
-    }
+        // Increment the rank
+        rank++;
+
+        // Populate data for each column
+        let columnIndex = 0;
+        columns.forEach((column) => {
+            const dataCell = document.createElement('td');
+            dataCell.style.fontFamily = 'Roboto Mono, monospace';
+            dataCell.style.paddingLeft = '5px';
+            dataCell.style.paddingRight = '5px';
+            if (column === 'rank') {
+                dataCell.appendChild(document.createTextNode(rank.toString()));
+            }
+            else if (column === 'username') {
+                const usernameElement = document.createElement('div');
+                usernameElement.style.display = 'flex';
+                usernameElement.style.flexDirection = 'row';
+
+                if (row['king']) {
+                    const kingElement = document.createElement('img');
+                    kingElement.src = `./../../images/crown.png`;
+                    kingElement.width = 15;
+                    kingElement.height = 15;
+                    kingElement.style.alignSelf = 'center';
+                    kingElement.style.marginRight = '5px';
+                    usernameElement.appendChild(kingElement);
+                }
+
+                const usernameText = document.createTextNode(row[column]);
+                usernameElement.appendChild(usernameText);
+
+                dataCell.appendChild(usernameElement);
+            }
+            else {
+                dataCell.appendChild(document.createTextNode(row[column]));
+            }
+
+            dataCell.style.textAlign = columnsAlign[columnIndex++];
+            dataRow.appendChild(dataCell);
+        });
+
+        // Highlight the row of the current user
+        if (row['user_id'] === authData['user_id']) {
+            dataRow.classList.add('current-user');
+        }
+
+        // Add the row to the table
+        bodySection.appendChild(dataRow);
+    });
+
+    table.appendChild(bodySection);
+
+    // Get the parent element
+    const leaderboardElement = document.getElementById(type + '_leaderboard') as HTMLElement;
+    leaderboardElement.innerHTML = '';
+    leaderboardElement.appendChild(table);
+}
+
+async function create_popup_elements() {
+
+    // Overall
+    const overallExpandElement = document.getElementById('overall_expand') as HTMLElement;
+    const overallPopupElement = document.getElementById('overall_popup') as HTMLElement;
+    const closeOverallPopupElement = document.getElementById('close_overall_popup') as HTMLElement;
+
+    overallExpandElement.addEventListener('click', async () => {
+        overallPopupElement.style.display = 'block';
+
+        display_leaderboard('overall');
+    });
+
+    closeOverallPopupElement.addEventListener('click', async() => {
+        overallPopupElement.style.display = 'none';
+    });
+
+    // Lead
+    const leadExpandElement = document.getElementById('lead_expand') as HTMLElement;
+    const leadPopupElement = document.getElementById('lead_popup') as HTMLElement;
+    const closeLeadPopupElement = document.getElementById('close_lead_popup') as HTMLElement;
+
+    leadExpandElement.addEventListener('click', async () => {
+        leadPopupElement.style.display = 'block';
+
+        display_leaderboard('lead');
+    });
+
+    closeLeadPopupElement.addEventListener('click', async() => {
+        leadPopupElement.style.display = 'none';
+    });
+
+    // Rhythm
+    const rhythmExpandElement = document.getElementById('rhythm_expand') as HTMLElement;
+    const rhythmPopupElement = document.getElementById('rhythm_popup') as HTMLElement;
+    const closeRhythmPopupElement = document.getElementById('close_rhythm_popup') as HTMLElement;
+
+    rhythmExpandElement.addEventListener('click', async () => {
+        rhythmPopupElement.style.display = 'block';
+
+        display_leaderboard('rhythm');
+    });
+
+    closeRhythmPopupElement.addEventListener('click', async() => {
+        rhythmPopupElement.style.display = 'none';
+    });
+
+    // Bass
+    const bassExpandElement = document.getElementById('bass_expand') as HTMLElement;
+    const bassPopupElement = document.getElementById('bass_popup') as HTMLElement;
+    const closeBassPopupElement = document.getElementById('close_bass_popup') as HTMLElement;
+
+    bassExpandElement.addEventListener('click', async () => {
+        bassPopupElement.style.display = 'block';
+
+        display_leaderboard('bass');
+    });
+
+    closeBassPopupElement.addEventListener('click', async() => {
+        bassPopupElement.style.display = 'none';
+    });
 }
 
 async function main() {
@@ -264,11 +347,11 @@ async function main() {
     document.title += ' v' + version;
 
     const disclaimerElement = document.getElementById('disclaimer') as HTMLElement;
-    disclaimerElement.innerText = "*Your rank is calculated hourly based on number of verified scores you beat.";
+    disclaimerElement.innerText = "*Your rank is calculated hourly based on number of verified scores you defeat.";
 
-    get_ranks();
+    get_ranks_top3();
 
-    get_rank();
+    create_popup_elements();
 }
 
 main();
