@@ -252,22 +252,6 @@ body a {
     padding: 1%;
 }
 
-.live-data {
-    background-color: #22222280;
-    border-radius: 12px;
-    padding: 1%;
-}
-
-.live-data .circle {
-    width: 10px;
-    /* set the width and height of the circle */
-    height: 10px;
-    border-radius: 50%;
-    /* create a circle shape */
-    background-color: red;
-    /* set the background color of the circle */
-}
-
 .login {
     position: absolute;
     top: 50%;
@@ -303,13 +287,6 @@ input {
     -ms-transition: box-shadow .5s ease;
     transition: box-shadow .5s ease;
 }
-
-#score_attack {
-    display: flex;
-    flex-direction: row;
-    gap: 5px;
-}
-
 
 select {
     margin-bottom: 0px;

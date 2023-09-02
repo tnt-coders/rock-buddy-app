@@ -25,22 +25,17 @@ async function post(url, data) {
 
         // If the response is not OK log the response text
         if (!response.ok) {
-            console.error(response.status + ': ' + response.statusText);
-            console.error(await response.text());
 
             // Cloudflare returns a status of 530 when communication with the server is lost
             if (response.status === 530) {
                 throw new Error("Communication with server lost.");
-            }
-            else {
-                throw new Error("Bad response returned from server. See console for details.");
             }
         }
 
         let responseJson = await response.json();
         if (responseJson.hasOwnProperty('error')) {
             if (responseJson['error'] === 'Invalid API key.') {
-                response['error'] = "Your API key has expired.\n\nPlease log back in to verify your identity.";
+                responseJson['error'] = "Your API key has expired.\n\nPlease log back in to verify your identity.";
                 window.location.href = './logout.html';
             }
         }
