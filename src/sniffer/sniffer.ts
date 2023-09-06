@@ -756,7 +756,10 @@ export class Sniffer {
 
             // If there are less notes than expected assume the user had dynamic difficulty on and played on an easier difficulty
             if (previousTotalNotes < previousArrangementNotes) {
-                this.setVerificationState(VerificationState.Unverified, "The total number of notes seen was less than the total note count of the arrangement. (Make sure dynamic difficulty is disabled.)");
+                const errorMessage = "The total number of notes seen was less than the total note count of the arrangement.\n"
+                                   + "\n"
+                                   + "Make sure you did not exit the chart early and that dynamic difficulty is disabled.";
+                this.setVerificationState(VerificationState.Unverified, errorMessage);
                 logMessage("TOTAL NOTES: " + previousTotalNotes);
                 logMessage("ARRANGEMENT NOTES: " + arrangementNotes);
                 logMessage("");
