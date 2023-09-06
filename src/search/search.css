@@ -1,0 +1,10 @@
+.search-input {
+    width: 400px; /* Adjust the width as needed */
+    border-radius: 5px;
+    padding: 5px 10px 5px 30px; /* Padding on the left to accommodate the icon */
+    font-size: 16px;
+    background-image: url('./../../images/search.png'); /* Replace 'magnifying-glass.png' with your icon image */
+    background-repeat: no-repeat;
+    background-position: 5px center; /* Position the icon 5px from the left and vertically centered */
+    background-size: 20px 20px; /* Adjust the icon size as needed */
+}

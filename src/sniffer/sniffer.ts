@@ -958,6 +958,8 @@ export class Sniffer {
         snortData['artist'] = rocksnifferData['songDetails']['artistName'];
         snortData['album'] = rocksnifferData['songDetails']['albumName'];
         snortData['year'] = rocksnifferData['songDetails']['albumYear'];
+        snortData['author'] = rocksnifferData['songDetails']['toolkit']['author'];
+        snortData['version'] = rocksnifferData['songDetails']['toolkit']['version'];
 
         const availablePaths = getAvailablePaths(rocksnifferData['songDetails']['arrangements']);
 
@@ -1165,6 +1167,7 @@ export class Sniffer {
                 dataCell.style.paddingRight = '5px';
                 if (column === 'rank') {
                     dataCell.appendChild(document.createTextNode(rank.toString()));
+                    dataCell.style.textAlign = columnsAlign[columnIndex];
                 }
                 else if (column === 'username') {
                     const usernameElement = document.createElement('div');
@@ -1185,6 +1188,17 @@ export class Sniffer {
                     usernameElement.appendChild(usernameText);
 
                     dataCell.appendChild(usernameElement);
+                    dataCell.style.textAlign = columnsAlign[columnIndex];
+                }
+                else if (column === 'last_played' || column === 'play_count') {
+                    if (row[column] === null) {
+                        dataCell.appendChild(document.createTextNode('Unknown'));
+                        dataCell.style.textAlign = 'left';
+                    }
+                    else {
+                        dataCell.appendChild(document.createTextNode(row[column]));
+                        dataCell.style.textAlign = columnsAlign[columnIndex];
+                    }
                 }
                 else if (column === 'mastery') {
                     const masteryElement = document.createElement('div');
@@ -1206,12 +1220,15 @@ export class Sniffer {
                     masteryElement.appendChild(scoreSpan);
 
                     dataCell.appendChild(masteryElement);
+                    dataCell.style.textAlign = columnsAlign[columnIndex];
                 }
                 else {
                     dataCell.appendChild(document.createTextNode(row[column]));
+                    dataCell.style.textAlign = columnsAlign[columnIndex];
                 }
-                dataCell.style.textAlign = columnsAlign[columnIndex++];
+                
                 dataRow.appendChild(dataCell);
+                columnIndex++;
             });
 
             // Highlight the row of the current user
@@ -1309,6 +1326,7 @@ export class Sniffer {
                 dataCell.style.paddingRight = '5px';
                 if (column === 'rank') {
                     dataCell.appendChild(document.createTextNode(rank.toString()));
+                    dataCell.style.textAlign = columnsAlign[columnIndex];
                 }
                 else if (column === 'username') {
                     const usernameElement = document.createElement('div');
@@ -1329,6 +1347,17 @@ export class Sniffer {
                     usernameElement.appendChild(usernameText);
 
                     dataCell.appendChild(usernameElement);
+                    dataCell.style.textAlign = columnsAlign[columnIndex];
+                }
+                else if (column === 'last_played' || column === 'play_count') {
+                    if (row[column] === null) {
+                        dataCell.appendChild(document.createTextNode('Unknown'));
+                        dataCell.style.textAlign = 'left';
+                    }
+                    else {
+                        dataCell.appendChild(document.createTextNode(row[column]));
+                        dataCell.style.textAlign = columnsAlign[columnIndex];
+                    }
                 }
                 else if (column === 'score') {
 
@@ -1350,12 +1379,15 @@ export class Sniffer {
                     scoreElement.appendChild(scoreSpan);
 
                     dataCell.appendChild(scoreElement);
+                    dataCell.style.textAlign = columnsAlign[columnIndex];
                 }
                 else {
                     dataCell.appendChild(document.createTextNode(row[column]));
+                    dataCell.style.textAlign = columnsAlign[columnIndex];
                 }
-                dataCell.style.textAlign = columnsAlign[columnIndex++];
+
                 dataRow.appendChild(dataCell);
+                columnIndex++;
             });
 
             // Highlight the row of the current user
