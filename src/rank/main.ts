@@ -57,6 +57,7 @@ function getRandomVerb() {
         "Trashed",
         "Triumphed",
         "Trounced",
+        "Unalived",
         "Vanquished",
         "Wrecked",
     ];
