@@ -426,9 +426,19 @@ function createWindow() {
         return fileExists;
     });
 
+    // Semver validation
+    ipcMain.handle('semver-valid', (event, version) => {
+        return semver.valid(version);
+    });
+
     // Semver check
     ipcMain.handle('semver-gte', (event, version1, version2) => {
         return semver.gte(version1, version2);
+    });
+
+    // Get max semver in range
+    ipcMain.handle('semver-max-satisfying', (event, versions, range) => {
+        return semver.maxSatisfying(versions, range);
     });
 
     // Reads an encrypted Rocksmith data file and returns the contents

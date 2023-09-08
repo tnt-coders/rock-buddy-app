@@ -9,7 +9,8 @@
 </head>
 
 <body>
-  <div style="display: flex; flex-direction: row; align-items: center; gap: 5px; width: 100%; min-width: 800px;" class="navtop">
+  <div style="display: flex; flex-direction: row; align-items: center; gap: 5px; width: 100%; min-width: 800px;"
+    class="navtop">
     <a href="../sniffer/sniffer.html">Sniffer</a>|
     <a href="../search/search.html">Search</a>|
     <a href="../stats/stats.html">Stats</a>|
@@ -46,50 +47,61 @@
             <div
               style="font-size: small; margin-left: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
               <em>Version <span id="version"></span> - <span id="author"></span></em>
+              <img id="new_version_alert_icon" style="visibility: hidden; height: 15px; margin-left: 2px; vertical-align: middle; cursor: pointer;"
+                src="./../../images/alert.png">
             </div>
           </div>
         </div>
-        <div class="live-data" style="display: grid; grid-template-columns: repeat(2); gap: 0px; width: 40%; min-width: 320px;">
-          <div style="grid-column: 1; grid-row: 1; display: flex; flex-direction: row; align-items: center; align-self: flex-start;">
+        <div class="live-data"
+          style="display: grid; grid-template-columns: repeat(2); gap: 0px; width: 40%; min-width: 320px;">
+          <div
+            style="grid-column: 1; grid-row: 1; display: flex; flex-direction: row; align-items: center; align-self: flex-start;">
             <div class="circle" id="live_feed_icon" style="margin-right: 10px;"></div>
             <div><b>Live Feed</b></div>
           </div>
 
           <!-- LAS live feed -->
-          <div class="live-data-las" style="grid-column: 2; grid-row: 1; display: none; flex-direction: row; margin-left: auto;">
-            <span style="margin-left: auto; margin-right: 10px;"><b>Accuracy:</b></span><span id="las_notes_hit">0</span>/<span
-              id="las_total_notes">0</span>&nbsp;(<span id="las_accuracy">NaN</span>)
+          <div class="live-data-las"
+            style="grid-column: 2; grid-row: 1; display: none; flex-direction: row; margin-left: auto;">
+            <span style="margin-left: auto; margin-right: 10px;"><b>Accuracy:</b></span><span
+              id="las_notes_hit">0</span>/<span id="las_total_notes">0</span>&nbsp;(<span id="las_accuracy">NaN</span>)
           </div>
-          <div class="live-data-las" style="grid-column: 2; grid-row: 2; display: none; flex-direction: row; margin-left: auto;">
-            <span style="margin-left: auto; margin-right: 10px;"><b>Streak:</b></span><span id="las_streak">0</span>/<span
-              id="las_highest_streak">0</span>
+          <div class="live-data-las"
+            style="grid-column: 2; grid-row: 2; display: none; flex-direction: row; margin-left: auto;">
+            <span style="margin-left: auto; margin-right: 10px;"><b>Streak:</b></span><span
+              id="las_streak">0</span>/<span id="las_highest_streak">0</span>
           </div>
           <div class="live-data-las" style="grid-column: 1/2; grid-row: 3; height: 20px;"></div>
-          <div class="live-data-las" style="grid-column: 2; grid-row: 4; display: none; flex-direction: row; margin-left: auto;">
+          <div class="live-data-las"
+            style="grid-column: 2; grid-row: 4; display: none; flex-direction: row; margin-left: auto;">
             <span style="margin-left: auto; margin-right: 10px;"><b>Time:</b></span><span
               id="las_song_timer">00:00</span>/<span id="las_song_length">00:00</span>
           </div>
           <div id="verified" style="grid-column: 1; grid-row: 4; display: none; margin-right: auto; cursor: pointer;">
-            <img style="height: 20px;" src="../../images/verification-icons/verified.png"/>
+            <img style="height: 20px;" src="../../images/verification-icons/verified.png" />
           </div>
-          <div id="maybe_verified" style="grid-column: 1; grid-row: 4; display: none; margin-right: auto; cursor: pointer;">
-            <img style="height: 20px;" src="../../images/verification-icons/maybe-verified.png"/>
+          <div id="maybe_verified"
+            style="grid-column: 1; grid-row: 4; display: none; margin-right: auto; cursor: pointer;">
+            <img style="height: 20px;" src="../../images/verification-icons/maybe-verified.png" />
           </div>
           <div id="unverified" style="grid-column: 1; grid-row: 4; display: none; margin-right: auto; cursor: pointer;">
-            <img style="height: 20px;" src="../../images/verification-icons/unverified.png"/>
+            <img style="height: 20px;" src="../../images/verification-icons/unverified.png" />
           </div>
 
           <!-- SA live feed -->
-          <div class="live-data-sa" style="grid-column: 2; grid-row: 1; display: none; flex-direction: row; margin-left: auto;">
-            <span style="margin-left: auto; margin-right: 10px;"><b>Accuracy:</b></span><span id="sa_notes_hit">0</span>/<span
-              id="sa_total_notes">0</span>&nbsp;(<span id="sa_accuracy">NaN</span>)
+          <div class="live-data-sa"
+            style="grid-column: 2; grid-row: 1; display: none; flex-direction: row; margin-left: auto;">
+            <span style="margin-left: auto; margin-right: 10px;"><b>Accuracy:</b></span><span
+              id="sa_notes_hit">0</span>/<span id="sa_total_notes">0</span>&nbsp;(<span id="sa_accuracy">NaN</span>)
           </div>
-          <div  class="live-data-sa" style="grid-column: 2; grid-row: 2; display: none; flex-direction: row; margin-left: auto;">
-            <span style="margin-left: auto; margin-right: 10px;"><b>Streak:</b></span><span id="sa_streak">0</span>/<span
-              id="sa_highest_streak">0</span>
+          <div class="live-data-sa"
+            style="grid-column: 2; grid-row: 2; display: none; flex-direction: row; margin-left: auto;">
+            <span style="margin-left: auto; margin-right: 10px;"><b>Streak:</b></span><span
+              id="sa_streak">0</span>/<span id="sa_highest_streak">0</span>
           </div>
           <div class="live-data-sa" style="grid-column: 1/2; grid-row: 3; height: 20px;"></div>
-          <div class="live-data-sa" style="grid-column: 2; grid-row: 4; display: none; flex-direction: row; margin-left: auto;">
+          <div class="live-data-sa"
+            style="grid-column: 2; grid-row: 4; display: none; flex-direction: row; margin-left: auto;">
             <span style="margin-left: auto; margin-right: 10px;"><b>Time:</b></span><span
               id="sa_song_timer">00:00</span>/<span id="sa_song_length">00:00</span>
           </div>
@@ -136,36 +148,50 @@
     <div id="leaderboard_data" style="min-width: 800px;">
     </div>
   </div>
+  <div id="new_version_alert_popup" class="modal">
+    <span id="close_new_version_alert_popup" class="close">&times;</span>
+    <div
+      style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 20px;">
+      <img style="height: 50px;" src="../../images/alert.png" />
+      <br>
+      <p>A new version of this chart has been seen by Rock Buddy. Check the Forge for an update!</p>
+    </div>
+  </div>
   <div id="verified_popup" class="modal">
     <span id="close_verified_popup" class="close">&times;</span>
-    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 20px;">
-      <img style="height: 50px;" src="../../images/verification-icons/verified.png"/>
+    <div
+      style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 20px;">
+      <img style="height: 50px;" src="../../images/verification-icons/verified.png" />
       <br>
       <div id="verified_message"></div>
     </div>
   </div>
   <div id="maybe_verified_popup" class="modal">
     <span id="close_maybe_verified_popup" class="close">&times;</span>
-    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 20px;">
-      <img style="height: 50px;" src="../../images/verification-icons/maybe-verified.png"/>
+    <div
+      style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 20px;">
+      <img style="height: 50px;" src="../../images/verification-icons/maybe-verified.png" />
       <br>
       <div id="maybe_verified_message"></div>
     </div>
   </div>
   <div id="unverified_popup" class="modal">
     <span id="close_unverified_popup" class="close">&times;</span>
-    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 20px;">
-      <img style="height: 50px;" src="../../images/verification-icons/unverified.png"/>
+    <div
+      style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 20px;">
+      <img style="height: 50px;" src="../../images/verification-icons/unverified.png" />
       <br>
       <p>Your score is not verified for the following reason:</p>
-      <p id="unverified_message"><p>
+      <p id="unverified_message">
+      <p>
       <p>If you think this was a mistake please report the issue <a href="#" onclick="openGithubIssue63()">here</a>.</p>
     </div>
   </div>
   <div id="rsmods_required_popup" class="modal">
     <span id="close_rsmods_required_popup" class="close">&times;</span>
-    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 20px;">
-      <img style="height: 50px;" src="../../images/verification-icons/unverified.png"/>
+    <div
+      style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 20px;">
+      <img style="height: 50px;" src="../../images/verification-icons/unverified.png" />
       <br>
       <p>Verified scores are disabled: Requres RSMods v1.2.7.3 or later.</p>
       <p>The latest RSMods can be downloaded <a href="#" onclick="openRSModsDownloadPage()">here</a>.</p>
