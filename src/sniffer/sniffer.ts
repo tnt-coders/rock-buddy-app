@@ -2,7 +2,7 @@ import { Rocksmith } from './rocksmith';
 import { Rocksniffer } from './rocksniffer';
 import { UserData } from '../common/user_data';
 import { showError, showExclusive } from './functions';
-import { approxEqual, durationString, getAvailablePaths, logMessage, post } from '../common/functions';
+import { approxEqual, buildValidSemver, durationString, getAvailablePaths, logMessage, post } from '../common/functions';
 
 enum VerificationState {
     None,
@@ -103,10 +103,23 @@ export class Sniffer {
             this._preferredPath = preferredPath;
         }
 
+        // Setup new version alert icon
+        const newVersionAlertIconElement = document.getElementById('new_version_alert_icon') as HTMLElement;
+        const newVersionAlertPopupElement = document.getElementById('new_version_alert_popup') as HTMLElement;
+        const closeNewVersionAlertPopupElement = document.getElementById('close_new_version_alert_popup') as HTMLElement;
+
+        newVersionAlertIconElement.addEventListener('click', async() => {
+            newVersionAlertPopupElement.style.display = 'block';
+        });
+
+        closeNewVersionAlertPopupElement.addEventListener('click', async() => {
+            newVersionAlertPopupElement.style.display = 'none';
+        })
+
         // Setup game mode combo box
         const gameModeElement = document.getElementById('game_mode') as HTMLSelectElement;
 
-        gameModeElement?.addEventListener('change', async () => {
+        gameModeElement.addEventListener('change', async () => {
             const selectedOption = gameModeElement.options[gameModeElement.selectedIndex];
             this._gameMode = selectedOption.value;
 
@@ -260,15 +273,15 @@ export class Sniffer {
             
             const rocksnifferData = await this.sniff();
 
+            // Check if it is time to snort
+            await this.checkSnort(rocksnifferData);
+
             this.updateSongInfo(rocksnifferData);
             this.updateLiveFeed(rocksnifferData);
             this.updatePath(rocksnifferData);
 
             // Monitor progress
             await this.monitorProgress(rocksnifferData);
-
-            // Check if it is time to snort
-            await this.checkSnort(rocksnifferData);
 
             this._previousRocksnifferData = rocksnifferData;
         }
@@ -296,6 +309,12 @@ export class Sniffer {
     }
 
     private updateSongInfo(rocksnifferData: any): void {
+        // Hide the alert icon until snort
+        if (!this._snorted) {
+            const newVersionAlertIconElement = document.getElementById('new_version_alert_icon') as HTMLElement;
+            newVersionAlertIconElement.style.visibility = 'hidden';
+        }
+
         const albumArtElement = document.getElementById('album_art') as HTMLImageElement;
         const artistElement = document.getElementById('artist') as HTMLElement;
         const titleElement = document.getElementById('title') as HTMLElement;
@@ -1014,27 +1033,96 @@ export class Sniffer {
         });
 
         // Sync the data with the server
-        await this.syncWithServer(snortData);
+        const synced = await this.syncWithServer(snortData);
 
         this._timeSinceLastSnort = 0;
         this._snorted = true;
 
         // Show the leaderboard
-        await this.showLeaderboard(rocksnifferData);
+        if (synced) {
+            await this.showLeaderboard(rocksnifferData);
+        }
     }
 
-    private async syncWithServer(snortData: any): Promise<void> {
+    private async syncWithServer(snortData: any): Promise<boolean> {
         const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
 
         const host = await window.api.getHost();
-        const response = await post(host + '/api/data/sniffer_sync.php', {
+        const sync_response = await post(host + '/api/data/sniffer_sync.php', {
             auth_data: authData,
             song_data: snortData
         });
 
-        if ('error' in response) {
-            window.api.error(response['error']);
+        if ('error' in sync_response) {
+            if (sync_response['error'] === 'Test versions of songs are not supported.') {
+                const leaderboardDataElement = document.getElementById('leaderboard_data') as HTMLElement;
+                leaderboardDataElement.innerText = sync_response['error'];
+                return false;
+            }
+            else {
+                window.api.error(sync_response['error']);
+                return false;
+            }
         }
+
+        const version_response = await post(host + '/api/data/get_versions.php', {
+            auth_data: authData,
+            song_data: snortData
+        });
+
+        if ('error' in version_response) {
+            window.api.error(version_response['error']);
+            return false;
+        }
+
+        if ('versions' in version_response) {
+            const currentVersion = snortData['version'].trim();
+            const versionsAvailable = version_response['versions'];
+
+            // Show the alert icon based on whether a new version is detected
+            const newVersionAlertIconElement = document.getElementById('new_version_alert_icon') as HTMLElement;
+            if (!await this.isLatestVersion(currentVersion, versionsAvailable)) {
+                newVersionAlertIconElement.style.visibility = 'visible';
+            }
+        }
+
+        return true;
+    }
+
+    private async isLatestVersion(currentVersion: string, versionsAvailable: string[]) {
+
+        // No known versions, treat it as latest
+        if (versionsAvailable.length === 0) {
+            return true;
+        }
+
+        // If the current version is not valid semver, we can't compare it so treat it as latest
+        currentVersion = buildValidSemver(currentVersion);
+        if (await window.api.semverValid(currentVersion) === null) {
+            return true;
+        }
+
+        // Use a regular for loop instead of forEach since it calls an async function within and we want to wait
+        let invalid = false;
+        for (let i = 0; i < versionsAvailable.length; ++i) {
+
+            versionsAvailable[i] = buildValidSemver(versionsAvailable[i])
+            if (await window.api.semverValid(versionsAvailable[i]) === null) {
+                invalid = true;
+                break;
+            }
+        }
+
+        // If any version in the list is not valid semver, we can't compare so treat the current as latest
+        if (invalid) {
+            return true;
+        }
+
+        // Get the latest version available
+        const latestVersionAvailable = await window.api.semverMaxSatisfying(versionsAvailable, '*');
+
+        // Check if the chart is up to date
+        return await window.api.semverGte(currentVersion, latestVersionAvailable);
     }
 
     private async getScoresLAS(rocksnifferData: any): Promise<any> {

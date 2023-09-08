@@ -22,6 +22,18 @@ export function approxEqual(a: number, b: number, tolerance = 0.0001): boolean {
     return Math.abs(a - b) <= tolerance;
 }
 
+// Semver requires the format "X.X.X", but we want to recognize "X" or "X.X" as valid
+export function buildValidSemver(version: string) {
+    if (/^\d+$/.test(version)) {
+        version += '.0.0';
+    }
+    else if (/^\d+[.]\d+$/.test(version)) {
+        version += '.0';
+    }
+    
+    return version;
+}
+
 //Convert a number to a duration "hh:mm:ss"
 export function durationString(tSeconds: number) {
     let hh = Math.floor(tSeconds / 3600);
@@ -263,15 +275,10 @@ export async function post(url: string, data: any) {
 
     // If the response is not OK log the response text
     if (!response.ok) {
-        console.error(response.status + ': ' + response.statusText);
-        console.error(await response.text());
 
         // Cloudflare returns a status of 530 when communication with the server is lost
         if (response.status === 530) {
             window.api.error("Communication with server lost.");
-        }
-        else {
-            window.api.error("Bad response returned from server. See console for details.");
         }
     }
 
