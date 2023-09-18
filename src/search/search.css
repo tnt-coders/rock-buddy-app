@@ -8,3 +8,9 @@
     background-position: 5px center; /* Position the icon 5px from the left and vertically centered */
     background-size: 20px 20px; /* Adjust the icon size as needed */
 }
+
+.table thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
