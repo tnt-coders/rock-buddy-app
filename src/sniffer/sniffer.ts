@@ -14,7 +14,6 @@ enum VerificationState {
 export class Sniffer {
     // Refresh rate in milliseconds
     private static readonly refreshRate: number = 100; // milliseconds
-    private static readonly rocksnifferTimeout: number = 1000 // milliseconds
     private static readonly snortRate: number = 10000; // milliseconds
     private static readonly pauseThreshold: number = 500; // milliseconds
 
@@ -46,7 +45,6 @@ export class Sniffer {
     private _pauseTime: number = 0;
     private _lastPauseTime: number = 0;
     private _ending: boolean = false;
-    private _rocksnifferTimeoutCounter: number = 0;
 
     // Snort data
     private _snort: boolean = true; // Set true on startup to ensure initial snorting
@@ -260,13 +258,6 @@ export class Sniffer {
         }
         this._refreshActive = true;
 
-        // Keep the progress timer in sync even if there was some latency
-        // No need to check if we are in a song or paused since these values will be 0 if we are not in a song
-        this._progressTimer += this._progressTimerSyncOffset;
-        this._progressTimerSyncOffset = 0;
-        this._pauseTimer += this._pauseTimerSyncOffset;
-        this._pauseTimerSyncOffset = 0;
-
         try {
 
             // If we are in a song, update the progress timer
@@ -295,35 +286,17 @@ export class Sniffer {
             this._previousRocksnifferData = rocksnifferData;
         }
         catch (error) {
-            if (error instanceof Error) {
-                if (error.message === "Rocksniffer timed out.") {
-                    this._rocksnifferTimeoutCounter += Rocksniffer.timeout;
-                    if (this._rocksnifferTimeoutCounter > Sniffer.rocksnifferTimeout) {
-                        const timeoutError = new Error("<p>Waiting for Rocksniffer...<br>"
-                                                     + "<br>"
-                                                     + "If this takes more than a few seconds Rocksniffer may have failed to start. If this problem persists, try the following:<br>"
-                                                     + "<ul>"
-                                                     + "<li>Ensure <a href=\"https://dotnet.microsoft.com/en-us/download/dotnet/6.0/runtime\">.NET framework 6.0</a> (for console apps) is installed.</li>"
-                                                     + "<li>Try running Rock Buddy as administrator.</li>"
-                                                     + "<li>Ensure no other app is using the port Rock Buddy uses for Rocksniffer (port 9002 by default).</li>"
-                                                     + "</ul>"
-                                                     + "<br>"
-                                                     + "If none of these solutions resolve your issue, reach out to me in Discord. The link to my discord server can be found in the <a href=\"#\" onclick=\"openTwitchAboutPage()\">About</a> section on my twitch page.");
-                        showError(timeoutError);
-                    }
-
-                    this._refreshActive = false;
-                    return;
-                }
-            }
-
-            // Reset the timout counter (error wasn't a timeout)
-            this._rocksnifferTimeoutCounter = 0;
-            
             showError(error);
             this._refreshActive = false;
             return;
         }
+
+        // Keep the progress timer in sync even if there was some latency
+        // No need to check if we are in a song or paused since these values will be 0 if we are not in a song
+        this._progressTimer += this._progressTimerSyncOffset;
+        this._progressTimerSyncOffset = 0;
+        this._pauseTimer += this._pauseTimerSyncOffset;
+        this._pauseTimerSyncOffset = 0;
 
         // Update the status
         const statusElement = document.getElementById('status') as HTMLElement;
@@ -331,9 +304,6 @@ export class Sniffer {
 
         // Show connected state
         showExclusive('group1', 'connected');
-
-        // Reset the timout counter
-        this._rocksnifferTimeoutCounter = 0;
 
         this._refreshActive = false;
     }
