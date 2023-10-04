@@ -213,7 +213,8 @@ export class Sniffer {
             unverifiedPopupElement.style.display = 'none';
         });
 
-        this._extraLogging = JSON.parse(window.sessionStorage.getItem('extra_logging') as any);
+        const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
+        this._extraLogging = JSON.parse(await window.api.storeGet('user_data.' + authData['user_id'] + '.extra_logging') as any);
     }
 
     private async sniff(): Promise<any> {
@@ -308,7 +309,7 @@ export class Sniffer {
                                                      + "<li>Ensure no other app is using the port Rock Buddy uses for Rocksniffer (port 9002 by default).</li>"
                                                      + "</ul>"
                                                      + "<br>"
-                                                     + "If none of these solutions resolve your issue, reach out to me in Discord. The link to my discord server can be found in the <a href=\"#\" onclick=\"openTwitchAboutPage()\">About</a> section on my twitch page.");
+                                                     + "If none of these solutions resolve your issue, reach out to me in Discord. The link to my discord server can be found in the <a href=\"#\" onclick=\"openTwitchAboutPage()\">About</a> section on my twitch page.</p>");
                         showError(timeoutError);
                     }
 

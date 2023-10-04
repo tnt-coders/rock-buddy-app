@@ -73,8 +73,13 @@ export class Rocksniffer {
         if (!await window.api.waitForFile(addonConfigFile, 1000)) {
             throw new Error("<p>Rocksniffer failed to create config/addons.json.<br>"
                           + "<br>"
-                          + "This can happen if Rock Buddy is not run with sufficient permissions. Please try running as administrator.</p>"
-            );
+                          + "This can happen if Rocksniffer fails to start. If this problem persists, try the following:<br>"
+                          + "<ul>"
+                          + "<li>Ensure <a href=\"https://dotnet.microsoft.com/en-us/download/dotnet/6.0/runtime\">.NET framework 6.0</a> (for console apps) is installed.</li>"
+                          + "<li>Try running Rock Buddy as administrator.</li>"
+                          + "</ul>"
+                          + "<br>"
+                          + "If these solutions do not resolve your issue, reach out to me in Discord. The link to my discord server can be found in the <a href=\"#\" onclick=\"openTwitchAboutPage()\">About</a> section on my twitch page.</p>");
         }
 
         const addonConfig = JSON.parse(await window.api.readFile(addonConfigFile));

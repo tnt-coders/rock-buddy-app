@@ -227,19 +227,12 @@ async function initDebugConfig() {
     if (savedExtraLogging === null) {
         api.storeSet('user_data.' + userId + '.extra_logging', extraLogging);
     }
-    else {
-        extraLogging = savedExtraLogging;
-    }
-    extraLoggingCheckbox.checked = extraLogging;
+
+    extraLoggingCheckbox.checked = false;
 
     extraLoggingCheckbox.addEventListener('change', async () => {
         api.storeSet('user_data.' + userId + '.extra_logging', extraLoggingCheckbox.checked);
-        sessionStorage.setItem('extra_logging', extraLoggingCheckbox.checked);
     });
-
-    if (extraLogging !== null) {
-        sessionStorage.setItem('extra_logging', extraLogging);
-    }
 }
 
 async function main() {
