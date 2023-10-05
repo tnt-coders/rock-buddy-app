@@ -8,6 +8,10 @@ function openTwitchRecon() {
     api.openExternalLink('https://www.twitch.tv/recontastic');
 }
 
+function openTwitchStaji() {
+    api.openExternalLink('https://www.twitch.tv/stajiw');
+}
+
 VanillaTilt.init(document.querySelectorAll(".card"), {
     max: 5,
     speed: 1000,
