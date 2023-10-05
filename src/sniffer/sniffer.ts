@@ -24,6 +24,9 @@ export class Sniffer {
     // Prevent duplicate refreshes
     private _refreshActive: boolean = false;
 
+    // Prevent explosion of error messages
+    private _syncErrorDisplayed: boolean = false;
+
     // Game mode/path/difficulty combo box data
     private _preferredPath: string = 'lead';
     private _gameMode: string = 'las';
@@ -1090,11 +1093,16 @@ export class Sniffer {
                 leaderboardDataElement.innerText = sync_response['error'];
                 return false;
             }
-            else {
+            else if (!this._syncErrorDisplayed) {
                 window.api.error(sync_response['error']);
+                this._syncErrorDisplayed = true;
                 return false;
             }
         }
+
+        // If we make it this far it means we aren't getting the same sync error repeatedly
+        // It is safe to display it again
+        this._syncErrorDisplayed = false;
 
         const version_response = await post(host + '/api/data/get_versions.php', {
             auth_data: authData,

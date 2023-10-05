@@ -113,28 +113,18 @@ async function getRocksmithProfiles() {
     });
 }
 
-async function getPreferences() {
-    const preferredPath = await api.storeGet('user_data.' + userId + '.preferred_path');
+async function getCustomMissSFXPath() {
+    const defaultPath = document.getElementById('custom_miss_sfx_path').innerText;
 
-    // Update the combo box
-    const comboBox = document.querySelector('#preferred_path');
-
-    // Link the combo box selected option to the user's preferred path
-    comboBox.addEventListener('change', async () => {
-        const selectedOption = comboBox.options[comboBox.selectedIndex];
-        const selectedPath = selectedOption.value;
-        await api.storeSet('user_data.' + userId + '.preferred_path', selectedPath);
-        sessionStorage.setItem('preferred_path', selectedPath);
-    });
-
-    // Update the combo box with the preferred value
-    if (preferredPath !== null) {
-        comboBox.value = preferredPath;
-
-        let event = new Event('change');
-        comboBox.dispatchEvent(event);
+    const customMissSFXPath = await api.getPath(defaultPath);
+    if (customMissSFXPath !== null) {
+        document.getElementById('custom_miss_sfx_path').innerText = customMissSFXPath;
+        await api.storeSet('user_data.' + userId + '.custom_miss_sfx_path', customMissSFXPath);
+        sessionStorage.setItem('custom_miss_sfx_path', customMissSFXPath);
     }
+}
 
+async function getPreferences() {
     const windowWidthEntry = document.getElementById('window_width');
     const windowHeightEntry = document.getElementById('window_height');
 
@@ -155,6 +145,59 @@ async function getPreferences() {
         api.setWindowSize(windowWidth, windowHeight);
         api.storeSet('user_data.' + userId + '.screen_height', height);
     });
+
+    const preferredPath = await api.storeGet('user_data.' + userId + '.preferred_path');
+
+    // Update the combo box
+    const preferredPathComboBox = document.querySelector('#preferred_path');
+
+    // Link the combo box selected option to the user's preferred path
+    preferredPathComboBox.addEventListener('change', async () => {
+        const selectedOption = preferredPathComboBox.options[preferredPathComboBox.selectedIndex];
+        const selectedPath = selectedOption.value;
+        await api.storeSet('user_data.' + userId + '.preferred_path', selectedPath);
+        sessionStorage.setItem('preferred_path', selectedPath);
+    });
+
+    // Update the combo box with the preferred value
+    if (preferredPath !== null) {
+        preferredPathComboBox.value = preferredPath;
+
+        let event = new Event('change');
+        preferredPathComboBox.dispatchEvent(event);
+    }
+
+    const missSFX = await api.storeGet('user_data.' + userId + '.miss_sfx');
+
+    // Update the combo box
+    const missSFXComboBox = document.querySelector('#miss_sfx');
+
+    const customMissSFXElement = document.querySelector('#custom_miss_sfx');
+
+    // Link the combo box selected option to the user's preferred path
+    missSFXComboBox.addEventListener('change', async () => {
+        const selectedOption = missSFXComboBox.options[missSFXComboBox.selectedIndex];
+        const selectedSFX = selectedOption.value;
+        await api.storeSet('user_data.' + userId + '.miss_sfx', selectedSFX);
+        sessionStorage.setItem('miss_sfx', selectedSFX);
+
+        // TODO set the miss SFX path to the proper file
+
+        if (selectedSFX === "custom") {
+            customMissSFXElement.style.display = 'flex';
+        }
+        else {
+            customMissSFXElement.style.display = 'none';
+        }
+    });
+
+    // Update the combo box with the preferred value
+    if (missSFX !== null) {
+        missSFXComboBox.value = missSFX;
+
+        let event = new Event('change');
+        missSFXComboBox.dispatchEvent(event);
+    }
 }
 
 // TODO wrap config into a class so when addon values are changed we can use
