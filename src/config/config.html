@@ -80,12 +80,19 @@
           <option value="none" selected>None</option>
           <option value="guitar_hero">Guitar Hero</option>
           <option value="oof">Oof</option>
-          <option value="custom">Custom</option>
+          <option value="custom" title="Uses the selected sound file">Custom</option>
+          <option value="custom_multi" title="Uses all sound files in the selected folder">Custom (multi)</option>
         </select>
         <div id="custom_miss_sfx" style="display: none; flex-grow: 1;">
           <span id="custom_miss_sfx_path">[none selected]</span>
           <div style="margin-left: auto;">
             <button class="btn-primary" style="cursor: pointer;" onclick="getCustomMissSFXPath()">Browse</button>
+          </div>
+        </div>
+        <div id="custom_miss_sfx_multi" style="display: none; flex-grow: 1;">
+          <span id="custom_miss_sfx_multi_path">[none selected]</span>
+          <div style="margin-left: auto;">
+            <button class="btn-primary" style="cursor: pointer;" onclick="getCustomMissSFXMultiPath()">Browse</button>
           </div>
         </div>
       </div>

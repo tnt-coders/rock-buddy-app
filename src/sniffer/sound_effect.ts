@@ -3,8 +3,14 @@ export class SoundEffect {
     _lastMisses?: number;
     _enabled: boolean = false;
 
-    constructor(type: string, path: string | null) {
-        this.enable(type, path)
+    public static async create(type: string, path: string | null) {
+        let soundEffect = new SoundEffect();
+        await soundEffect.enable(type, path);
+        return soundEffect;
+    }
+
+    public enabled(): boolean {
+        return this._enabled;
     }
 
     async enable(type: string, path: string | null) {
@@ -13,20 +19,33 @@ export class SoundEffect {
 
         if (type === "guitar_hero") {
             for (let i = 0; i < 6; i++) {
-                sounds.push(new Audio(srcdir + `/../media/guitar_hero/miss${i + 1}.mp3`));
+                sounds.push(new Audio(await window.api.pathJoin(srcdir, '../media/guitar_hero', 'miss' + (i + 1) + '.mp3')));
             }
         }
         else if (type === "oof") {
-            sounds.push(new Audio(srcdir + '/../media/oof.mp3'));
+            sounds.push(new Audio(await window.api.pathJoin(srcdir, '../media/oof.mp3')));
         }
+
+        // If a file is selected, load it
         else if (type === "custom" && path !== null) {
             sounds.push(new Audio(path));
+        }
+
+        // If a directory is selected load all audio files in the directory
+        else if (type === "custom_multi" && path !== null) {
+            const files = await window.api.readDir(path);
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.toLowerCase().endsWith('.mp3')) {
+                    sounds.push(new Audio(await window.api.pathJoin(path, file)));
+                }
+            }
         }
         else if (type === "none") {
             return;
         }
         else {
-            throw new Error("Invalid sound encountered trying to add miss SFX.");
+            throw new Error("Invalid type encountered trying to add miss SFX.");
         }
 
         this._sounds = sounds;
@@ -36,10 +55,6 @@ export class SoundEffect {
         this._enabled = true;
     }
     
-    public enabled(): boolean {
-        return this._enabled;
-    }
-
     disable() {
         for (let sound of this._sounds) {
             sound.remove();

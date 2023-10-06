@@ -82,8 +82,11 @@ export class Sniffer {
         if (missSFX === "custom") {
             missSFXPath = await window.api.storeGet('user_data.' + authData['user_id'] + '.custom_miss_sfx_path') as string;
         }
+        else if (missSFX === "custom_multi") {
+            missSFXPath = await window.api.storeGet('user_data.' + authData['user_id'] + '.custom_miss_sfx_multi_path') as string;
+        }
 
-        const soundEffect = new SoundEffect(missSFX, missSFXPath);
+        const soundEffect = await SoundEffect.create(missSFX, missSFXPath);
 
         const sniffer = new Sniffer(rocksmith, rocksniffer, soundEffect);
         await sniffer.init();

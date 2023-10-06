@@ -116,10 +116,20 @@ async function getRocksmithProfiles() {
 async function getCustomMissSFXPath() {
     const defaultPath = document.getElementById('custom_miss_sfx_path').innerText;
 
-    const customMissSFXPath = await api.getFilePath(defaultPath);
+    const customMissSFXPath = await api.getSFXFilePath(defaultPath);
     if (customMissSFXPath !== null) {
         document.getElementById('custom_miss_sfx_path').innerText = customMissSFXPath;
         await api.storeSet('user_data.' + userId + '.custom_miss_sfx_path', customMissSFXPath);
+    }
+}
+
+async function getCustomMissSFXMultiPath() {
+    const defaultPath = document.getElementById('custom_miss_sfx_multi_path').innerText;
+
+    const customMissSFXMultiPath = await api.getPath(defaultPath);
+    if (customMissSFXMultiPath !== null) {
+        document.getElementById('custom_miss_sfx_multi_path').innerText = customMissSFXMultiPath;
+        await api.storeSet('user_data.' + userId + '.custom_miss_sfx_multi_path', customMissSFXMultiPath);
     }
 }
 
@@ -171,6 +181,7 @@ async function getPreferences() {
     // Update the combo box
     const missSFXComboBox = document.querySelector('#miss_sfx');
     const customMissSFXElement = document.querySelector('#custom_miss_sfx');
+    const customMissSFXMultiElement = document.querySelector('#custom_miss_sfx_multi');
 
     // Link the combo box selected option to the user's preferred path
     missSFXComboBox.addEventListener('change', async () => {
@@ -184,6 +195,13 @@ async function getPreferences() {
         else {
             customMissSFXElement.style.display = 'none';
         }
+
+        if (selectedSFX == "custom_multi") {
+            customMissSFXMultiElement.style.display = 'flex';
+        }
+        else {
+            customMissSFXMultiElement.style.display = 'none';
+        }
     });
 
     // Update the combo box
@@ -194,10 +212,16 @@ async function getPreferences() {
         missSFXComboBox.dispatchEvent(event);
     }
 
-    // Update the path
+    // Update the sfx path
     const customMissSFXPath = await api.storeGet('user_data.' + userId + '.custom_miss_sfx_path');
     if (customMissSFXPath !== null) {
         document.getElementById('custom_miss_sfx_path').innerText = customMissSFXPath;
+    }
+
+    // Update the sfx multi path
+    const customMissSFXMultiPath = await api.storeGet('user_data.' + userId + '.custom_miss_sfx_multi_path');
+    if (customMissSFXMultiPath !== null) {
+        document.getElementById('custom_miss_sfx_multi_path').innerText = customMissSFXMultiPath;
     }
 }
 
