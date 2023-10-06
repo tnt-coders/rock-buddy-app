@@ -1,5 +1,6 @@
 import { Rocksmith } from './rocksmith';
 import { Rocksniffer } from './rocksniffer';
+import { SoundEffect } from './sound_effect';
 import { UserData } from '../common/user_data';
 import { showError, showExclusive } from './functions';
 import { approxEqual, buildValidSemver, durationString, getAvailablePaths, logMessage, post } from '../common/functions';
@@ -17,12 +18,15 @@ export class Sniffer {
     private static readonly rocksnifferTimeout: number = 1000 // milliseconds
     private static readonly snortRate: number = 10000; // milliseconds
     private static readonly pauseThreshold: number = 500; // milliseconds
+    private static readonly processSFCRate: number = 10; // milliseconds
 
     private readonly _rocksmith: Rocksmith;
     private readonly _rocksniffer: Rocksniffer;
+    private readonly _soundEffect: SoundEffect;
 
     // Prevent duplicate refreshes
     private _refreshActive: boolean = false;
+    private _processSFXActive: boolean = false;
 
     // Prevent explosion of error messages
     private _syncErrorDisplayed: boolean = false;
@@ -60,16 +64,28 @@ export class Sniffer {
     // Debug fields
     private _extraLogging: boolean = false;
 
-    private constructor(rocksmith: Rocksmith, rocksniffer: Rocksniffer) {
+    private constructor(rocksmith: Rocksmith, rocksniffer: Rocksniffer, soundEffect: SoundEffect) {
         this._rocksmith = rocksmith;
         this._rocksniffer = rocksniffer;
+        this._soundEffect = soundEffect;
     }
 
     public static async create(): Promise<Sniffer> {
         const rocksmith = await Rocksmith.create();
         const rocksniffer = await Rocksniffer.create();
 
-        const sniffer = new Sniffer(rocksmith, rocksniffer);
+        // Read sound effect data from user config
+        const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
+        const missSFX = await window.api.storeGet('user_data.' + authData['user_id'] + '.miss_sfx') as string;
+
+        let missSFXPath = null;
+        if (missSFX === "custom") {
+            missSFXPath = await window.api.storeGet('user_data.' + authData['user_id'] + '.custom_miss_sfx_path') as string;
+        }
+
+        const soundEffect = new SoundEffect(missSFX, missSFXPath);
+
+        const sniffer = new Sniffer(rocksmith, rocksniffer, soundEffect);
         await sniffer.init();
 
         return sniffer;
@@ -89,6 +105,10 @@ export class Sniffer {
         window.api.writeFile("rock-buddy-log.txt", "Sniffer started: " + formattedDate + "\n\n");
 
         setInterval(this.refresh.bind(this), Sniffer.refreshRate);
+
+        if (this._soundEffect.enabled()) {
+            setInterval(this.processSFX.bind(this), Sniffer.processSFCRate);
+        }
     }
 
     public queueSnort(): void {
@@ -340,6 +360,24 @@ export class Sniffer {
         this._rocksnifferTimeoutCounter = 0;
 
         this._refreshActive = false;
+    }
+
+    private async processSFX(): Promise<void> {
+        if (this._processSFXActive === true) {
+            return;
+        }
+
+        this._processSFXActive = true;
+
+        try {
+            const rocksnifferData = await this._rocksniffer.sniff();
+            this._soundEffect.update(rocksnifferData?.memoryReadout?.noteData?.TotalNotesMissed);
+        }
+        catch (error) {
+            // IGNORE
+        }
+    
+        this._processSFXActive = false;
     }
 
     private updateSongInfo(rocksnifferData: any): void {

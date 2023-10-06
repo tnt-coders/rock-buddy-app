@@ -364,6 +364,19 @@ function createWindow() {
         return result.filePaths[0];
     });
 
+    // Get a path on the system
+    ipcMain.handle('get-file-path', async (event, defaultPath) => {
+        const result = await dialog.showOpenDialog({
+            properties: ['openFile'],
+            defaultPath: defaultPath
+        });
+        if (result.canceled) {
+            return null;
+        }
+
+        return result.filePaths[0];
+    });
+
     // Check if a directory exists
     ipcMain.handle('directory-exists', async (event, path) => {
         try {

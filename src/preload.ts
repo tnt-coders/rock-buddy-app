@@ -20,6 +20,7 @@ export const API = {
     storeSet: async (key: string, value: string) => ipcRenderer.invoke('store-set', key, value),
     storeDelete: async (key: string) => ipcRenderer.invoke('store-delete', key),
     getPath: async (defaultPath: string) => ipcRenderer.invoke('get-path', defaultPath),
+    getFilePath: async (defaultPath: string) => ipcRenderer.invoke('get-file-path', defaultPath),
     directoryExists: async (path: string) => ipcRenderer.invoke('directory-exists', path),
     pathJoin: async (...args: string[]) => ipcRenderer.invoke('path-join', ...args),
     getFileTimestamp: async (path: string) => ipcRenderer.invoke('get-file-timestamp', path),

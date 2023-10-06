@@ -116,11 +116,10 @@ async function getRocksmithProfiles() {
 async function getCustomMissSFXPath() {
     const defaultPath = document.getElementById('custom_miss_sfx_path').innerText;
 
-    const customMissSFXPath = await api.getPath(defaultPath);
+    const customMissSFXPath = await api.getFilePath(defaultPath);
     if (customMissSFXPath !== null) {
         document.getElementById('custom_miss_sfx_path').innerText = customMissSFXPath;
         await api.storeSet('user_data.' + userId + '.custom_miss_sfx_path', customMissSFXPath);
-        sessionStorage.setItem('custom_miss_sfx_path', customMissSFXPath);
     }
 }
 
@@ -171,7 +170,6 @@ async function getPreferences() {
 
     // Update the combo box
     const missSFXComboBox = document.querySelector('#miss_sfx');
-
     const customMissSFXElement = document.querySelector('#custom_miss_sfx');
 
     // Link the combo box selected option to the user's preferred path
@@ -179,9 +177,6 @@ async function getPreferences() {
         const selectedOption = missSFXComboBox.options[missSFXComboBox.selectedIndex];
         const selectedSFX = selectedOption.value;
         await api.storeSet('user_data.' + userId + '.miss_sfx', selectedSFX);
-        sessionStorage.setItem('miss_sfx', selectedSFX);
-
-        // TODO set the miss SFX path to the proper file
 
         if (selectedSFX === "custom") {
             customMissSFXElement.style.display = 'flex';
@@ -191,12 +186,18 @@ async function getPreferences() {
         }
     });
 
-    // Update the combo box with the preferred value
+    // Update the combo box
     if (missSFX !== null) {
         missSFXComboBox.value = missSFX;
 
         let event = new Event('change');
         missSFXComboBox.dispatchEvent(event);
+    }
+
+    // Update the path
+    const customMissSFXPath = await api.storeGet('user_data.' + userId + '.custom_miss_sfx_path');
+    if (customMissSFXPath !== null) {
+        document.getElementById('custom_miss_sfx_path').innerText = customMissSFXPath;
     }
 }
 
