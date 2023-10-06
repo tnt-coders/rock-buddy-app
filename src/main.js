@@ -364,6 +364,22 @@ function createWindow() {
         return result.filePaths[0];
     });
 
+    // Get a path on the system
+    ipcMain.handle('get-sfx-file-path', async (event, defaultPath) => {
+        const result = await dialog.showOpenDialog({
+            properties: ['openFile'],
+            filters: [
+                { name: 'Audio Files', extensions: ['mp3'] }
+            ],
+            defaultPath: defaultPath
+        });
+        if (result.canceled) {
+            return null;
+        }
+
+        return result.filePaths[0];
+    });
+
     // Check if a directory exists
     ipcMain.handle('directory-exists', async (event, path) => {
         try {
@@ -384,6 +400,16 @@ function createWindow() {
             return stats.mtime.getTime();
         }
         catch (error) {
+            console.error(error);
+            return null;
+        }
+    });
+
+    // Read a directory and return the contents
+    ipcMain.handle('read-dir', (event, dir) => {
+        try {
+            return fs.readdirSync(dir);
+        } catch (error) {
             console.error(error);
             return null;
         }

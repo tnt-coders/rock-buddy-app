@@ -8,7 +8,8 @@
 </head>
 
 <body>
-  <div style="display: flex; flex-direction: row; align-items: center; gap: 5px; width: 100%; min-width: 800px;" class="navtop">
+  <div style="display: flex; flex-direction: row; align-items: center; gap: 5px; width: 100%; min-width: 800px;"
+    class="navtop">
     <a href="../sniffer/sniffer.html">Sniffer</a>|
     <a href="../search/search.html">Search</a>|
     <a href="../stats/stats.html">Stats</a>|
@@ -35,14 +36,13 @@
       <option value="streamer">Custom</option>
     </select>
   </div>
-  <h2 style="margin-top: 0px;">Settings</h2>
-  <div id="settings">
+  <div id="general">
     <div style="display: flex; flex-direction:column; gap: 10px;">
       <div style="display: flex; flex-direction: row;">
         <span style="margin-right: 10px; font-weight: bold; min-width: 200px;">Steam User Data Path:</span>
         <span id="steam_user_data_path">[none selected]</span>
         <div style="margin-left: auto;">
-          <button class="btn-primary" onclick="getSteamUserDataPath()">Browse</button>
+          <button class="btn-primary" style="cursor: pointer;" onclick="getSteamUserDataPath()">Browse</button>
         </div>
       </div>
       <div style="display: flex; flex-direction: row;">
@@ -54,17 +54,17 @@
         <select id="rocksmith_profile" style="min-width: 100px;"></select>
       </div>
     </div>
+    <div style="display: flex; flex-direction: row; margin-top: 10px;">
+      <span style="margin-right: 10px; font-weight: bold; min-width: 200px;">Window Size:</span>
+      <input type="number" id="window_width" style="width: 100px; margin-right: 10px;">
+      <span style="margin-right: 10px">x</span>
+      <input type="number" id="window_height" style="width: 100px;">
+    </div>
   </div>
   <hr>
-  <h2>Preferences</h2>
-  <div id="preferences">
+  <h2>Sniffer</h2>
+  <div id="sniffer">
     <div style="display: flex; flex-direction:column; gap: 10px;">
-      <div style="display: flex; flex-direction: row;">
-        <span style="margin-right: 10px; font-weight: bold; min-width: 200px;">Window Size:</span>
-        <input type="number" id="window_width" style="width: 100px; margin-right: 10px;">
-        <span style="margin-right: 10px">x</span>
-        <input type="number" id="window_height" style="width: 100px;">
-      </div>
       <div style="display: flex; flex-direction: row;">
         <label for="preferred_path" style="margin-right: 10px; font-weight: bold; min-width: 200px;">Preferred
           Path:</label>
@@ -73,6 +73,28 @@
           <option value="rhythm">Rhythm</option>
           <option value="bass">Bass</option>
         </select>
+      </div>
+      <div style="display: flex; flex-direction: row;">
+        <label for="miss_sfx" style="margin-right: 10px; font-weight: bold; min-width: 200px;">Miss SFX:</label>
+        <select id="miss_sfx" style="margin-right: 10px; min-width: 100px;">
+          <option value="none" selected>None</option>
+          <option value="guitar_hero">Guitar Hero</option>
+          <option value="oof">Oof</option>
+          <option value="custom" title="Uses the selected sound file">Custom</option>
+          <option value="custom_multi" title="Uses all sound files in the selected folder">Custom (multi)</option>
+        </select>
+        <div id="custom_miss_sfx" style="display: none; flex-grow: 1;">
+          <span id="custom_miss_sfx_path">[none selected]</span>
+          <div style="margin-left: auto;">
+            <button class="btn-primary" style="cursor: pointer;" onclick="getCustomMissSFXPath()">Browse</button>
+          </div>
+        </div>
+        <div id="custom_miss_sfx_multi" style="display: none; flex-grow: 1;">
+          <span id="custom_miss_sfx_multi_path">[none selected]</span>
+          <div style="margin-left: auto;">
+            <button class="btn-primary" style="cursor: pointer;" onclick="getCustomMissSFXMultiPath()">Browse</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -96,11 +118,11 @@
   <hr>
   <h2>Debug</h2>
   <div id="debug">
-  <div style="display: flex; flex-direction: row;">
-    <input type="checkbox" id="extra_logging" style="width: 16px; height: 16px; margin-right: 10px;">
-    <label for="extra_logging" style="margin-right: 10px;">Extra Logging</label>
-    <span style="font-style: italic;">(Enabling extra logging may impact performance.)</span>
-  </div>
+    <div style="display: flex; flex-direction: row;">
+      <input type="checkbox" id="extra_logging" style="width: 16px; height: 16px; margin-right: 10px;">
+      <label for="extra_logging" style="margin-right: 10px;">Extra Logging</label>
+      <span style="font-style: italic;">(Enabling extra logging may impact performance.)</span>
+    </div>
   </div>
   <div id="boulder_bro_popup" class="modal">
     <span id="close_boulder_bro_popup" class="close">&times;</span>

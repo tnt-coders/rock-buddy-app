@@ -1,5 +1,6 @@
 import { Rocksmith } from './rocksmith';
 import { Rocksniffer } from './rocksniffer';
+import { SoundEffect } from './sound_effect';
 import { UserData } from '../common/user_data';
 import { showError, showExclusive } from './functions';
 import { approxEqual, buildValidSemver, durationString, getAvailablePaths, logMessage, post } from '../common/functions';
@@ -14,14 +15,21 @@ enum VerificationState {
 export class Sniffer {
     // Refresh rate in milliseconds
     private static readonly refreshRate: number = 100; // milliseconds
+    private static readonly rocksnifferTimeout: number = 1000 // milliseconds
     private static readonly snortRate: number = 10000; // milliseconds
     private static readonly pauseThreshold: number = 500; // milliseconds
+    private static readonly processSFCRate: number = 10; // milliseconds
 
     private readonly _rocksmith: Rocksmith;
     private readonly _rocksniffer: Rocksniffer;
+    private readonly _soundEffect: SoundEffect;
 
     // Prevent duplicate refreshes
     private _refreshActive: boolean = false;
+    private _processSFXActive: boolean = false;
+
+    // Prevent explosion of error messages
+    private _syncErrorDisplayed: boolean = false;
 
     // Game mode/path/difficulty combo box data
     private _preferredPath: string = 'lead';
@@ -45,6 +53,7 @@ export class Sniffer {
     private _pauseTime: number = 0;
     private _lastPauseTime: number = 0;
     private _ending: boolean = false;
+    private _rocksnifferTimeoutCounter: number = 0;
 
     // Snort data
     private _snort: boolean = true; // Set true on startup to ensure initial snorting
@@ -55,16 +64,31 @@ export class Sniffer {
     // Debug fields
     private _extraLogging: boolean = false;
 
-    private constructor(rocksmith: Rocksmith, rocksniffer: Rocksniffer) {
+    private constructor(rocksmith: Rocksmith, rocksniffer: Rocksniffer, soundEffect: SoundEffect) {
         this._rocksmith = rocksmith;
         this._rocksniffer = rocksniffer;
+        this._soundEffect = soundEffect;
     }
 
     public static async create(): Promise<Sniffer> {
         const rocksmith = await Rocksmith.create();
         const rocksniffer = await Rocksniffer.create();
 
-        const sniffer = new Sniffer(rocksmith, rocksniffer);
+        // Read sound effect data from user config
+        const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
+        const missSFX = await window.api.storeGet('user_data.' + authData['user_id'] + '.miss_sfx') as string;
+
+        let missSFXPath = null;
+        if (missSFX === "custom") {
+            missSFXPath = await window.api.storeGet('user_data.' + authData['user_id'] + '.custom_miss_sfx_path') as string;
+        }
+        else if (missSFX === "custom_multi") {
+            missSFXPath = await window.api.storeGet('user_data.' + authData['user_id'] + '.custom_miss_sfx_multi_path') as string;
+        }
+
+        const soundEffect = await SoundEffect.create(missSFX, missSFXPath);
+
+        const sniffer = new Sniffer(rocksmith, rocksniffer, soundEffect);
         await sniffer.init();
 
         return sniffer;
@@ -84,6 +108,10 @@ export class Sniffer {
         window.api.writeFile("rock-buddy-log.txt", "Sniffer started: " + formattedDate + "\n\n");
 
         setInterval(this.refresh.bind(this), Sniffer.refreshRate);
+
+        if (this._soundEffect.enabled()) {
+            setInterval(this.processSFX.bind(this), Sniffer.processSFCRate);
+        }
     }
 
     public queueSnort(): void {
@@ -211,7 +239,8 @@ export class Sniffer {
             unverifiedPopupElement.style.display = 'none';
         });
 
-        this._extraLogging = JSON.parse(window.sessionStorage.getItem('extra_logging') as any);
+        const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
+        this._extraLogging = JSON.parse(await window.api.storeGet('user_data.' + authData['user_id'] + '.extra_logging') as any);
     }
 
     private async sniff(): Promise<any> {
@@ -258,6 +287,13 @@ export class Sniffer {
         }
         this._refreshActive = true;
 
+        // Keep the progress timer in sync even if there was some latency
+        // No need to check if we are in a song or paused since these values will be 0 if we are not in a song
+        this._progressTimer += this._progressTimerSyncOffset;
+        this._progressTimerSyncOffset = 0;
+        this._pauseTimer += this._pauseTimerSyncOffset;
+        this._pauseTimerSyncOffset = 0;
+
         try {
 
             // If we are in a song, update the progress timer
@@ -286,17 +322,35 @@ export class Sniffer {
             this._previousRocksnifferData = rocksnifferData;
         }
         catch (error) {
+            if (error instanceof Error) {
+                if (error.message === "Rocksniffer timed out.") {
+                    this._rocksnifferTimeoutCounter += Rocksniffer.timeout;
+                    if (this._rocksnifferTimeoutCounter > Sniffer.rocksnifferTimeout) {
+                        const timeoutError = new Error("<p>Waiting for Rocksniffer...<br>"
+                                                     + "<br>"
+                                                     + "If this takes more than a few seconds Rocksniffer may have failed to start. If this problem persists, try the following:<br>"
+                                                     + "<ul>"
+                                                     + "<li>Ensure <a href=\"https://dotnet.microsoft.com/en-us/download/dotnet/6.0/runtime\">.NET framework 6.0</a> (for console apps) is installed.</li>"
+                                                     + "<li>Try running Rock Buddy as administrator.</li>"
+                                                     + "<li>Ensure no other app is using the port Rock Buddy uses for Rocksniffer (port 9002 by default).</li>"
+                                                     + "</ul>"
+                                                     + "<br>"
+                                                     + "If none of these solutions resolve your issue, reach out to me in Discord. The link to my discord server can be found in the <a href=\"#\" onclick=\"openTwitchAboutPage()\">About</a> section on my twitch page.</p>");
+                        showError(timeoutError);
+                    }
+
+                    this._refreshActive = false;
+                    return;
+                }
+            }
+
+            // Reset the timout counter (error wasn't a timeout)
+            this._rocksnifferTimeoutCounter = 0;
+            
             showError(error);
             this._refreshActive = false;
             return;
         }
-
-        // Keep the progress timer in sync even if there was some latency
-        // No need to check if we are in a song or paused since these values will be 0 if we are not in a song
-        this._progressTimer += this._progressTimerSyncOffset;
-        this._progressTimerSyncOffset = 0;
-        this._pauseTimer += this._pauseTimerSyncOffset;
-        this._pauseTimerSyncOffset = 0;
 
         // Update the status
         const statusElement = document.getElementById('status') as HTMLElement;
@@ -305,7 +359,28 @@ export class Sniffer {
         // Show connected state
         showExclusive('group1', 'connected');
 
+        // Reset the timout counter
+        this._rocksnifferTimeoutCounter = 0;
+
         this._refreshActive = false;
+    }
+
+    private async processSFX(): Promise<void> {
+        if (this._processSFXActive === true) {
+            return;
+        }
+
+        this._processSFXActive = true;
+
+        try {
+            const rocksnifferData = await this._rocksniffer.sniff();
+            this._soundEffect.update(rocksnifferData?.memoryReadout?.noteData?.TotalNotesMissed);
+        }
+        catch (error) {
+            // IGNORE
+        }
+    
+        this._processSFXActive = false;
     }
 
     private updateSongInfo(rocksnifferData: any): void {
@@ -1059,11 +1134,16 @@ export class Sniffer {
                 leaderboardDataElement.innerText = sync_response['error'];
                 return false;
             }
-            else {
+            else if (!this._syncErrorDisplayed) {
                 window.api.error(sync_response['error']);
+                this._syncErrorDisplayed = true;
                 return false;
             }
         }
+
+        // If we make it this far it means we aren't getting the same sync error repeatedly
+        // It is safe to display it again
+        this._syncErrorDisplayed = false;
 
         const version_response = await post(host + '/api/data/get_versions.php', {
             auth_data: authData,
