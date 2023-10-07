@@ -4,7 +4,7 @@
     "description": "Rock Buddy",
     "main": "./src/main.js",
     "scripts": {
-        "build": "node rocksniffer_build.js && tsc && webpack --mode=development",
+        "build": "python pre_build.py && tsc && webpack --mode=development",
         "start": "npm run build && electron .",
         "dev": "npm run build && electron . http://raspberrypi:8080",
         "release": "npm run build && electron-builder"

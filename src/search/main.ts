@@ -1,4 +1,5 @@
 import { getVersion, post } from "../common/functions";
+import { displayLASLeaderboard, displaySALeaderboard } from "../common/leaderboard";
 
 async function search(input: string) {
     const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
@@ -41,6 +42,14 @@ async function search(input: string) {
     const columns = ['artist', 'title', 'album', 'year', 'author', 'version'];
     const columnsAlign = ['left', 'left', 'left', 'right', 'left', 'right'];
 
+    // Get leaderboard popup element outside loop for efficiency
+    const leaderboardPopupElement = document.getElementById('leaderboard_popup') as HTMLElement;
+    const closeLeaderboardPopupElement = document.getElementById('close_leaderboard_popup') as HTMLElement;
+    const preferredPath = await window.api.storeGet('user_data.' + authData['user_id'] + '.preferred_path') as string
+    closeLeaderboardPopupElement.addEventListener("click", (event) => {
+        leaderboardPopupElement.style.display = 'none';
+    });
+
     // Build each row
     response.forEach((row: any) => {
         const dataRow = document.createElement('tr');
@@ -52,9 +61,19 @@ async function search(input: string) {
             dataCell.style.fontFamily = 'Roboto Mono, monospace';
             dataCell.style.paddingLeft = '5px';
             dataCell.style.paddingRight = '5px';
+            dataCell.style.whiteSpace = 'nowrap';
+            dataCell.style.overflow = 'hidden';
+            dataCell.style.textOverflow = 'ellipsis';
+            dataCell.style.maxWidth = '170px';
+            dataCell.title = row[column];
             dataCell.appendChild(document.createTextNode(row[column]));
             dataCell.style.textAlign = columnsAlign[columnIndex++];
             dataRow.appendChild(dataCell);
+        });
+
+        dataRow.addEventListener("click", (event) => {
+            displayLASLeaderboard(row['song_key'], row['psarc_hash'], preferredPath);
+            leaderboardPopupElement.style.display = 'block';
         });
 
         // Add the row to the table
@@ -64,7 +83,7 @@ async function search(input: string) {
     table.appendChild(bodySection);
 
     // Get the parent element
-    const leaderboardElement = document.getElementById('table') as HTMLElement;
+    const leaderboardElement = document.getElementById('search_results') as HTMLElement;
     leaderboardElement.innerHTML = '';
     leaderboardElement.appendChild(table);
 }
