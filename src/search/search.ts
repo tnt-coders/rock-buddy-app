@@ -1,5 +1,6 @@
-import { post } from "../common/functions";
+import { post, sortPaths } from "../common/functions";
 import { displayLASLeaderboard, displaySALeaderboard } from "../common/leaderboard";
+import { UserData } from '../common/user_data';
 
 const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
 
@@ -11,8 +12,18 @@ interface SongInfo {
 }
 
 export class Search {
-    private _input: string = "";
+    private _input: string = '';
     private _page: number = 0;
+
+    private _artist: string = '';
+    private _title: string = '';
+    private _album: string = '';
+    private _year: number = 0;
+    private _charts: any = null;
+    private _chartIndex: number = 0;
+    private _path: string = 'lead';
+    private _gameMode: string = 'las';
+    private _difficulty: string = 'hard';
 
     private readonly _searchBarElement = document.getElementById('search_bar') as HTMLInputElement;
     private readonly _leaderboardPopupElement = document.getElementById('leaderboard_popup') as HTMLElement;
@@ -22,8 +33,13 @@ export class Search {
     private readonly _albumElement = document.getElementById('album') as HTMLElement;
     private readonly _yearElement = document.getElementById('year') as HTMLElement;
     private readonly _chartElement = document.getElementById('chart') as HTMLSelectElement;
+    private readonly _pathElement = document.getElementById('path') as HTMLSelectElement;
+    private readonly _gameModeElement = document.getElementById('game_mode') as HTMLSelectElement;
+    private readonly _scoreAttackElement = document.getElementById('score_attack') as HTMLElement;
+    private readonly _difficultyElement = document.getElementById('difficulty') as HTMLSelectElement;
 
     constructor () {
+        // Setup search bar
         this._searchBarElement.addEventListener("keyup", (event) => {
             if (event.key === "Enter") {
                 this._input = this._searchBarElement.value;
@@ -32,13 +48,56 @@ export class Search {
             }
         });
 
+        // Setup close button for leaderboard popup
         this._closeLeaderboardPopupElement.addEventListener("click", (event) => {
             this._leaderboardPopupElement.style.display = 'none';
         });
 
-        // Add event listener for prevPage
+        // Setup charts combo box
+        this._chartElement.addEventListener('change', async() => {
+            const selectedOption = this._chartElement.options[this._chartElement.selectedIndex];
+            this._chartIndex = parseInt(selectedOption.value);
 
-        // Add event listener for nextPage
+            this.displayLeaderboardPopup();
+        });
+
+        // Setup game mode combo box
+        this._gameModeElement.addEventListener('change', async () => {
+            const selectedOption = this._gameModeElement.options[this._gameModeElement.selectedIndex];
+            this._gameMode = selectedOption.value;
+
+            if (this._gameMode === 'las') {
+                this._scoreAttackElement.style.display = 'none';
+            }
+            else if (this._gameMode === 'sa') {
+                this._scoreAttackElement.style.display = 'block';
+            }
+
+            // Update the display
+            this.displayLeaderboardPopup();
+        });
+
+        // Setup path combo box
+        this._pathElement.addEventListener('change', async () => {
+            const selectedOption = this._pathElement.options[this._pathElement.selectedIndex];
+            this._path = selectedOption.value;
+
+            // Update the display
+            this.displayLeaderboardPopup();
+        });
+
+        // Setup difficulty combo box
+        this._difficultyElement.addEventListener('change', async () => {
+            const selectedOption = this._difficultyElement.options[this._difficultyElement.selectedIndex];
+            this._difficulty = selectedOption.value;
+
+            // Update the display
+            this.displayLeaderboardPopup();
+        });
+
+        // Add prevPage
+
+        // Add nextPage
     }
 
     private async display() {
@@ -101,7 +160,22 @@ export class Search {
             });
 
             dataRow.addEventListener("click", async (event) => {
-                await this.buildLeaderboardPopup(row['artist'], row['title'], row['album'], row['year']);
+                this._artist = row['artist'];
+                this._title = row['title'];
+                this._album = row['album'];
+                this._year = row['year'];
+
+                // Reset chart index
+                this._chartIndex = 0;
+
+                // Set path to preferred path to start
+                const preferredPath = await UserData.get('preferred_path');
+                if (preferredPath !== null) {
+                    this._path = preferredPath;
+                }
+
+                await this.initLeaderboardPopup();
+                await this.displayLeaderboardPopup();
                 this._leaderboardPopupElement.style.display = 'block';
             });
 
@@ -117,33 +191,36 @@ export class Search {
         leaderboardElement.appendChild(table);
     }
 
-    private async buildLeaderboardPopup(artist: string, title: string, album: string, year: number) {
+    private async initLeaderboardPopup() {
+        // Update the song info
+        this._artistElement.innerText = this._artist;
+        this._titleElement.innerText = this._title;
+        this._albumElement.innerText = this._album;
+        this._yearElement.innerText = this._year.toString();
+
+        // Get avialable charts
         const host = await window.api.getHost();
-        const response = await post(host + '/api/data/get_song_data.php', {
+        const charts = await post(host + '/api/data/get_available_charts.php', {
             auth_data: authData,
-            artist: artist,
-            title: title,
-            album: album,
-            year: year
+            artist: this._artist,
+            title: this._title,
+            album: this._album,
+            year: this._year
         });
 
-        if ('error' in response) {
-            window.api.error(response['error']);
+        if ('error' in charts) {
+            window.api.error(charts['error']);
             return;
         }
 
-        // Update the song info
-        this._artistElement.innerText = artist;
-        this._titleElement.innerText = title;
-        this._albumElement.innerText = album;
-        this._yearElement.innerText = year.toString();
+        this._charts = charts;
 
         let seenCharts: any = {};
 
         // Build available charts popup
         this._chartElement.innerHTML = '';
         let index = 0;
-        response.forEach((chart: any) => {
+        this._charts.forEach((chart: any) => {
             const entry = 'Version ' + chart['version'] + ' - ' + chart['author'];
             const option = document.createElement('option');
 
@@ -158,7 +235,7 @@ export class Search {
             
             option.value = index.toString();
 
-            if (index === 0) {
+            if (index === this._chartIndex) {
                 option.selected = true;
             }
 
@@ -166,6 +243,37 @@ export class Search {
             index++;
         });
 
-        //displayLASLeaderboard(row['song_key'], row['psarc_hash'], preferredPath);
+        const availablePaths = await post(host + '/api/data/get_paths_from_psarc_hash.php', {
+            auth_data: authData,
+            psarc_hash: this._charts[this._chartIndex]['psarc_hash']
+        });
+
+        const sortedPaths = sortPaths(availablePaths);
+        console.log(sortedPaths);
+
+        // Update the path combo box with available paths
+        this._pathElement.innerHTML = '';
+        sortedPaths.forEach((path: string) => {
+            const option = document.createElement('option');
+            option.text = path;
+            option.value = path.toLowerCase();
+
+            if (option.value === this._path) {
+                option.selected = true;
+            }
+
+            this._pathElement.appendChild(option);
+        });
+    }
+
+    private async displayLeaderboardPopup() {
+        const selectedChart = this._charts[this._chartIndex];
+
+        if (this._gameMode === 'las') {
+            await displayLASLeaderboard(selectedChart['song_key'], selectedChart['psarc_hash'], this._path);
+        }
+        else if (this._gameMode === 'sa') {
+            await displaySALeaderboard(selectedChart['song_key'], selectedChart['psarc_hash'], this._path, this._difficulty);
+        }
     }
 }
