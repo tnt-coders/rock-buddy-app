@@ -1,27 +1,39 @@
 import { post } from "../common/functions";
 import { displayLASLeaderboard, displaySALeaderboard } from "../common/leaderboard";
 
+const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
+
 interface SongInfo {
     artist: string;
     title: string;
     album: string;
     year: string;
-    version: string;
-    author: string;
 }
 
 export class Search {
     private _input: string = "";
     private _page: number = 0;
 
+    private readonly _searchBarElement = document.getElementById('search_bar') as HTMLInputElement;
+    private readonly _leaderboardPopupElement = document.getElementById('leaderboard_popup') as HTMLElement;
+    private readonly _closeLeaderboardPopupElement = document.getElementById('close_leaderboard_popup') as HTMLElement;
+    private readonly _artistElement = document.getElementById('artist') as HTMLElement;
+    private readonly _titleElement = document.getElementById('title') as HTMLElement;
+    private readonly _albumElement = document.getElementById('album') as HTMLElement;
+    private readonly _yearElement = document.getElementById('year') as HTMLElement;
+    private readonly _chartElement = document.getElementById('chart') as HTMLSelectElement;
+
     constructor () {
-        const searchBarElement = document.getElementById('search_bar') as HTMLInputElement;
-        searchBarElement.addEventListener("keyup", (event) => {
+        this._searchBarElement.addEventListener("keyup", (event) => {
             if (event.key === "Enter") {
-                this._input = searchBarElement.value;
+                this._input = this._searchBarElement.value;
                 this._page = 0;
                 this.display();
             }
+        });
+
+        this._closeLeaderboardPopupElement.addEventListener("click", (event) => {
+            this._leaderboardPopupElement.style.display = 'none';
         });
 
         // Add event listener for prevPage
@@ -29,25 +41,7 @@ export class Search {
         // Add event listener for nextPage
     }
 
-    private updateSongInfo(songInfo: SongInfo): void {
-        const artistElement = document.getElementById('artist') as HTMLElement;
-        const titleElement = document.getElementById('title') as HTMLElement;
-        const albumElement = document.getElementById('album') as HTMLElement;
-        const yearElement = document.getElementById('year') as HTMLElement;
-        const versionElement = document.getElementById('version') as HTMLElement;
-        const authorElement = document.getElementById('author') as HTMLElement;
-
-        artistElement.innerText = songInfo.artist;
-        titleElement.innerText = songInfo.title;
-        albumElement.innerText = songInfo.album;
-        yearElement.innerText = songInfo.year;
-        versionElement.innerText = songInfo.version;
-        authorElement.innerText = songInfo.author;
-    }
-
     private async display() {
-        const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
-
         const host = await window.api.getHost();
         const response = await post(host + '/api/data/search.php', {
             auth_data: authData,
@@ -85,14 +79,6 @@ export class Search {
         const columns = ['artist', 'title', 'album', 'year'];
         const columnsAlign = ['left', 'left', 'left', 'right'];
 
-        // Get leaderboard popup element outside loop for efficiency
-        const leaderboardPopupElement = document.getElementById('leaderboard_popup') as HTMLElement;
-        const closeLeaderboardPopupElement = document.getElementById('close_leaderboard_popup') as HTMLElement;
-        const preferredPath = await window.api.storeGet('user_data.' + authData['user_id'] + '.preferred_path') as string
-        closeLeaderboardPopupElement.addEventListener("click", (event) => {
-            leaderboardPopupElement.style.display = 'none';
-        });
-
         // Build each row
         response.forEach((row: any) => {
             const dataRow = document.createElement('tr');
@@ -114,19 +100,9 @@ export class Search {
                 dataRow.appendChild(dataCell);
             });
 
-            dataRow.addEventListener("click", (event) => {
-                const songInfo : SongInfo = {
-                    artist: row['artist'],
-                    title: row['title'],
-                    album: row['album'],
-                    year: row['year'],
-                    version: "Unknown",
-                    author: "Unknown"
-                };
-
-                this.updateSongInfo(songInfo);
-                //displayLASLeaderboard(row['song_key'], row['psarc_hash'], preferredPath);
-                leaderboardPopupElement.style.display = 'block';
+            dataRow.addEventListener("click", async (event) => {
+                await this.buildLeaderboardPopup(row['artist'], row['title'], row['album'], row['year']);
+                this._leaderboardPopupElement.style.display = 'block';
             });
 
             // Add the row to the table
@@ -139,5 +115,57 @@ export class Search {
         const leaderboardElement = document.getElementById('search_results') as HTMLElement;
         leaderboardElement.innerHTML = '';
         leaderboardElement.appendChild(table);
+    }
+
+    private async buildLeaderboardPopup(artist: string, title: string, album: string, year: number) {
+        const host = await window.api.getHost();
+        const response = await post(host + '/api/data/get_song_data.php', {
+            auth_data: authData,
+            artist: artist,
+            title: title,
+            album: album,
+            year: year
+        });
+
+        if ('error' in response) {
+            window.api.error(response['error']);
+            return;
+        }
+
+        // Update the song info
+        this._artistElement.innerText = artist;
+        this._titleElement.innerText = title;
+        this._albumElement.innerText = album;
+        this._yearElement.innerText = year.toString();
+
+        let seenCharts: any = {};
+
+        // Build available charts popup
+        this._chartElement.innerHTML = '';
+        let index = 0;
+        response.forEach((chart: any) => {
+            const entry = 'Version ' + chart['version'] + ' - ' + chart['author'];
+            const option = document.createElement('option');
+
+            if (seenCharts.hasOwnProperty(entry)) {
+                seenCharts[entry]++;
+                option.text = entry + ' (' + seenCharts[entry] + ')';
+            }
+            else {
+                option.text = entry;
+                seenCharts[entry] = 0;
+            }
+            
+            option.value = index.toString();
+
+            if (index === 0) {
+                option.selected = true;
+            }
+
+            this._chartElement.appendChild(option);
+            index++;
+        });
+
+        //displayLASLeaderboard(row['song_key'], row['psarc_hash'], preferredPath);
     }
 }

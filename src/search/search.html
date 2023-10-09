@@ -36,12 +36,8 @@
               <h4 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 2px;">
                 <span id="album"></span> (<span id="year"></span>)
               </h4>
-              <div
-                style="font-size: small; margin-left: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                <em>Version <span id="version"></span> - <span id="author"></span></em>
-                <img id="new_version_alert_icon" style="visibility: hidden; height: 15px; margin-left: 2px; vertical-align: middle; cursor: pointer;"
-                  src="./../../images/alert.png">
-              </div>
+              <select id="chart" style="margin-right: 10px;">
+              </select>
             </div>
           </div>
         </div>
@@ -52,11 +48,11 @@
             <option value="las" selected>Learn A Song</option>
             <option value="sa">Score Attack</option>
           </select>
-  
+
           <label for="path">Path:</label>
           <select id="path" style="margin-right: 10px;">
           </select>
-  
+
           <div id="score_attack" style="display: none;">
             <label for="difficulty">Difficulty:</label>
             <select id="difficulty" style="margin-right: 10px;">
