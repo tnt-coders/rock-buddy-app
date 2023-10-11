@@ -1,5 +1,5 @@
 export class UserData {
-    public static async get(key: string): Promise<string | null> {
+    public static async get(key: string): Promise<any | null> {
         const userId = sessionStorage.getItem('user_id');
 
         if (userId !== null) {
@@ -10,7 +10,7 @@ export class UserData {
         }
     }
 
-    public static async set(key: string, value: string): Promise<void> {
+    public static async set(key: string, value: any): Promise<void> {
         const userId = sessionStorage.getItem('user_id');
 
         if (userId !== null) {

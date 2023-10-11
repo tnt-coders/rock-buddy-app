@@ -5,6 +5,9 @@ import { UserData } from '../common/user_data';
 import { showError, showExclusive } from './functions';
 import { approxEqual, buildValidSemver, durationString, getAvailablePaths, logMessage, post } from '../common/functions';
 
+// Global
+const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
+
 enum VerificationState {
     None,
     Verified,
@@ -18,7 +21,7 @@ export class Sniffer {
     private static readonly rocksnifferTimeout: number = 1000 // milliseconds
     private static readonly snortRate: number = 10000; // milliseconds
     private static readonly pauseThreshold: number = 500; // milliseconds
-    private static readonly processSFCRate: number = 10; // milliseconds
+    private static readonly processSFXRate: number = 10; // milliseconds
 
     private readonly _rocksmith: Rocksmith;
     private readonly _rocksniffer: Rocksniffer;
@@ -76,14 +79,17 @@ export class Sniffer {
 
         // Read sound effect data from user config
         const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
-        const missSFX = await window.api.storeGet('user_data.' + authData['user_id'] + '.miss_sfx') as string;
+        let missSFX = await UserData.get('miss_sfx');
+        if (missSFX === null) {
+            missSFX = 'none';
+        }
 
         let missSFXPath = null;
         if (missSFX === "custom") {
-            missSFXPath = await window.api.storeGet('user_data.' + authData['user_id'] + '.custom_miss_sfx_path') as string;
+            missSFXPath = await UserData.get('custom_miss_sfx_path');
         }
         else if (missSFX === "custom_multi") {
-            missSFXPath = await window.api.storeGet('user_data.' + authData['user_id'] + '.custom_miss_sfx_multi_path') as string;
+            missSFXPath = await UserData.get('custom_miss_sfx_multi_path');
         }
 
         const soundEffect = await SoundEffect.create(missSFX, missSFXPath);
@@ -110,7 +116,7 @@ export class Sniffer {
         setInterval(this.refresh.bind(this), Sniffer.refreshRate);
 
         if (this._soundEffect.enabled()) {
-            setInterval(this.processSFX.bind(this), Sniffer.processSFCRate);
+            setInterval(this.processSFX.bind(this), Sniffer.processSFXRate);
         }
     }
 
@@ -239,8 +245,13 @@ export class Sniffer {
             unverifiedPopupElement.style.display = 'none';
         });
 
-        const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
-        this._extraLogging = JSON.parse(await window.api.storeGet('user_data.' + authData['user_id'] + '.extra_logging') as any);
+        const extraLogging = await UserData.get('extra_logging');
+        if (extraLogging !== null) {
+            this._extraLogging = extraLogging;
+        }
+        else {
+            this._extraLogging = false;
+        }
     }
 
     private async sniff(): Promise<any> {
