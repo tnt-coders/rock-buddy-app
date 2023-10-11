@@ -21,7 +21,6 @@ export class Sniffer {
     private static readonly rocksnifferTimeout: number = 1000 // milliseconds
     private static readonly snortRate: number = 10000; // milliseconds
     private static readonly pauseThreshold: number = 500; // milliseconds
-    private static readonly processSFXRate: number = 10; // milliseconds
 
     private readonly _rocksmith: Rocksmith;
     private readonly _rocksniffer: Rocksniffer;
@@ -29,7 +28,6 @@ export class Sniffer {
 
     // Prevent duplicate refreshes
     private _refreshActive: boolean = false;
-    private _processSFXActive: boolean = false;
 
     // Prevent explosion of error messages
     private _syncErrorDisplayed: boolean = false;
@@ -114,10 +112,6 @@ export class Sniffer {
         window.api.writeFile("rock-buddy-log.txt", "Sniffer started: " + formattedDate + "\n\n");
 
         setInterval(this.refresh.bind(this), Sniffer.refreshRate);
-
-        if (this._soundEffect.enabled()) {
-            setInterval(this.processSFX.bind(this), Sniffer.processSFXRate);
-        }
     }
 
     public queueSnort(): void {
@@ -294,6 +288,7 @@ export class Sniffer {
                 }
             }
 
+            logMessage("Refresh already active, returning.");
             return;
         }
         this._refreshActive = true;
@@ -301,8 +296,8 @@ export class Sniffer {
         // Keep the progress timer in sync even if there was some latency
         // No need to check if we are in a song or paused since these values will be 0 if we are not in a song
         this._progressTimer += this._progressTimerSyncOffset;
-        this._progressTimerSyncOffset = 0;
         this._pauseTimer += this._pauseTimerSyncOffset;
+        this._progressTimerSyncOffset = 0;
         this._pauseTimerSyncOffset = 0;
 
         try {
@@ -329,6 +324,10 @@ export class Sniffer {
 
             // Monitor progress
             await this.monitorProgress(rocksnifferData);
+
+            if (this._soundEffect.enabled()) {
+                this._soundEffect.update(rocksnifferData?.memoryReadout?.noteData?.TotalNotesMissed);
+            }
 
             this._previousRocksnifferData = rocksnifferData;
         }
@@ -374,24 +373,6 @@ export class Sniffer {
         this._rocksnifferTimeoutCounter = 0;
 
         this._refreshActive = false;
-    }
-
-    private async processSFX(): Promise<void> {
-        if (this._processSFXActive === true) {
-            return;
-        }
-
-        this._processSFXActive = true;
-
-        try {
-            const rocksnifferData = await this._rocksniffer.sniff();
-            this._soundEffect.update(rocksnifferData?.memoryReadout?.noteData?.TotalNotesMissed);
-        }
-        catch (error) {
-            // IGNORE
-        }
-    
-        this._processSFXActive = false;
     }
 
     private updateSongInfo(rocksnifferData: any): void {
@@ -664,7 +645,16 @@ export class Sniffer {
 
         // If the Rocksniffer gets hung up for more than a full second, mark the score as unverified
         if (this._progressTimerSyncOffset > 1000 || this._pauseTimerSyncOffset > 1000) {
-            this.setVerificationState(VerificationState.Unverified, "Rocksniffer is not responding quickly enough to verify your score. Make sure you are not running any unnecessary programs to minimize system load.");
+            if (this._rocksnifferTimeoutCounter > Sniffer.rocksnifferTimeout) {
+                this.setVerificationState(VerificationState.Unverified, "Rocksniffer is not responding quickly enough to verify your score. Make sure you are not running any unnecessary programs to minimize system load.\n"
+                                                                      + "\n"
+                                                                      + "If this problem persists, please turn on extra logging in the config and report the issue.");
+            }
+            else {
+                this.setVerificationState(VerificationState.Unverified, "The main progress monitoring loop is not responding quickly enough to verify your score. Make sure you are not running any unnecessary programs to minimize system load.\n"
+                                                                      + "\n"
+                                                                      + "If this problem persists, please turn on extra logging in the config and report the issue.");
+            }
         }
 
         const debugInfo = {
