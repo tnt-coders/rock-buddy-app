@@ -55,6 +55,7 @@ export class Sniffer {
     private _lastPauseTime: number = 0;
     private _ending: boolean = false;
     private _rocksnifferTimeoutCounter: number = 0;
+    private _speedChange = false;
 
     // Snort data
     private _snort: boolean = true; // Set true on startup to ensure initial snorting
@@ -693,6 +694,7 @@ export class Sniffer {
             this._pauseTime = 0;
             this._lastPauseTime = 0;
             this._ending = false;
+            this._speedChange = false;
         }
 
         // Currently in a song
@@ -712,7 +714,11 @@ export class Sniffer {
             if (!approxEqual(songTime, previousSongTime) && this._isPaused) {
                 if (songTime < previousSongTime && songTime < startTime && totalNotes === 0) {
                     logMessage("SONG RESTARTED");
-                    this.setVerificationState(VerificationState.Verified, "No violations detected.");
+
+                    // If the user entered riff repeater make sure they exit the song entirely otherwise scores may not verify
+                    if (!this._speedChange) {
+                        this.setVerificationState(VerificationState.Verified, "No violations detected.");
+                    }
 
                     this._inSong = true;
                     this._progressTimer = songTime * 1000;
@@ -814,7 +820,10 @@ export class Sniffer {
 
                     // If the user enters riff repeater, total notes will be reset to 0
                     if (totalNotes < previousTotalNotes) {
-                        this.setVerificationState(VerificationState.Unverified, "The user entered riff repeater.");
+                        this.setVerificationState(VerificationState.Unverified, "The user entered riff repeater.\n"
+                                                                              + "\n"
+                                                                              + "You must fully exit the song and restart for your score to be verified.");
+                        this._speedChange = true;
                         return;
                     }
                 }
@@ -828,7 +837,10 @@ export class Sniffer {
                 // If the progress timer gets 0.3 seconds out of sync with the song change to "unverified"
                 // 0.3 seconds allows it to be off for two refreshes
                 if (!approxEqual(this._progressTimer / 1000, songTime, 0.3)) {
-                    this.setVerificationState(VerificationState.Unverified, "Song speed change detected.");
+                    this.setVerificationState(VerificationState.Unverified, "Song speed change detected.\n"
+                                                                          + "\n"
+                                                                          + "You must fully exit the song and restart for your score to be verified.");
+                    this._speedChange = true;
                     return;
                 }
 
@@ -864,7 +876,9 @@ export class Sniffer {
             else if (previousTotalNotes > previousArrangementNotes) {
                 const errorMessage = "The total number of notes seen was greater than the total note count of the arrangement.\n"
                                    + "\n"
-                                   + "Note: If you pause a song right as a note is being played it can cause the internal note counter within Rocksmith to malfunction resulting in an unverified score. This is a known issue and I am trying to find a workaround.";
+                                   + "Note: If you pause a song right as a note is being played it can cause the internal note counter within Rocksmith to malfunction resulting in an unverified score. This is a known issue and I am trying to find a workaround.\n"
+                                   + "\n"
+                                   + "If you did not pause please report this issue.";
                 this.setVerificationState(VerificationState.Unverified, errorMessage);
                 logMessage("TOTAL NOTES: " + previousTotalNotes);
                 logMessage("ARRANGEMENT NOTES: " + arrangementNotes);
