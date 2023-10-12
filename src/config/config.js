@@ -294,9 +294,11 @@ async function initDebugConfig() {
     let savedExtraLogging = await api.storeGet('user_data.' + userId + '.extra_logging');
     if (savedExtraLogging === null) {
         api.storeSet('user_data.' + userId + '.extra_logging', extraLogging);
+        extraLoggingCheckbox.checked = false;
     }
-
-    extraLoggingCheckbox.checked = false;
+    else {
+        extraLoggingCheckbox.checked = savedExtraLogging;
+    }
 
     extraLoggingCheckbox.addEventListener('change', async () => {
         api.storeSet('user_data.' + userId + '.extra_logging', extraLoggingCheckbox.checked);

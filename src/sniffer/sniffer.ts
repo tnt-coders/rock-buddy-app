@@ -6,6 +6,9 @@ import { showError, showExclusive } from './functions';
 import { approxEqual, buildValidSemver, durationString, getAvailablePaths, logMessage, post } from '../common/functions';
 import { displayLASLeaderboard, displaySALeaderboard } from '../common/leaderboard';
 
+// Global
+const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
+
 enum VerificationState {
     None,
     Verified,
@@ -19,7 +22,6 @@ export class Sniffer {
     private static readonly rocksnifferTimeout: number = 1000 // milliseconds
     private static readonly snortRate: number = 10000; // milliseconds
     private static readonly pauseThreshold: number = 500; // milliseconds
-    private static readonly processSFCRate: number = 10; // milliseconds
 
     private readonly _rocksmith: Rocksmith;
     private readonly _rocksniffer: Rocksniffer;
@@ -27,7 +29,6 @@ export class Sniffer {
 
     // Prevent duplicate refreshes
     private _refreshActive: boolean = false;
-    private _processSFXActive: boolean = false;
 
     // Prevent explosion of error messages
     private _syncErrorDisplayed: boolean = false;
@@ -55,6 +56,7 @@ export class Sniffer {
     private _lastPauseTime: number = 0;
     private _ending: boolean = false;
     private _rocksnifferTimeoutCounter: number = 0;
+    private _speedChange = false;
 
     // Snort data
     private _snort: boolean = true; // Set true on startup to ensure initial snorting
@@ -77,14 +79,17 @@ export class Sniffer {
 
         // Read sound effect data from user config
         const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
-        const missSFX = await window.api.storeGet('user_data.' + authData['user_id'] + '.miss_sfx') as string;
+        let missSFX = await UserData.get('miss_sfx');
+        if (missSFX === null) {
+            missSFX = 'none';
+        }
 
         let missSFXPath = null;
         if (missSFX === "custom") {
-            missSFXPath = await window.api.storeGet('user_data.' + authData['user_id'] + '.custom_miss_sfx_path') as string;
+            missSFXPath = await UserData.get('custom_miss_sfx_path');
         }
         else if (missSFX === "custom_multi") {
-            missSFXPath = await window.api.storeGet('user_data.' + authData['user_id'] + '.custom_miss_sfx_multi_path') as string;
+            missSFXPath = await UserData.get('custom_miss_sfx_multi_path');
         }
 
         const soundEffect = await SoundEffect.create(missSFX, missSFXPath);
@@ -109,10 +114,6 @@ export class Sniffer {
         window.api.writeFile("rock-buddy-log.txt", "Sniffer started: " + formattedDate + "\n\n");
 
         setInterval(this.refresh.bind(this), Sniffer.refreshRate);
-
-        if (this._soundEffect.enabled()) {
-            setInterval(this.processSFX.bind(this), Sniffer.processSFCRate);
-        }
     }
 
     public queueSnort(): void {
@@ -240,8 +241,13 @@ export class Sniffer {
             unverifiedPopupElement.style.display = 'none';
         });
 
-        const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
-        this._extraLogging = JSON.parse(await window.api.storeGet('user_data.' + authData['user_id'] + '.extra_logging') as any);
+        const extraLogging = await UserData.get('extra_logging');
+        if (extraLogging !== null) {
+            this._extraLogging = extraLogging;
+        }
+        else {
+            this._extraLogging = false;
+        }
     }
 
     private async sniff(): Promise<any> {
@@ -284,6 +290,7 @@ export class Sniffer {
                 }
             }
 
+            logMessage("Refresh already active, returning.");
             return;
         }
         this._refreshActive = true;
@@ -291,8 +298,8 @@ export class Sniffer {
         // Keep the progress timer in sync even if there was some latency
         // No need to check if we are in a song or paused since these values will be 0 if we are not in a song
         this._progressTimer += this._progressTimerSyncOffset;
-        this._progressTimerSyncOffset = 0;
         this._pauseTimer += this._pauseTimerSyncOffset;
+        this._progressTimerSyncOffset = 0;
         this._pauseTimerSyncOffset = 0;
 
         try {
@@ -319,6 +326,10 @@ export class Sniffer {
 
             // Monitor progress
             await this.monitorProgress(rocksnifferData);
+
+            if (this._soundEffect.enabled()) {
+                this._soundEffect.update(rocksnifferData?.memoryReadout?.noteData?.TotalNotesMissed);
+            }
 
             this._previousRocksnifferData = rocksnifferData;
         }
@@ -364,24 +375,6 @@ export class Sniffer {
         this._rocksnifferTimeoutCounter = 0;
 
         this._refreshActive = false;
-    }
-
-    private async processSFX(): Promise<void> {
-        if (this._processSFXActive === true) {
-            return;
-        }
-
-        this._processSFXActive = true;
-
-        try {
-            const rocksnifferData = await this._rocksniffer.sniff();
-            this._soundEffect.update(rocksnifferData?.memoryReadout?.noteData?.TotalNotesMissed);
-        }
-        catch (error) {
-            // IGNORE
-        }
-    
-        this._processSFXActive = false;
     }
 
     private updateSongInfo(rocksnifferData: any): void {
@@ -654,7 +647,16 @@ export class Sniffer {
 
         // If the Rocksniffer gets hung up for more than a full second, mark the score as unverified
         if (this._progressTimerSyncOffset > 1000 || this._pauseTimerSyncOffset > 1000) {
-            this.setVerificationState(VerificationState.Unverified, "Rocksniffer is not responding quickly enough to verify your score. Make sure you are not running any unnecessary programs to minimize system load.");
+            if (this._rocksnifferTimeoutCounter > Sniffer.rocksnifferTimeout) {
+                this.setVerificationState(VerificationState.Unverified, "Rocksniffer is not responding quickly enough to verify your score. Make sure you are not running any unnecessary programs to minimize system load.\n"
+                                                                      + "\n"
+                                                                      + "If this problem persists, please turn on extra logging in the config and report the issue.");
+            }
+            else {
+                this.setVerificationState(VerificationState.Unverified, "The main progress monitoring loop is not responding quickly enough to verify your score. Make sure you are not running any unnecessary programs to minimize system load.\n"
+                                                                      + "\n"
+                                                                      + "If this problem persists, please turn on extra logging in the config and report the issue.");
+            }
         }
 
         const debugInfo = {
@@ -693,6 +695,7 @@ export class Sniffer {
             this._pauseTime = 0;
             this._lastPauseTime = 0;
             this._ending = false;
+            this._speedChange = false;
         }
 
         // Currently in a song
@@ -712,7 +715,11 @@ export class Sniffer {
             if (!approxEqual(songTime, previousSongTime) && this._isPaused) {
                 if (songTime < previousSongTime && songTime < startTime && totalNotes === 0) {
                     logMessage("SONG RESTARTED");
-                    this.setVerificationState(VerificationState.Verified, "No violations detected.");
+
+                    // If the user entered riff repeater make sure they exit the song entirely otherwise scores may not verify
+                    if (!this._speedChange) {
+                        this.setVerificationState(VerificationState.Verified, "No violations detected.");
+                    }
 
                     this._inSong = true;
                     this._progressTimer = songTime * 1000;
@@ -814,7 +821,10 @@ export class Sniffer {
 
                     // If the user enters riff repeater, total notes will be reset to 0
                     if (totalNotes < previousTotalNotes) {
-                        this.setVerificationState(VerificationState.Unverified, "The user entered riff repeater.");
+                        this.setVerificationState(VerificationState.Unverified, "The user entered riff repeater.\n"
+                                                                              + "\n"
+                                                                              + "You must fully exit the song and restart for your score to be verified.");
+                        this._speedChange = true;
                         return;
                     }
                 }
@@ -828,7 +838,10 @@ export class Sniffer {
                 // If the progress timer gets 0.3 seconds out of sync with the song change to "unverified"
                 // 0.3 seconds allows it to be off for two refreshes
                 if (!approxEqual(this._progressTimer / 1000, songTime, 0.3)) {
-                    this.setVerificationState(VerificationState.Unverified, "Song speed change detected.");
+                    this.setVerificationState(VerificationState.Unverified, "Song speed change detected.\n"
+                                                                          + "\n"
+                                                                          + "You must fully exit the song and restart for your score to be verified.");
+                    this._speedChange = true;
                     return;
                 }
 
@@ -864,7 +877,9 @@ export class Sniffer {
             else if (previousTotalNotes > previousArrangementNotes) {
                 const errorMessage = "The total number of notes seen was greater than the total note count of the arrangement.\n"
                                    + "\n"
-                                   + "Note: If you pause a song right as a note is being played it can cause the internal note counter within Rocksmith to malfunction resulting in an unverified score. This is a known issue and I am trying to find a workaround.";
+                                   + "Note: If you pause a song right as a note is being played it can cause the internal note counter within Rocksmith to malfunction resulting in an unverified score. This is a known issue and I am trying to find a workaround.\n"
+                                   + "\n"
+                                   + "If you did not pause please report this issue.";
                 this.setVerificationState(VerificationState.Unverified, errorMessage);
                 logMessage("TOTAL NOTES: " + previousTotalNotes);
                 logMessage("ARRANGEMENT NOTES: " + arrangementNotes);

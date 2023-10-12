@@ -1,5 +1,7 @@
+import { logMessage } from "../common/functions";
+
 export class Rocksniffer {
-    public static readonly timeout: number = 200; // milliseconds
+    public static readonly timeout: number = 100; // milliseconds
     private static readonly requiredVersion: string = 'v0.4.1-buddy';
 
     private readonly _path: string;
@@ -56,6 +58,7 @@ export class Rocksniffer {
         }
         catch (error) {
             if (waiting) {
+                logMessage("Rocksniffer timed out.");
                 throw new Error("Rocksniffer timed out.");
             }
             
@@ -93,7 +96,7 @@ export class Rocksniffer {
 
         // Enable addons if they are disabled
         if (!addonConfig.enableAddons) {
-            console.log('Enabling Rocksniffer addons.');
+            logMessage('Enabling Rocksniffer addons.');
             addonConfig.enableAddons = true;
             await window.api.writeFile(addonConfigFile, JSON.stringify(addonConfig, null, 2));
         }
