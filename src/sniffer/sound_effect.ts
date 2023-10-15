@@ -17,35 +17,54 @@ export class SoundEffect {
         const srcdir = await window.api.getSrcDir();
         const sounds = [];
 
-        if (type === "guitar_hero") {
+        if (type === 'guitar_hero') {
             for (let i = 0; i < 6; i++) {
                 sounds.push(new Audio(await window.api.pathJoin(srcdir, '../media/guitar_hero', 'miss' + (i + 1) + '.mp3')));
             }
         }
-        else if (type === "oof") {
+        else if (type == 'doh') {
+            const files = await window.api.readDir(await window.api.pathJoin(srcdir, '../media/doh'));
+            for (let i = 0; i < files.length; i++) {
+                sounds.push(new Audio(await window.api.pathJoin(srcdir, '../media/doh', files[i])));
+            }
+        }
+        else if (type === 'oof') {
             sounds.push(new Audio(await window.api.pathJoin(srcdir, '../media/oof.mp3')));
+        }
+        else if (type === 'oof2') {
+            sounds.push(new Audio(await window.api.pathJoin(srcdir, '../media/oof2.wav')));
         }
 
         // If a file is selected, load it
-        else if (type === "custom" && path !== null) {
-            sounds.push(new Audio(path));
+        else if (type === 'custom') {
+            if (path !== null) {
+                sounds.push(new Audio(path));
+            }
+            else {
+                throw new Error('Miss SFX set to "Custom", but no file has been selected.');
+            }
         }
 
         // If a directory is selected load all audio files in the directory
-        else if (type === "custom_multi" && path !== null) {
-            const files = await window.api.readDir(path);
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                if (file.toLowerCase().endsWith('.mp3')) {
-                    sounds.push(new Audio(await window.api.pathJoin(path, file)));
+        else if (type === 'custom_multi') {
+            if (path !== null) {
+                const files = await window.api.readDir(path);
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    if (file.toLowerCase().endsWith('.mp3') || file.toLowerCase().endsWith('.wav')) {
+                        sounds.push(new Audio(await window.api.pathJoin(path, file)));
+                    }
                 }
             }
+            else {
+                throw new Error('Miss SFX set to "Custom (multi)", but no folder has been selected.');
+            }
         }
-        else if (type === "none") {
+        else if (type === 'none') {
             return;
         }
         else {
-            throw new Error("Invalid type encountered trying to add miss SFX.");
+            throw new Error('Invalid type encountered trying to add miss SFX: "' + type + '"');
         }
 
         this._sounds = sounds;
