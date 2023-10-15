@@ -369,7 +369,7 @@ function createWindow() {
         const result = await dialog.showOpenDialog({
             properties: ['openFile'],
             filters: [
-                { name: 'Audio Files', extensions: ['mp3'] }
+                { name: 'Audio Files', extensions: ['mp3', 'wav'] }
             ],
             defaultPath: defaultPath
         });
