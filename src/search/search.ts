@@ -159,6 +159,8 @@ export class Search {
                 dataRow.appendChild(dataCell);
             });
 
+            dataRow.style.cursor = 'pointer';
+
             dataRow.addEventListener("click", async (event) => {
                 this._artist = row['artist'];
                 this._title = row['title'];
