@@ -20,7 +20,7 @@ export class Sniffer {
     // Refresh rate in milliseconds
     private static readonly refreshRate: number = 100; // milliseconds
     private static readonly rocksnifferTimeout: number = 1000 // milliseconds
-    private static readonly snortRate: number = 10000; // milliseconds
+    private static readonly snortRate: number = 3000; // milliseconds
     private static readonly pauseThreshold: number = 500; // milliseconds
 
     private readonly _rocksmith: Rocksmith;
@@ -61,7 +61,7 @@ export class Sniffer {
     // Snort data
     private _snort: boolean = true; // Set true on startup to ensure initial snorting
     private _snorted: boolean = false; // Set false on startup to ensure initial snorting
-    private _snortCountdown: number = 10; // seconds
+    private _snortCountdown: number = Sniffer.snortRate / 1000; // seconds
     private _timeSinceLastSnort: number = 0;
 
     // Debug fields
@@ -1008,7 +1008,7 @@ export class Sniffer {
             this._snorted = false;
 
             // Reset the snort countdown
-            this._snortCountdown = 10;
+            this._snortCountdown = Sniffer.snortRate / 1000;
 
             // If new profile data is available AND the song is changing, snort the previous song data
             // This fixes a bug where rock buddy data would not be updated after playing a song in nonstop play
@@ -1019,7 +1019,7 @@ export class Sniffer {
         }
 
         // If it has been over 10 seconds since the last snort, enable the snort button
-        if (!this._snort && this._timeSinceLastSnort / 1000 >= 10) {
+        if (!this._snort && this._timeSinceLastSnort / 1000 >= Sniffer.snortRate / 1000) {
             snortButton.disabled = false;
         }
 
