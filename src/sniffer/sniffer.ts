@@ -646,7 +646,7 @@ export class Sniffer {
         }
 
         // If the Rocksniffer gets hung up for more than a full second, mark the score as unverified
-        if (this._progressTimerSyncOffset > 1000 || this._pauseTimerSyncOffset > 1000) {
+        if (!this._ending && !this._isPaused && (this._progressTimerSyncOffset > 1000 || this._pauseTimerSyncOffset > 1000)) {
             if (this._rocksnifferTimeoutCounter > Sniffer.rocksnifferTimeout) {
                 this.setVerificationState(VerificationState.Unverified, "Rocksniffer is not responding quickly enough to verify your score. Make sure you are not running any unnecessary programs to minimize system load.\n"
                                                                       + "\n"
