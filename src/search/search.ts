@@ -4,27 +4,7 @@ import { UserData } from '../common/user_data';
 
 const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
 
-interface SongInfo {
-    artist: string;
-    title: string;
-    album: string;
-    year: string;
-}
-
 export class Search {
-    private _input: string = '';
-    private _page: number = 0;
-
-    private _artist: string = '';
-    private _title: string = '';
-    private _album: string = '';
-    private _year: number = 0;
-    private _charts: any = null;
-    private _chartIndex: number = 0;
-    private _path: string = 'lead';
-    private _gameMode: string = 'las';
-    private _difficulty: string = 'hard';
-
     private readonly _searchBarElement = document.getElementById('search_bar') as HTMLInputElement;
     private readonly _leaderboardPopupElement = document.getElementById('leaderboard_popup') as HTMLElement;
     private readonly _closeLeaderboardPopupElement = document.getElementById('close_leaderboard_popup') as HTMLElement;
@@ -37,6 +17,19 @@ export class Search {
     private readonly _gameModeElement = document.getElementById('game_mode') as HTMLSelectElement;
     private readonly _scoreAttackElement = document.getElementById('score_attack') as HTMLElement;
     private readonly _difficultyElement = document.getElementById('difficulty') as HTMLSelectElement;
+
+    private _input: string = '';
+    private _page: number = 0;
+
+    private _artist: string = '';
+    private _title: string = '';
+    private _album: string = '';
+    private _year: number = 0;
+    private _charts: any = null;
+    private _chartIndex: number = 0;
+    private _path: string = 'lead';
+    private _gameMode: string = 'las';
+    private _difficulty: string = 'hard';
 
     constructor () {
         // Setup search bar
