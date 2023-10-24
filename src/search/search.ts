@@ -245,9 +245,10 @@ export class Search {
             index++;
         });
 
-        const availablePaths = await post(host + '/api/data/get_paths_from_psarc_hash.php', {
+        const availablePaths = await post(host + '/api/data/get_paths_from_psarc.php', {
             auth_data: authData,
-            psarc_hash: this._charts[this._chartIndex]['psarc_hash']
+            psarc_hash: this._charts[this._chartIndex]['psarc_hash'],
+            song_key: this._charts[this._chartIndex]['song_key']
         });
 
         const sortedPaths = sortPaths(availablePaths);
