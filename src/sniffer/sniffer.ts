@@ -1057,6 +1057,9 @@ export class Sniffer {
 
         // Grab current Rocksmith profile data
         const rocksmithData = await this._rocksmith.getProfileData();
+        if (rocksmithData === null) {
+            throw new Error("Failed to read Rocksmith profile data. Please check your config settings.");
+        }
 
         // Define object to hold snort data
         let snortData: any = {};
