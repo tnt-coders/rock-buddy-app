@@ -52,6 +52,7 @@ export class Sniffer {
     private _pauseTimerSyncOffset: number = 0; // Sometimes more than one refresh occurs between updates on slower PCs
     private _maybePaused: boolean = false;
     private _isPaused: boolean = false;
+    private _pausedInLast10Minutes: boolean = false;
     private _pauseTime: number = 0;
     private _lastPauseTime: number = 0;
     private _ending: boolean = false;
@@ -800,6 +801,7 @@ export class Sniffer {
 
                 // If the song was paused we need to update the progress timer (the game rewinds slightly)
                 if (this._isPaused) {
+                    this._pausedInLast10Minutes = true;
                     logMessage("SONG RESUMED");
 
                     // Subtract the time we waited to ensure the song was paused
@@ -830,9 +832,10 @@ export class Sniffer {
                 }
 
                 // Check if 10 minutes have passed since last pause
-                if (this._verified === true && songTime - this._lastPauseTime > 600) {
+                if (this._verified === true && this._pausedInLast10Minutes && songTime - this._lastPauseTime > 600) {
                     logMessage("10 MINUTES PASSED SINCE LAST PAUSE");
                     this.setVerificationState(VerificationState.Verified, "No violations detected.");
+                    this._pausedInLast10Minutes = false;
                 }
 
                 // If the progress timer gets 0.3 seconds out of sync with the song change to "unverified"
