@@ -252,7 +252,6 @@ export class Search {
         });
 
         const sortedPaths = sortPaths(availablePaths);
-        console.log(sortedPaths);
 
         // Update the path combo box with available paths
         this._pathElement.innerHTML = '';
@@ -271,6 +270,21 @@ export class Search {
 
     private async displayLeaderboardPopup() {
         const selectedChart = this._charts[this._chartIndex];
+
+        const host = await window.api.getHost();
+        const availablePaths = await post(host + '/api/data/get_paths_from_psarc.php', {
+            auth_data: authData,
+            psarc_hash: this._charts[this._chartIndex]['psarc_hash'],
+            song_key: this._charts[this._chartIndex]['song_key']
+        });
+
+        const sortedPaths = sortPaths(availablePaths);
+
+        // Handle situation where the chart doesn't have the currently selected path
+        if (!sortedPaths.includes(this._path))
+        {
+            this._path = sortedPaths[0];
+        }
 
         if (this._gameMode === 'las') {
             await displayLASLeaderboard(selectedChart['song_key'], selectedChart['psarc_hash'], this._path);
