@@ -674,6 +674,7 @@ export class Sniffer {
             progressTimer: this._progressTimer,
             maybePaused: this._maybePaused,
             isPaused: this._isPaused,
+            pausedInLast10Minutes: this._pausedInLast10Minutes,
             pauseTimer: this._pauseTimer,
             pauseTime: this._pauseTime,
             lastPauseTime: this._lastPauseTime,
@@ -692,6 +693,7 @@ export class Sniffer {
             this._progressTimer = songTime * 1000;
             this._maybePaused = false;
             this._isPaused = false;
+            this._pausedInLast10Minutes = false;
             this._pauseTimer = 0;
             this._pauseTime = 0;
             this._lastPauseTime = 0;
@@ -726,6 +728,7 @@ export class Sniffer {
                     this._progressTimer = songTime * 1000;
                     this._maybePaused = false;
                     this._isPaused = false;
+                    this._pausedInLast10Minutes = false;
                     this._pauseTimer = 0;
                     this._pauseTime = 0;
                     this._lastPauseTime = 0;
@@ -905,6 +908,7 @@ export class Sniffer {
             this._progressTimer = 0;
             this._maybePaused = false;
             this._isPaused = false;
+            this._pausedInLast10Minutes = false;
             this._pauseTimer = 0;
             this._pauseTime = 0;
             this._lastPauseTime = 0;
