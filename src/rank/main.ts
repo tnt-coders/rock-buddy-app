@@ -348,7 +348,7 @@ async function main() {
     document.title += ' v' + version;
 
     const disclaimerElement = document.getElementById('disclaimer') as HTMLElement;
-    disclaimerElement.innerText = "*Your rank is calculated hourly based on number of verified scores you defeat.";
+    disclaimerElement.innerText = "*Your rank is calculated hourly based on number of verified scores you defeat (or tie).";
 
     get_ranks_top3();
 
