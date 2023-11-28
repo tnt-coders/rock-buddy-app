@@ -170,15 +170,8 @@ export class Search {
                 // Reset chart index
                 this._chartIndex = 0;
 
-                // Set path to preferred path to start
-                const preferredPath = await UserData.get('preferred_path');
-                if (preferredPath !== null) {
-                    this._path = preferredPath;
-                }
-
                 await this.initLeaderboardPopup();
                 await this.displayLeaderboardPopup();
-                this._leaderboardPopupElement.style.display = 'block';
             });
 
             // Add the row to the table
@@ -251,6 +244,13 @@ export class Search {
             song_key: this._charts[this._chartIndex]['song_key']
         });
 
+        // Set path to preferred path to start
+        let preferredPath = await UserData.get('preferred_path');
+        if (preferredPath === null) {
+            preferredPath = 'Lead';
+        }
+        this._path = preferredPath;
+
         const sortedPaths = sortPaths(availablePaths);
 
         // Update the path combo box with available paths
@@ -278,12 +278,14 @@ export class Search {
             song_key: this._charts[this._chartIndex]['song_key']
         });
 
-        const sortedPaths = sortPaths(availablePaths);
+        const sortedPaths = sortPaths(availablePaths).map(path => path.toLowerCase());
 
         // Handle situation where the chart doesn't have the currently selected path
         if (!sortedPaths.includes(this._path))
         {
-            this._path = sortedPaths[0];
+            this._pathElement.value = sortedPaths[0];
+            const event = new Event('change');
+            this._pathElement.dispatchEvent(event);
         }
 
         if (this._gameMode === 'las') {
@@ -292,5 +294,7 @@ export class Search {
         else if (this._gameMode === 'sa') {
             await displaySALeaderboard(selectedChart['song_key'], selectedChart['psarc_hash'], this._path, this._difficulty);
         }
+
+        this._leaderboardPopupElement.style.display = 'block';
     }
 }
