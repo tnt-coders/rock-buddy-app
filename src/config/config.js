@@ -133,6 +133,10 @@ async function getCustomMissSFXMultiPath() {
     }
 }
 
+async function openAddonsFolder() {
+    api.openAddonsFolder();
+}
+
 async function getPreferences() {
     const windowWidthEntry = document.getElementById('window_width');
     const windowHeightEntry = document.getElementById('window_height');

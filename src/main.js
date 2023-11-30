@@ -5,6 +5,7 @@ const aesjs = require('aes-js');
 const axios = require('axios');
 const http = require('http');
 const path = require('path');
+const openFileExplorer = require('open-file-explorer');
 const fs = require('fs');
 const glob = require('glob');
 const semver = require('semver');
@@ -512,6 +513,19 @@ function createWindow() {
             });
         }, 100);
     }
+
+    ipcMain.on('open-addons-folder', (event) => {
+        if (isDev) {
+            dialog.showMessageBox({
+                type: 'warning',
+                message: "Addons folder doesn't exist until Rock Buddy installer is run.",
+                buttons: ['OK']
+            });
+            return;
+        }
+
+        openFileExplorer('addons');
+    });
 
     ipcMain.on('enable-addons', enableAddons);
 
