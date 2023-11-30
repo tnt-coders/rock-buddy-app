@@ -1,5 +1,6 @@
 dist/
 release/
 node_modules/
+.idea
 
 rock-buddy-log.txt
