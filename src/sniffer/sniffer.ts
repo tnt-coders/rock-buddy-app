@@ -4,6 +4,7 @@ import { SoundEffect } from './sound_effect';
 import { UserData } from '../common/user_data';
 import { showError, showExclusive } from './functions';
 import { approxEqual, buildValidSemver, durationString, getAvailablePaths, logMessage, post } from '../common/functions';
+import { displayLASLeaderboard, displaySALeaderboard } from '../common/leaderboard';
 
 // Global
 const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
@@ -19,7 +20,7 @@ export class Sniffer {
     // Refresh rate in milliseconds
     private static readonly refreshRate: number = 100; // milliseconds
     private static readonly rocksnifferTimeout: number = 1000 // milliseconds
-    private static readonly snortRate: number = 10000; // milliseconds
+    private static readonly snortRate: number = 3000; // milliseconds
     private static readonly pauseThreshold: number = 500; // milliseconds
 
     private readonly _rocksmith: Rocksmith;
@@ -51,6 +52,7 @@ export class Sniffer {
     private _pauseTimerSyncOffset: number = 0; // Sometimes more than one refresh occurs between updates on slower PCs
     private _maybePaused: boolean = false;
     private _isPaused: boolean = false;
+    private _pausedInLast10Minutes: boolean = false;
     private _pauseTime: number = 0;
     private _lastPauseTime: number = 0;
     private _ending: boolean = false;
@@ -60,7 +62,7 @@ export class Sniffer {
     // Snort data
     private _snort: boolean = true; // Set true on startup to ensure initial snorting
     private _snorted: boolean = false; // Set false on startup to ensure initial snorting
-    private _snortCountdown: number = 10; // seconds
+    private _snortCountdown: number = Sniffer.snortRate / 1000; // seconds
     private _timeSinceLastSnort: number = 0;
 
     // Debug fields
@@ -334,6 +336,7 @@ export class Sniffer {
         }
         catch (error) {
             if (error instanceof Error) {
+                logMessage("ERROR: " + error.message);
                 if (error.message === "Rocksniffer timed out.") {
                     this._rocksnifferTimeoutCounter += Rocksniffer.timeout;
                     if (this._rocksnifferTimeoutCounter > Sniffer.rocksnifferTimeout) {
@@ -645,7 +648,7 @@ export class Sniffer {
         }
 
         // If the Rocksniffer gets hung up for more than a full second, mark the score as unverified
-        if (this._progressTimerSyncOffset > 1000 || this._pauseTimerSyncOffset > 1000) {
+        if (!this._ending && !this._isPaused && (this._progressTimerSyncOffset > 1000 || this._pauseTimerSyncOffset > 1000)) {
             if (this._rocksnifferTimeoutCounter > Sniffer.rocksnifferTimeout) {
                 this.setVerificationState(VerificationState.Unverified, "Rocksniffer is not responding quickly enough to verify your score. Make sure you are not running any unnecessary programs to minimize system load.\n"
                                                                       + "\n"
@@ -672,6 +675,7 @@ export class Sniffer {
             progressTimer: this._progressTimer,
             maybePaused: this._maybePaused,
             isPaused: this._isPaused,
+            pausedInLast10Minutes: this._pausedInLast10Minutes,
             pauseTimer: this._pauseTimer,
             pauseTime: this._pauseTime,
             lastPauseTime: this._lastPauseTime,
@@ -690,6 +694,7 @@ export class Sniffer {
             this._progressTimer = songTime * 1000;
             this._maybePaused = false;
             this._isPaused = false;
+            this._pausedInLast10Minutes = false;
             this._pauseTimer = 0;
             this._pauseTime = 0;
             this._lastPauseTime = 0;
@@ -724,6 +729,7 @@ export class Sniffer {
                     this._progressTimer = songTime * 1000;
                     this._maybePaused = false;
                     this._isPaused = false;
+                    this._pausedInLast10Minutes = false;
                     this._pauseTimer = 0;
                     this._pauseTime = 0;
                     this._lastPauseTime = 0;
@@ -799,6 +805,7 @@ export class Sniffer {
 
                 // If the song was paused we need to update the progress timer (the game rewinds slightly)
                 if (this._isPaused) {
+                    this._pausedInLast10Minutes = true;
                     logMessage("SONG RESUMED");
 
                     // Subtract the time we waited to ensure the song was paused
@@ -829,14 +836,15 @@ export class Sniffer {
                 }
 
                 // Check if 10 minutes have passed since last pause
-                if (this._verified === true && songTime - this._lastPauseTime > 600) {
+                if (this._verified === true && this._pausedInLast10Minutes && songTime - this._lastPauseTime > 600) {
                     logMessage("10 MINUTES PASSED SINCE LAST PAUSE");
                     this.setVerificationState(VerificationState.Verified, "No violations detected.");
+                    this._pausedInLast10Minutes = false;
                 }
 
                 // If the progress timer gets 0.3 seconds out of sync with the song change to "unverified"
                 // 0.3 seconds allows it to be off for two refreshes
-                if (!approxEqual(this._progressTimer / 1000, songTime, 0.3)) {
+                if (!this._maybePaused && !approxEqual(this._progressTimer / 1000, songTime, 0.3)) {
                     this.setVerificationState(VerificationState.Unverified, "Song speed change detected.\n"
                                                                           + "\n"
                                                                           + "You must fully exit the song and restart for your score to be verified.");
@@ -901,6 +909,7 @@ export class Sniffer {
             this._progressTimer = 0;
             this._maybePaused = false;
             this._isPaused = false;
+            this._pausedInLast10Minutes = false;
             this._pauseTimer = 0;
             this._pauseTime = 0;
             this._lastPauseTime = 0;
@@ -1007,7 +1016,7 @@ export class Sniffer {
             this._snorted = false;
 
             // Reset the snort countdown
-            this._snortCountdown = 10;
+            this._snortCountdown = Sniffer.snortRate / 1000;
 
             // If new profile data is available AND the song is changing, snort the previous song data
             // This fixes a bug where rock buddy data would not be updated after playing a song in nonstop play
@@ -1018,7 +1027,7 @@ export class Sniffer {
         }
 
         // If it has been over 10 seconds since the last snort, enable the snort button
-        if (!this._snort && this._timeSinceLastSnort / 1000 >= 10) {
+        if (!this._snort && this._timeSinceLastSnort / 1000 >= Sniffer.snortRate / 1000) {
             snortButton.disabled = false;
         }
 
@@ -1056,6 +1065,9 @@ export class Sniffer {
 
         // Grab current Rocksmith profile data
         const rocksmithData = await this._rocksmith.getProfileData();
+        if (rocksmithData === null) {
+            throw new Error("Failed to read Rocksmith profile data. Please check your config settings.");
+        }
 
         // Define object to hold snort data
         let snortData: any = {};
@@ -1220,45 +1232,6 @@ export class Sniffer {
         return await window.api.semverGte(currentVersion, latestVersionAvailable);
     }
 
-    private async getScoresLAS(rocksnifferData: any): Promise<any> {
-        const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
-
-        const host = await window.api.getHost();
-        const response = await post(host + '/api/data/get_scores_las.php', {
-            auth_data: authData,
-            song_key: rocksnifferData['songDetails']['songID'],
-            psarc_hash: rocksnifferData['songDetails']['psarcFileHash'],
-            arrangement: this._path
-        });
-
-        if ('error' in response) {
-            window.api.error(response['error']);
-            return null;
-        }
-
-        return response;
-    }
-
-    private async getScoresSA(rocksnifferData: any): Promise<any> {
-        const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
-
-        const host = await window.api.getHost();
-        const response = await post(host + '/api/data/get_scores_sa.php', {
-            auth_data: authData,
-            song_key: rocksnifferData['songDetails']['songID'],
-            psarc_hash: rocksnifferData['songDetails']['psarcFileHash'],
-            arrangement: this._path,
-            difficulty: this._difficulty
-        });
-
-        if ('error' in response) {
-            window.api.error(response['error']);
-            return null;
-        }
-
-        return response;
-    }
-
     private async showLeaderboard(rocksnifferData: any): Promise<void> {
         if (!this._snorted) {
             this.queueSnort();
@@ -1266,328 +1239,10 @@ export class Sniffer {
         }
 
         if (this._gameMode === 'las') {
-            this.displayLASLeaderboard(rocksnifferData);
+            displayLASLeaderboard(rocksnifferData['songDetails']['songID'], rocksnifferData['songDetails']['psarcFileHash'], this._path);
         }
         else if (this._gameMode === 'sa') {
-            this.displaySALeaderboard(rocksnifferData);
+            displaySALeaderboard(rocksnifferData['songDetails']['songID'], rocksnifferData['songDetails']['psarcFileHash'], this._path, this._difficulty);
         }
-    }
-
-    private async displayLASLeaderboard(rocksnifferData: any): Promise<void> {
-        const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
-
-        const leaderboardDataElement = document.getElementById('leaderboard_data') as HTMLElement;
-
-        const scores = await this.getScoresLAS(rocksnifferData);
-
-        // If scores are null we ran into an error that should already be displayed
-        if (scores === null) {
-            return;
-        }
-
-        if (scores.length === 0) {
-            const message = document.createElement('p');
-            message.innerHTML = 'And this is where I would put my scores... <em>IF I HAD ONE!</em>';
-            leaderboardDataElement.innerHTML = '';
-            leaderboardDataElement.appendChild(message);
-            return;
-        }
-
-        // Create the table element
-        const table = document.createElement('table');
-        table.classList.add('leaderboard-data');
-        table.style.width = '100%';
-
-        // Create the header row
-        const headerSection = document.createElement('thead');
-        const headerRow = document.createElement('tr');
-        const headers = ['Rank', 'Username', 'Last Played', 'Play Count', 'Streak', 'Mastery'];
-        headers.forEach((header) => {
-            const headerCell = document.createElement('th');
-            headerCell.style.fontFamily = 'Roboto Mono, monospace';
-            headerCell.appendChild(document.createTextNode(header));
-            headerRow.appendChild(headerCell);
-        });
-
-        headerSection.appendChild(headerRow);
-        table.appendChild(headerSection);
-
-        const bodySection = document.createElement('tbody');
-
-        // Create data rows
-        const columns = ['rank', 'username', 'last_played', 'play_count', 'streak', 'mastery'];
-        const columnsAlign = ['right', 'left', 'left', 'right', 'right', 'right'];
-
-        // Keep track of rank
-        let rank = 0;
-        let lastVerified: boolean | null = null;
-        let lastMastery: number | null = null;
-        let lastStreak: number | null = null;
-        let tieCount = 0;
-
-        scores.forEach((row: any) => {
-            const dataRow = document.createElement('tr');
-
-            // Handle the situation where a tie occurs
-            let tie = false;
-            if (lastVerified !== null && lastMastery !== null && lastStreak !== null) {
-                if (row['verified'] === lastVerified && approxEqual(row['mastery'], lastMastery) && approxEqual(row['streak'], lastStreak)) {
-                    tie = true;
-                    tieCount++;
-                }
-            }
-            if (!tie) {
-                rank += (tieCount + 1);
-                tieCount = 0;
-            }
-
-            // Populate data for each column
-            let columnIndex = 0;
-            columns.forEach((column) => {
-                const dataCell = document.createElement('td');
-                dataCell.style.fontFamily = 'Roboto Mono, monospace';
-                dataCell.style.paddingLeft = '5px';
-                dataCell.style.paddingRight = '5px';
-                if (column === 'rank') {
-                    dataCell.appendChild(document.createTextNode(rank.toString()));
-                    dataCell.style.textAlign = columnsAlign[columnIndex];
-                }
-                else if (column === 'username') {
-                    const usernameElement = document.createElement('div');
-                    usernameElement.style.display = 'flex';
-                    usernameElement.style.flexDirection = 'row';
-
-                    if (row['king']) {
-                        const kingElement = document.createElement('img');
-                        kingElement.src = `./../../images/crown.png`;
-                        kingElement.width = 15;
-                        kingElement.height = 15;
-                        kingElement.style.alignSelf = 'center';
-                        kingElement.style.marginRight = '5px';
-                        usernameElement.appendChild(kingElement);
-                    }
-
-                    const usernameText = document.createTextNode(row[column]);
-                    usernameElement.appendChild(usernameText);
-
-                    dataCell.appendChild(usernameElement);
-                    dataCell.style.textAlign = columnsAlign[columnIndex];
-                }
-                else if (column === 'last_played' || column === 'play_count') {
-                    if (row[column] === null) {
-                        dataCell.appendChild(document.createTextNode('Unknown'));
-                        dataCell.style.textAlign = 'left';
-                    }
-                    else {
-                        dataCell.appendChild(document.createTextNode(row[column]));
-                        dataCell.style.textAlign = columnsAlign[columnIndex];
-                    }
-                }
-                else if (column === 'mastery') {
-                    const masteryElement = document.createElement('div');
-                    masteryElement.style.display = 'flex';
-                    masteryElement.style.flexDirection = 'row';
-                    
-                    if (row['verified']) {
-                        const verifiedElement = document.createElement('img');
-                        verifiedElement.src = `./../../images/verification-icons/verified-badge.png`;
-                        verifiedElement.width = 15;
-                        verifiedElement.height = 15;
-                        verifiedElement.style.alignSelf = 'center';
-                        masteryElement.appendChild(verifiedElement);
-                    }
-
-                    const scoreSpan = document.createElement('span');
-                    scoreSpan.appendChild(document.createTextNode((row[column] * 100).toFixed(2) + '%'));
-                    scoreSpan.style.marginLeft = 'auto';
-                    masteryElement.appendChild(scoreSpan);
-
-                    dataCell.appendChild(masteryElement);
-                    dataCell.style.textAlign = columnsAlign[columnIndex];
-                }
-                else {
-                    dataCell.appendChild(document.createTextNode(row[column]));
-                    dataCell.style.textAlign = columnsAlign[columnIndex];
-                }
-                
-                dataRow.appendChild(dataCell);
-                columnIndex++;
-            });
-
-            // Highlight the row of the current user
-            if (row['user_id'] === authData['user_id']) {
-                dataRow.classList.add('current-user');
-            }
-
-            // Add the row to the table
-            bodySection.appendChild(dataRow);
-
-            lastVerified = row['verified'];
-            lastMastery = row['mastery'];
-            lastStreak = row['streak'];
-        });
-
-        table.appendChild(bodySection);
-
-        leaderboardDataElement.innerHTML = '';
-        leaderboardDataElement.appendChild(table);
-    }
-
-    private async displaySALeaderboard(rocksnifferData: any): Promise<void> {
-        const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
-
-        const leaderboardDataElement = document.getElementById('leaderboard_data') as HTMLElement;
-
-        const scores = await this.getScoresSA(rocksnifferData);
-
-        // If scores are null we ran into an error that should already be displayed
-        if (scores === null) {
-            return;
-        }
-
-        if (scores.length === 0) {
-            const message = document.createElement('p');
-            message.innerHTML = 'And this is where I would put my scores... <em>IF I HAD ONE!</em>';
-            leaderboardDataElement.innerHTML = '';
-            leaderboardDataElement.appendChild(message);
-            return;
-        }
-
-        // Create the table element
-        const table = document.createElement('table');
-        table.classList.add('leaderboard-data');
-        table.style.width = '100%';
-
-        // Create the header row
-        const headerSection = document.createElement('thead');
-        const headerRow = document.createElement('tr');
-        const headers = ['Rank', 'Username', 'Last Played', 'Play Count', 'Score'];
-        headers.forEach((header) => {
-            const headerCell = document.createElement('th');
-            headerCell.style.fontFamily = 'Roboto Mono, monospace';
-            headerCell.appendChild(document.createTextNode(header));
-            headerRow.appendChild(headerCell);
-        });
-
-        headerSection.appendChild(headerRow);
-        table.appendChild(headerSection);
-
-        const bodySection = document.createElement('tbody');
-
-        // Create data rows
-        const columns = ['rank', 'username', 'last_played', 'play_count', 'score'];
-        const columnsAlign = ['right', 'left', 'left', 'right', 'right'];
-
-        // Keep track of rank
-        let rank = 0;
-        let lastScore: number | null = null;
-        let lastBadges: number | null = null;
-        let tieCount = 0;
-
-        scores.forEach((row: any) => {
-            const dataRow = document.createElement('tr');
-
-            // Handle the situation where a tie occurs
-            let tie = false;
-            if (lastScore !== null && lastBadges !== null) {
-                if (approxEqual(row['badges'], lastBadges) && approxEqual(row['score'], lastScore)) {
-                    tie = true;
-                    tieCount++;
-                }
-            }
-            if (!tie) {
-                rank += (tieCount + 1);
-                tieCount = 0;
-            }
-
-            // Populate data for each column
-            let columnIndex = 0;
-            columns.forEach((column) => {
-                const dataCell = document.createElement('td');
-                dataCell.style.fontFamily = 'Roboto Mono, monospace';
-                dataCell.style.paddingLeft = '5px';
-                dataCell.style.paddingRight = '5px';
-                if (column === 'rank') {
-                    dataCell.appendChild(document.createTextNode(rank.toString()));
-                    dataCell.style.textAlign = columnsAlign[columnIndex];
-                }
-                else if (column === 'username') {
-                    const usernameElement = document.createElement('div');
-                    usernameElement.style.display = 'flex';
-                    usernameElement.style.flexDirection = 'row';
-
-                    if (row['king']) {
-                        const kingElement = document.createElement('img');
-                        kingElement.src = `./../../images/crown.png`;
-                        kingElement.width = 15;
-                        kingElement.height = 15;
-                        kingElement.style.alignSelf = 'center';
-                        kingElement.style.marginRight = '5px';
-                        usernameElement.appendChild(kingElement);
-                    }
-
-                    const usernameText = document.createTextNode(row[column]);
-                    usernameElement.appendChild(usernameText);
-
-                    dataCell.appendChild(usernameElement);
-                    dataCell.style.textAlign = columnsAlign[columnIndex];
-                }
-                else if (column === 'last_played' || column === 'play_count') {
-                    if (row[column] === null) {
-                        dataCell.appendChild(document.createTextNode('Unknown'));
-                        dataCell.style.textAlign = 'left';
-                    }
-                    else {
-                        dataCell.appendChild(document.createTextNode(row[column]));
-                        dataCell.style.textAlign = columnsAlign[columnIndex];
-                    }
-                }
-                else if (column === 'score') {
-
-                    const scoreElement = document.createElement('div');
-                    scoreElement.style.display = 'flex';
-                    scoreElement.style.flexDirection = 'row';
-                    
-                    const badgeElement = document.createElement('img');
-                    badgeElement.src = `./../../images/badge-icons/badge-${row['badges']}.png`;
-                    badgeElement.width = 15;
-                    badgeElement.height = 15;
-                    badgeElement.style.alignSelf = 'center';
-
-                    const scoreSpan = document.createElement('span');
-                    scoreSpan.appendChild(document.createTextNode(row[column].toLocaleString('en-US')));
-                    scoreSpan.style.marginLeft = 'auto';
-
-                    scoreElement.appendChild(badgeElement);
-                    scoreElement.appendChild(scoreSpan);
-
-                    dataCell.appendChild(scoreElement);
-                    dataCell.style.textAlign = columnsAlign[columnIndex];
-                }
-                else {
-                    dataCell.appendChild(document.createTextNode(row[column]));
-                    dataCell.style.textAlign = columnsAlign[columnIndex];
-                }
-
-                dataRow.appendChild(dataCell);
-                columnIndex++;
-            });
-
-            // Highlight the row of the current user
-            if (row['user_id'] === authData['user_id']) {
-                dataRow.classList.add('current-user');
-            }
-
-            // Add the row to the table
-            bodySection.appendChild(dataRow);
-
-            lastScore = row['score'];
-            lastBadges = row['badges'];
-        })
-
-        table.appendChild(bodySection);
-
-        leaderboardDataElement.innerHTML = '';
-        leaderboardDataElement.appendChild(table);
     }
 };

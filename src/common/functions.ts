@@ -248,6 +248,21 @@ export function getAvailablePaths(arrangementData: any) {
     return paths;
 }
 
+export function sortPaths(paths: string[]): string[] {
+    const leadPaths: string[] = paths.filter(path => path.includes('Lead') && !path.includes('Alternate') && !path.includes('Bonus')).sort();
+    const altLeadPaths: string[] = paths.filter(path => path.includes('Alternate Lead')).sort();
+    const bonusLeadPaths: string[] = paths.filter(path => path.includes('Bonus Lead')).sort();
+    const rhythmPaths: string[] = paths.filter(path => path.includes('Rhythm') && !path.includes('Alternate') && !path.includes('Bonus')).sort();
+    const altRhythmPaths: string[] = paths.filter(path => path.includes('Alternate Rhythm')).sort();
+    const bonusRhythmPaths: string[] = paths.filter(path => path.includes('Bonus Rhythm')).sort();
+    const bassPaths: string[] = paths.filter(path => path.includes('Bass') && !path.includes('Alternate') && !path.includes('Bonus')).sort();
+    const altBassPaths: string[] = paths.filter(path => path.includes('Alternate Bass')).sort();
+    const bonusBassPaths: string[] = paths.filter(path => path.includes('Bonus Bass')).sort();
+
+    const sortedPaths = leadPaths.concat(altLeadPaths, bonusLeadPaths, rhythmPaths, altRhythmPaths, bonusRhythmPaths, bassPaths, altBassPaths, bonusBassPaths);
+    return sortedPaths;
+}
+
 export async function getVersion(): Promise<string | null> {
     let version = sessionStorage.getItem('version');
     if (version === null) {
