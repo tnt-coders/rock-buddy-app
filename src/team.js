@@ -12,6 +12,10 @@ function openTwitchStaji() {
     api.openExternalLink('https://www.twitch.tv/stajiw');
 }
 
+function openTwitchConnor() {
+    api.openExternalLink('https://www.twitch.tv/connor_harkness');
+}
+
 VanillaTilt.init(document.querySelectorAll(".card"), {
     max: 5,
     speed: 1000,
