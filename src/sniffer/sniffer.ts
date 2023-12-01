@@ -661,6 +661,12 @@ export class Sniffer {
             }
         }
 
+        // Calculate the tolerance for speed change detection (either within 99.9% speed or 300ms whichever is higher)
+        // Note that the progress timer is resynced when resuming from pause so we need to account for that too
+        const songTimeMinusLastPause = songTime - this._lastPauseTime;
+        let speedTolerance = songTimeMinusLastPause - songTimeMinusLastPause * 0.999;
+        speedTolerance = speedTolerance > 0.3 ? speedTolerance : 0.3;
+
         const debugInfo = {
             songName: rocksnifferData['songDetails']['songName'],
             artistName: rocksnifferData['songDetails']['artistName'],
@@ -681,7 +687,8 @@ export class Sniffer {
             lastPauseTime: this._lastPauseTime,
             ending: this._ending,
             totalNotes: totalNotes,
-            previousTotalNotes: previousTotalNotes
+            previousTotalNotes: previousTotalNotes,
+            speedTolerance: speedTolerance
         }
 
         // Song is starting
@@ -844,7 +851,7 @@ export class Sniffer {
 
                 // If the progress timer gets 0.3 seconds out of sync with the song change to "unverified"
                 // 0.3 seconds allows it to be off for two refreshes
-                if (!this._maybePaused && !approxEqual(this._progressTimer / 1000, songTime, 0.3)) {
+                if (!this._maybePaused && !approxEqual(this._progressTimer / 1000, songTime, speedTolerance)) {
                     this.setVerificationState(VerificationState.Unverified, "Song speed change detected.\n"
                                                                           + "\n"
                                                                           + "You must fully exit the song and restart for your score to be verified.");
