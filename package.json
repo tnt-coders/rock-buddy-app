@@ -33,9 +33,8 @@
         "icon": "images/icon-256x256",
         "target": "nsis",
         "nsis": {
-            "oneClick": false,
-            "perMachine": false,
-            "allowToChangeInstallationDirectory": false
+            "oneClick": true,
+            "perMachine": false
         },
         "extraFiles": [
             {
