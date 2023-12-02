@@ -1,20 +1,16 @@
 <a name="readme-top"></a>
 
-<a href="https://github.com/tnt-coders/rock-buddy-app/releases">Download</a>
-·
-<a href="https://github.com/tnt-coders/rock-buddy-app/issues">Bug Report</a>
-·
-<a href="https://github.com/tnt-coders/rock-buddy-app/issues">Feature Request</a>
-
 [![Build](https://github.com/tnt-coders/rock-buddy-app/actions/workflows/build.yml/badge.svg)](https://github.com/tnt-coders/rock-buddy-app/actions/workflows/build.yml)
 
 <!-- PROJECT LOGO -->
-<br/>
 <div align="center">
-  <a href="https://github.com/tnt-coders/rock-buddy-app/">
-    <img src="images/rock-buddy.png" alt="Logo" width="80" height="80">
-  </a>
-  
+  <a href="https://github.com/tnt-coders/rock-buddy-app/releases">Download</a>
+  ·
+  <a href="https://github.com/tnt-coders/rock-buddy-app/issues">Bug Report</a>
+  ·
+  <a href="https://github.com/tnt-coders/rock-buddy-app/issues">Feature Request</a>
+  <br/>
+  <img src="images/rock-buddy.png" alt="Logo" width="200">
   <h3>Rock Buddy</h3>
 
   <b>Are you ready to get to the top of the leaderboard?</b><br/>
@@ -65,15 +61,15 @@ On your streaming PC (the one that runs OBS): include the "capture.html" file fo
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+## Website
+
+For information, visit the <a href="https://rock-buddy.com/" target="_blank">rock-buddy.com</a>.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 <!-- CONTACT -->
 ## Contact
 
 TNTMusicStudios - tntmusicstudios2018@gmail.com
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-## Website
-
-For information, visit the <a href="https://rock-buddy.com/" target="_blank">website</a>.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
