@@ -11,9 +11,9 @@
   <a href="https://github.com/tnt-coders/rock-buddy-app/issues">Feature Request</a>
   <br/>
   <img src="images/rock-buddy.png" alt="Logo" width="200">
-  <h3>Rock Buddy</h3>
+  <h1>Rock Buddy</h1>
 
-  <b>Are you ready to get to the top of the leaderboard?</b><br/>
+  <h2>Are you ready to get to the top of the leaderboard?</h2>
 </div>
 
 <img src="images/preview.png" alt="preview" width="800">
