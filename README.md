@@ -1,5 +1,11 @@
 <a name="readme-top"></a>
 
+<a href="https://github.com/tnt-coders/rock-buddy-app/releases">Download</a>
+·
+<a href="https://github.com/tnt-coders/rock-buddy-app/issues">Bug Report</a>
+·
+<a href="https://github.com/tnt-coders/rock-buddy-app/issues">Feature Request</a>
+
 [![Build](https://github.com/tnt-coders/rock-buddy-app/actions/workflows/build.yml/badge.svg)](https://github.com/tnt-coders/rock-buddy-app/actions/workflows/build.yml)
 
 <!-- PROJECT LOGO -->
@@ -12,11 +18,6 @@
   <h3>Rock Buddy</h3>
 
   <b>Are you ready to get to the top of the leaderboard?</b><br/>
-  <a href="https://github.com/tnt-coders/rock-buddy-app/releases">Download</a>
-  ·
-  <a href="https://github.com/tnt-coders/rock-buddy-app/issues">Bug Report</a>
-  ·
-  <a href="https://github.com/tnt-coders/rock-buddy-app/issues">Feature Request</a>
 </div>
 
 <img src="images/preview.png" alt="preview" width="800">
