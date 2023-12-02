@@ -61,7 +61,7 @@ On your streaming PC (the one that runs OBS): include the "capture.html" file fo
 
 ## Website
 
-For information, visit the <a href="https://rock-buddy.com/" target="_blank">rock-buddy.com</a>.
+For information, visit <a href="https://rock-buddy.com/" target="_blank">rock-buddy.com</a>.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
