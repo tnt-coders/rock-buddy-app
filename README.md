@@ -12,8 +12,6 @@
   <br/>
   <img src="images/rock-buddy.png" alt="Logo" width="200">
   <h1>Rock Buddy</h1>
-
-  <b>Are you ready to get to the top of the leaderboard?</b>
 </div>
 
 <img src="images/preview.png" alt="preview" width="800">
