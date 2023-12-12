@@ -4,6 +4,10 @@ function openTwitchTNT() {
     api.openExternalLink('https://www.twitch.tv/tntmusicstudios');
 }
 
+function openTwitchMrsTNT() {
+    api.openExternalLink('https://www.twitch.tv/mrstnt33');
+}
+
 function openTwitchRecon() {
     api.openExternalLink('https://www.twitch.tv/recontastic');
 }

@@ -2,11 +2,11 @@
 <html>
 
 <head>
-  <link rel="stylesheet" href="./common/footer.css">
+  <link rel="stylesheet" href="../common/footer.css">
   <link rel="stylesheet" href="./team.css">
   <script type="text/javascript"
     src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js"></script>
-  <link rel="stylesheet" href="./common/dark-theme.css" id="theme">
+  <link rel="stylesheet" href="../common/dark-theme.css" id="theme">
   <title>Rock Buddy</title>
 </head>
 
@@ -18,28 +18,35 @@
         <ul class="list-team-members">
           <li>
             <a href="#" onclick="openTwitchTNT()">
-              <img src="./../images/TNT.png" />
+              <img src="../../images/TNT.png" />
               <span class="member-title">TNTMusicStudios</span>
               <span class="member-title-hover">Founder / Lead Developer</span>
             </a>
           </li>
           <li>
+            <a href="#" onclick="openTwitchMrsTNT()">
+              <img src="../../images/MrsTNT.png" />
+              <span class="member-title">MrsTNT33</span>
+              <span class="member-title-hover">Admin / Developer</span>
+            </a>
+          </li>
+          <li>
             <a href="#" onclick="openTwitchRecon()">
-              <img src="./../images/recon.png" />
+              <img src="../../images/recon.png" />
               <span class="member-title">Recontastic</span>
               <span class="member-title-hover">UI Designer / Rubber Ducky</span>
             </a>
           </li>
           <li>
             <a href="#" onclick="openTwitchStaji()">
-              <img src="./../images/staji.png" />
+              <img src="../../images/staji.png" />
               <span class="member-title">StajiW</span>
               <span class="member-title-hover">Special FX / Guru</span>
             </a>
           </li>
           <li>
             <a href="#" onclick="openTwitchConnor()">
-              <img src="./../images/connor.png" />
+              <img src="../../images/connor.png" />
               <span class="member-title">connor_harkness</span>
               <span class="member-title-hover">Natural Product Enhancement</span>
             </a>
@@ -54,16 +61,16 @@
     <center>
       <h3>You found Boulder Bro, Rock Buddy's big brother!</h3>
     </center>
-    <img src="./../images/boulder-bro.png" alt="you found him!">
+    <img src="../../images/boulder-bro.png" alt="you found him!">
   </div>
   <footer>
     <p>
       Copyright &copy; 2023 <a class="tntrocks" href="mailto:tntmusicstudios2018@gmail.com">TNTMusicStudios</a>
     </p>
   </footer>
-  <script src="./common/boulder_bro.js"></script>
-  <script src="./common/functions.js"></script>
-  <script src="./common/theme.js"></script>
+  <script src="../common/boulder_bro.js"></script>
+  <script src="../common/functions.js"></script>
+  <script src="../common/theme.js"></script>
   <script src="./team.js"></script>
 
   <select style="display: none;" id="theme-select" onchange="setTheme()">
