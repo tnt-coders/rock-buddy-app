@@ -1,5 +1,5 @@
 .list-team-members {
-    max-width: 1000px;
+    max-width: 1024px;
     padding: 0;
     margin: 0 auto;
     list-style-type: none;
@@ -9,7 +9,7 @@
   }
   
   .list-team-members li {
-    flex: 0 1 calc(50% - 40px); 
+    flex: 0 1 calc(33.333% - 40px); 
     margin: 20px;
     text-align: center;
     transition-duration: 0.3s;
@@ -32,7 +32,7 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -80%);
+    transform: translate(-50%, -83%);
     height: 100px;
     width: 100px;
     background-color: rgba(255, 122, 40, 0.2);
@@ -67,12 +67,14 @@
     background: #ff7a28;
     color: #fff;
     z-index: 2;
+    white-space: nowrap;
+    display: block;
+    font-size: small;
   }
   
   .list-team-members li a:hover .member-title-hover {
     opacity: 1;
     top: 90px;
-    font-size: medium;
   }
   
   @media screen and (max-width: 768px) {
