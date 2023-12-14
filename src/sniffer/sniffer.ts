@@ -249,6 +249,14 @@ export class Sniffer {
             this._lurkMode = lurkMode;
         }
 
+        const lurkModeNotificationElement = document.getElementById('lurk_mode_notification') as HTMLElement;
+        if (this._lurkMode) {
+            lurkModeNotificationElement.style.display = 'block';
+        }
+        else {
+            lurkModeNotificationElement.style.display = 'none';
+        }
+
         const extraLogging = await UserData.get('extra_logging');
         if (extraLogging !== null) {
             this._extraLogging = extraLogging;
