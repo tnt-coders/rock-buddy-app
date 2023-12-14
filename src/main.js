@@ -9,7 +9,7 @@ const openFileExplorer = require('open-file-explorer');
 const fs = require('fs');
 const glob = require('glob');
 const semver = require('semver');
-const { execFile } = require('child_process');
+const { spawn } = require('child_process');
 const { unzipSync } = require('node:zlib');
 
 // Process input args
@@ -21,6 +21,9 @@ const store = new Store();
 
 // Define Rocksmith app ID
 const rocksmithAppId = 221680;
+
+// Variable to store Rocksniffer child process
+let rocksnifferChildProcess = null;
 
 async function getAllReleases(owner, repo) {
     try {
@@ -270,11 +273,20 @@ function createWindow() {
     ipcMain.on('launch-rocksniffer', (event) => {
         const rocksnifferPath = getRocksnifferPath();
 
-        execFile('RockSniffer.exe', [], { cwd: rocksnifferPath }, (error) => {
+        if (rocksnifferChildProcess !== null) {
+            rocksnifferChildProcess.kill('SIGTERM');
+            rocksnifferChildProcess = null;
+        }
+
+        rocksnifferChildProcess = spawn('RockSniffer.exe', [], { cwd: rocksnifferPath }, (error) => {
             if (error) {
                 console.error('Failed to start RockSniffer: ', error);
             }
         });
+
+        // rocksnifferChildProcess.on('close', (code) => {
+        //     rocksnifferChildProcess = null;
+        // })
     });
 
     ipcMain.handle('get-src-dir', (event) => {
