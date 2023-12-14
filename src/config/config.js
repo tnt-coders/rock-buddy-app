@@ -3,6 +3,7 @@
 const userId = JSON.parse(sessionStorage.getItem('auth_data'))['user_id'];
 
 // Globals (default settings)
+let lurkMode = false;
 let addonsEnabled = false;
 let addonsHost = 'localhost';
 let addonsPort = 9001;
@@ -161,6 +162,21 @@ async function getPreferences() {
 }
 
 async function initSnifferConfig() {
+    const lurkModeCheckbox = document.querySelector('#lurk_mode');
+
+    let savedLurkMode = await api.storeGet('user_data.' + userId + '.lurk_mode');
+    if (savedLurkMode === null) {
+        api.storeSet('user_data.' + userId + '.lurk_mode', lurkMode);
+    }
+    else {
+        lurkMode = savedLurkMode;
+    }
+    lurkModeCheckbox.checked = lurkMode;
+
+    lurkModeCheckbox.addEventListener('change', async () => {
+        api.storeSet('user_data.' + userId + '.lurk_mode', lurkModeCheckbox.checked);
+    });
+
     const preferredPath = await api.storeGet('user_data.' + userId + '.preferred_path');
 
     // Update the combo box

@@ -65,6 +65,9 @@ export class Sniffer {
     private _snortCountdown: number = Sniffer.snortRate / 1000; // seconds
     private _timeSinceLastSnort: number = 0;
 
+    // Lurk mode
+    private _lurkMode: boolean = false;
+
     // Debug fields
     private _extraLogging: boolean = false;
 
@@ -241,12 +244,14 @@ export class Sniffer {
             unverifiedPopupElement.style.display = 'none';
         });
 
+        const lurkMode = await UserData.get('lurk_mode');
+        if (lurkMode !== null) {
+            this._lurkMode = lurkMode;
+        }
+
         const extraLogging = await UserData.get('extra_logging');
         if (extraLogging !== null) {
             this._extraLogging = extraLogging;
-        }
-        else {
-            this._extraLogging = false;
         }
     }
 
@@ -994,13 +999,17 @@ export class Sniffer {
         logMessage(data);
 
         const host = await window.api.getHost();
-        const response = await post(host + '/api/data/record_verified_score.php', {
-            auth_data: authData,
-            song_data: data
-        });
 
-        if ('error' in response) {
-            window.api.error(response['error']);
+        // Do not record the score in lurk mode
+        if (!this._lurkMode) {
+            const response = await post(host + '/api/data/record_verified_score.php', {
+                auth_data: authData,
+                song_data: data
+            });
+
+            if ('error' in response) {
+                window.api.error(response['error']);
+            }
         }
 
         // Show the leaderboard
@@ -1152,9 +1161,11 @@ export class Sniffer {
 
     private async syncWithServer(snortData: any): Promise<boolean> {
         const host = await window.api.getHost();
+
         const sync_response = await post(host + '/api/data/sniffer_sync.php', {
             auth_data: authData,
-            song_data: snortData
+            song_data: snortData,
+            lurk_mode: this._lurkMode
         });
 
         if ('error' in sync_response) {
