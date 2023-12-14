@@ -79,7 +79,6 @@ export class Sniffer {
         const rocksniffer = await Rocksniffer.create();
 
         // Read sound effect data from user config
-        const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
         let missSFX = await UserData.get('miss_sfx');
         if (missSFX === null) {
             missSFX = 'none';
@@ -994,8 +993,6 @@ export class Sniffer {
         logMessage("RECORDING SCORE");
         logMessage(data);
 
-        const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
-
         const host = await window.api.getHost();
         const response = await post(host + '/api/data/record_verified_score.php', {
             auth_data: authData,
@@ -1154,8 +1151,6 @@ export class Sniffer {
     }
 
     private async syncWithServer(snortData: any): Promise<boolean> {
-        const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
-
         const host = await window.api.getHost();
         const sync_response = await post(host + '/api/data/sniffer_sync.php', {
             auth_data: authData,

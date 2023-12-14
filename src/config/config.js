@@ -158,7 +158,9 @@ async function getPreferences() {
         api.setWindowSize(windowWidth, windowHeight);
         api.storeSet('user_data.' + userId + '.screen_height', height);
     });
+}
 
+async function initSnifferConfig() {
     const preferredPath = await api.storeGet('user_data.' + userId + '.preferred_path');
 
     // Update the combo box
@@ -332,6 +334,8 @@ async function main() {
 
     // Populate the combo box for Rocksmith profiles
     await getRocksmithProfiles();
+
+    await initSnifferConfig();
 
     await initAddonConfig();
 
