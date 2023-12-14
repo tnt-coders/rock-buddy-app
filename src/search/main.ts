@@ -5,7 +5,7 @@ let search: Search | null = null;
 
 async function main() {
     const version = await getVersion();
-    document.title += ' v' + version;
+    document.title = 'Rock Buddy v' + version;
 
     // Create the search element
     search = new Search();

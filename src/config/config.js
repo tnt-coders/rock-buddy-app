@@ -4,6 +4,9 @@ const userId = JSON.parse(sessionStorage.getItem('auth_data'))['user_id'];
 
 // Globals (default settings)
 let lurkMode = false;
+let useExternalRocksniffer = false;
+let rocksnifferHost = '127.0.0.1';
+let rocksnifferPort = 9002;
 let addonsEnabled = false;
 let addonsHost = 'localhost';
 let addonsPort = 9001;
@@ -134,6 +137,17 @@ async function getCustomMissSFXMultiPath() {
     }
 }
 
+async function openRocksnifferConfig() {
+    const rocksnifferConfigPopup = document.getElementById('rocksniffer_config_popup');
+    const closeRocksnifferConfigPopupElement = document.getElementById('close_rocksniffer_config_popup');
+
+    rocksnifferConfigPopup.style.display = 'block';
+
+    closeRocksnifferConfigPopupElement.addEventListener('click', async() => {
+        rocksnifferConfigPopup.style.display = 'none';
+    });
+}
+
 async function openAddonsFolder() {
     api.openAddonsFolder();
 }
@@ -150,14 +164,14 @@ async function getPreferences() {
         let windowWidth = windowWidthEntry.value;
         let windowHeight = windowHeightEntry.value;
         api.setWindowSize(windowWidth, windowHeight);
-        api.storeSet('user_data.' + userId + '.screen_width', width);
+        await api.storeSet('user_data.' + userId + '.screen_width', width);
     });
 
     windowHeightEntry.addEventListener('change', async () => {
         let windowWidth = windowWidthEntry.value;
         let windowHeight = windowHeightEntry.value;
         api.setWindowSize(windowWidth, windowHeight);
-        api.storeSet('user_data.' + userId + '.screen_height', height);
+        await api.storeSet('user_data.' + userId + '.screen_height', height);
     });
 }
 
@@ -166,7 +180,7 @@ async function initSnifferConfig() {
 
     let savedLurkMode = await api.storeGet('user_data.' + userId + '.lurk_mode');
     if (savedLurkMode === null) {
-        api.storeSet('user_data.' + userId + '.lurk_mode', lurkMode);
+        await api.storeSet('user_data.' + userId + '.lurk_mode', lurkMode);
     }
     else {
         lurkMode = savedLurkMode;
@@ -174,7 +188,7 @@ async function initSnifferConfig() {
     lurkModeCheckbox.checked = lurkMode;
 
     lurkModeCheckbox.addEventListener('change', async () => {
-        api.storeSet('user_data.' + userId + '.lurk_mode', lurkModeCheckbox.checked);
+        await api.storeSet('user_data.' + userId + '.lurk_mode', lurkModeCheckbox.checked);
     });
 
     const preferredPath = await api.storeGet('user_data.' + userId + '.preferred_path');
@@ -247,6 +261,54 @@ async function initSnifferConfig() {
     }
 }
 
+async function initRocksnifferConfig() {
+    const useExternalRocksnifferCheckbox = document.querySelector('#use_external_rocksniffer');
+    const rocksnifferHostEntry = document.querySelector('#rocksniffer_host');
+    const rocksnifferPortEntry = document.querySelector('#rocksniffer_port');
+
+    let savedUseExternalRocksniffer = await api.storeGet('user_data.' + userId + '.use_external_rocksniffer');
+    if (savedUseExternalRocksniffer === null) {
+        await api.storeSet('user_data.' + userId + '.use_external_rocksniffer', useExternalRocksniffer);
+    }
+    else {
+        useExternalRocksniffer = savedUseExternalRocksniffer;
+    }
+    useExternalRocksnifferCheckbox.checked = useExternalRocksniffer;
+
+    useExternalRocksnifferCheckbox.addEventListener('change', async () => {
+        await api.storeSet('user_data.' + userId + '.use_external_rocksniffer', useExternalRocksnifferCheckbox.checked);
+    });
+
+    let savedRocksnifferHost = await api.storeGet('user_data.' + userId + '.rocksniffer_host');
+    if (savedRocksnifferHost === null) {
+        await api.storeSet('user_data.' + userId + '.rocksniffer_host', rocksnifferHost);
+    }
+    else {
+        rocksnifferHost = savedRocksnifferHost;
+    }
+    rocksnifferHostEntry.value = rocksnifferHost;
+
+    rocksnifferHostEntry.addEventListener('change', async () => {
+        rocksnifferHost = rocksnifferHostEntry.value;
+        await api.storeSet('user_data.' + userId + '.rocksniffer_host', rocksnifferHost);
+    });
+
+    let savedRocksnifferPort = await api.storeGet('user_data.' + userId + '.rocksniffer_port');
+    if (savedRocksnifferPort === null) {
+        await api.storeSet('user_data.' + userId + '.rocksniffer_port', rocksnifferPort);
+        console.log("SAVED PORT: " + savedRocksnifferPort);
+    }
+    else {
+        rocksnifferPort = savedRocksnifferPort;
+    }
+    rocksnifferPortEntry.value = rocksnifferPort;
+
+    rocksnifferPortEntry.addEventListener('change', async () => {
+        rocksnifferPort = rocksnifferPortEntry.value;
+        await api.storeSet('user_data.' + userId + '.rocksniffer_port', rocksnifferPort);
+    });
+}
+
 // TODO wrap config into a class so when addon values are changed we can use
 // the saved values to auto-restart the server with the new values
 async function initAddonConfig() {
@@ -256,7 +318,7 @@ async function initAddonConfig() {
 
     let savedAddonsEnabled = await api.storeGet('user_data.' + userId + '.addons_enabled');
     if (savedAddonsEnabled === null) {
-        api.storeSet('user_data.' + userId + '.addons_enabled', addonsEnabled);
+        await api.storeSet('user_data.' + userId + '.addons_enabled', addonsEnabled);
     }
     else {
         addonsEnabled = savedAddonsEnabled;
@@ -265,7 +327,7 @@ async function initAddonConfig() {
 
     let savedAddonsHost = await api.storeGet('user_data.' + userId + '.addons_host');
     if (savedAddonsHost === null) {
-        api.storeSet('user_data.' + userId + '.addons_host', addonsHost);
+        await api.storeSet('user_data.' + userId + '.addons_host', addonsHost);
     }
     else {
         addonsHost = savedAddonsHost;
@@ -274,7 +336,7 @@ async function initAddonConfig() {
 
     let savedAddonsPort = await api.storeGet('user_data.' + userId + '.addons_port');
     if (savedAddonsPort === null) {
-        api.storeSet('user_data.' + userId + '.addons_port', addonsPort);
+        await api.storeSet('user_data.' + userId + '.addons_port', addonsPort);
     }
     else {
         addonsPort = savedAddonsPort;
@@ -288,7 +350,7 @@ async function initAddonConfig() {
         else {
             api.disableAddons();
         }
-        api.storeSet('user_data.' + userId + '.addons_enabled', addonsEnabledCheckbox.checked);
+        await api.storeSet('user_data.' + userId + '.addons_enabled', addonsEnabledCheckbox.checked);
     });
 
     addonsHostEntry.addEventListener('change', async () => {
@@ -297,7 +359,7 @@ async function initAddonConfig() {
             api.disableAddons();
             api.enableAddons(addonsHost, addonsPort);
         }
-        api.storeSet('user_data.' + userId + '.addons_host', addonsHost);
+        await api.storeSet('user_data.' + userId + '.addons_host', addonsHost);
     });
 
     addonsPortEntry.addEventListener('change', async () => {
@@ -306,7 +368,7 @@ async function initAddonConfig() {
             api.disableAddons();
             api.enableAddons(addonsHost, addonsPort);
         }
-        api.storeSet('user_data.' + userId + '.addons_port', addonsPort);
+        await api.storeSet('user_data.' + userId + '.addons_port', addonsPort);
     });
 }
 
@@ -315,7 +377,7 @@ async function initDebugConfig() {
 
     let savedExtraLogging = await api.storeGet('user_data.' + userId + '.extra_logging');
     if (savedExtraLogging === null) {
-        api.storeSet('user_data.' + userId + '.extra_logging', extraLogging);
+        await api.storeSet('user_data.' + userId + '.extra_logging', extraLogging);
         extraLoggingCheckbox.checked = false;
     }
     else {
@@ -323,7 +385,7 @@ async function initDebugConfig() {
     }
 
     extraLoggingCheckbox.addEventListener('change', async () => {
-        api.storeSet('user_data.' + userId + '.extra_logging', extraLoggingCheckbox.checked);
+        await api.storeSet('user_data.' + userId + '.extra_logging', extraLoggingCheckbox.checked);
     });
 }
 
@@ -338,7 +400,7 @@ async function main() {
     let steamUserDataPath = await api.storeGet('user_data.' + userId + '.steam_user_data_path');
     if (steamUserDataPath === null) {
         steamUserDataPath = await api.storeGet('default_steam_user_data_path');
-        api.storeSet('user_data.' + userId + '.steam_user_data_path', steamUserDataPath);
+        await api.storeSet('user_data.' + userId + '.steam_user_data_path', steamUserDataPath);
     }
     if (steamUserDataPath !== null) {
         document.getElementById('steam_user_data_path').innerText = steamUserDataPath;
@@ -352,6 +414,8 @@ async function main() {
     await getRocksmithProfiles();
 
     await initSnifferConfig();
+
+    await initRocksnifferConfig();
 
     await initAddonConfig();
 

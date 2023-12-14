@@ -6,7 +6,7 @@ window.location.href = './login.html';
 
 async function main() {
     const version = await getVersion();
-    document.title += ' v' + version;
+    document.title = 'Rock Buddy v' + version;
 }
 
 main();

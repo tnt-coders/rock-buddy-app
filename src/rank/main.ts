@@ -345,7 +345,7 @@ async function create_popup_elements() {
 
 async function main() {
     const version = await getVersion();
-    document.title += ' v' + version;
+    document.title = 'Rock Buddy v' + version;
 
     const disclaimerElement = document.getElementById('disclaimer') as HTMLElement;
     disclaimerElement.innerText = "*Your rank is calculated hourly based on number of verified scores you defeat (or tie).";

@@ -34,7 +34,7 @@ VanillaTilt.init(document.querySelectorAll(".buddycard"), {
 
 async function main() {
     const version = await getVersion();
-    document.title += ' v' + version;
+    document.title = 'Rock Buddy v' + version;
 }
 
 main();

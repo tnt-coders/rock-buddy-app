@@ -278,15 +278,59 @@ function createWindow() {
             rocksnifferChildProcess = null;
         }
 
-        rocksnifferChildProcess = spawn('RockSniffer.exe', [], { cwd: rocksnifferPath }, (error) => {
-            if (error) {
-                console.error('Failed to start RockSniffer: ', error);
-            }
-        });
+        // Rebuild the rocksniffer addons config file
+        let rocksnifferAddonConfig = {
+            _NOTE: "Enabling addons will enable a local web server",
+            enableAddons: true,
+            ipAddress: "127.0.0.1",
+            port: 9002,
+            _NOTE2: "Serving addons through the local web server might be unsafe!",
+            serveAddons: false
+        };
 
-        // rocksnifferChildProcess.on('close', (code) => {
-        //     rocksnifferChildProcess = null;
-        // })
+        let useExternalRocksniffer = false;
+
+        const authData = store.get('auth_data');
+        if (authData !== undefined) {
+            const userId = authData['user_id'];
+
+            const savedRocksnifferHost = store.get('user_data.' + userId + '.rocksniffer_host');
+            if (savedRocksnifferHost !== undefined) {
+                rocksnifferAddonConfig.ipAddress = savedRocksnifferHost;
+            }
+
+            const savedRocksnifferPort = store.get('user_data.' + userId + '.rocksniffer_port');
+            if (savedRocksnifferPort !== undefined) {
+                rocksnifferAddonConfig.port = savedRocksnifferPort;
+            }
+
+            const savedUseExternalRocksniffer = store.get('user_data.' + userId + '.use_external_rocksniffer');
+            if (savedUseExternalRocksniffer !== undefined) {
+                useExternalRocksniffer = savedUseExternalRocksniffer;
+            }
+        }
+
+        // Convert JSON data to a string
+        const rocksnifferAddonConfigJSON = JSON.stringify(rocksnifferAddonConfig, null, 2);
+        const configPath = path.join(rocksnifferPath, 'config');
+        try {
+            if (!fs.existsSync(configPath)) {
+                fs.mkdirSync(configPath, { recursive: true });
+            }
+            fs.writeFileSync(path.join(configPath, 'addons.json'), rocksnifferAddonConfigJSON);
+        }
+        catch (error) {
+            console.error('Failed to write rocksniffer addons config: ', error.message);
+        }
+
+        if (!useExternalRocksniffer) {
+            console.log("Starting rocksniffer on " + rocksnifferAddonConfig.ipAddress + ":" + rocksnifferAddonConfig.port)
+            rocksnifferChildProcess = spawn('RockSniffer.exe', [], { cwd: rocksnifferPath }, (error) => {
+                if (error) {
+                    console.error('Failed to start RockSniffer: ', error);
+                }
+            });
+        }
     });
 
     ipcMain.handle('get-src-dir', (event) => {

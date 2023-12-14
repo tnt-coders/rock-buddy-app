@@ -68,6 +68,9 @@
         <input id="lurk_mode" title="While in Lurk Mode, scores are not recorded to the Rock Buddy database." type="checkbox" style="width: 16px; height: 16px; margin-right: 10px;">
         <label for="lurk_mode">Lurk Mode</label>
       </div>
+      <div style="margin-left: auto;">
+        <button class="btn-primary" style="cursor: pointer;" onclick="openRocksnifferConfig()">Rocksniffer Config</button>
+      </div>
   </div>
   <div id="sniffer">
     <div style="display: flex; flex-direction:column; gap: 10px;">
@@ -135,6 +138,27 @@
       <input type="checkbox" id="extra_logging" style="width: 16px; height: 16px; margin-right: 10px;">
       <label for="extra_logging" style="margin-right: 10px;">Extra Logging</label>
       <span style="font-style: italic;">(Enabling extra logging may impact performance.)</span>
+    </div>
+  </div>
+  <div id="rocksniffer_config_popup" class="modal">
+    <span id="close_rocksniffer_config_popup" class="close">&times;</span>
+    <div class="popup-data">
+      <center>
+        <h3>Rocksniffer Config</h3>
+      </center>
+      <div style="display: flex; flex-direction:column; gap: 10px;">
+        <div style="display: flex; flex-direction: row;">
+          <input type="checkbox" id="use_external_rocksniffer" style="width: 16px; height: 16px; margin-right: 10px;">
+          <label for="use_external_rocksniffer" style="margin-right: 10px;">Use External Rocksniffer</label>
+          <span style="font-style: italic;">(Disables internal Rocksniffer)</span>
+        </div>
+        <div style="display: flex; flex-direction: row;">
+          <span style="margin-right: 10px; font-weight: bold; min-width: 40px;">Host:</span>
+          <input type="text" id="rocksniffer_host" style="width: 250px; margin-right: 20px;">
+          <span style="margin-right: 10px; font-weight: bold; min-width: 40px;">Port:</span>
+          <input type="number" id="rocksniffer_port" style="width: 100px; margin-right: 10px;">
+        </div>
+      </div>
     </div>
   </div>
   <div id="boulder_bro_popup" class="modal">
