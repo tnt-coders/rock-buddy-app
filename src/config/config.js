@@ -265,6 +265,7 @@ async function initRocksnifferConfig() {
     const useExternalRocksnifferCheckbox = document.querySelector('#use_external_rocksniffer');
     const rocksnifferHostEntry = document.querySelector('#rocksniffer_host');
     const rocksnifferPortEntry = document.querySelector('#rocksniffer_port');
+    const lurkModeCheckbox = document.querySelector('#lurk_mode');
 
     let savedUseExternalRocksniffer = await api.storeGet('user_data.' + userId + '.use_external_rocksniffer');
     if (savedUseExternalRocksniffer === null) {
@@ -275,8 +276,28 @@ async function initRocksnifferConfig() {
     }
     useExternalRocksnifferCheckbox.checked = useExternalRocksniffer;
 
+    if (useExternalRocksniffer === true) {
+        lurkModeCheckbox.checked = true;
+        lurkModeCheckbox.disabled = true;
+
+        const changeEvent = new Event('change');
+        lurkModeCheckbox.dispatchEvent(changeEvent);
+    }
+
     useExternalRocksnifferCheckbox.addEventListener('change', async () => {
         await api.storeSet('user_data.' + userId + '.use_external_rocksniffer', useExternalRocksnifferCheckbox.checked);
+
+        if (useExternalRocksnifferCheckbox.checked) {
+            
+            lurkModeCheckbox.checked = true;
+            lurkModeCheckbox.disabled = true;
+            
+            const changeEvent = new Event('change');
+            lurkModeCheckbox.dispatchEvent(changeEvent);
+        }
+        else {
+            lurkModeCheckbox.disabled = false;
+        }
     });
 
     let savedRocksnifferHost = await api.storeGet('user_data.' + userId + '.rocksniffer_host');
