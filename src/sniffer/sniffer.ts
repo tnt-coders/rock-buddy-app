@@ -31,6 +31,7 @@ export class Sniffer {
     private _refreshActive: boolean = false;
 
     // Prevent explosion of error messages
+    private _lastErrorMessage: string = '';
     private _syncErrorDisplayed: boolean = false;
 
     // Game mode/path/difficulty combo box data
@@ -350,7 +351,11 @@ export class Sniffer {
         }
         catch (error) {
             if (error instanceof Error) {
-                logMessage("ERROR: " + error.message);
+                if (this._lastErrorMessage !== error.message) {
+                    this._lastErrorMessage = error.message;
+                    logMessage(error.message);
+                }
+                
                 if (error.message === "Rocksniffer timed out.") {
                     this._rocksnifferTimeoutCounter += Rocksniffer.timeout;
                     if (this._rocksnifferTimeoutCounter > Sniffer.rocksnifferTimeout) {
@@ -1182,13 +1187,12 @@ export class Sniffer {
             if (sync_response['error'] === 'Test versions of songs are not supported.') {
                 const leaderboardDataElement = document.getElementById('leaderboard_data') as HTMLElement;
                 leaderboardDataElement.innerText = sync_response['error'];
-                return false;
             }
             else if (!this._syncErrorDisplayed) {
                 window.api.error(sync_response['error']);
                 this._syncErrorDisplayed = true;
-                return false;
             }
+            return false;
         }
 
         // If we make it this far it means we aren't getting the same sync error repeatedly
