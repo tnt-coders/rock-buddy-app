@@ -330,12 +330,14 @@ export class Sniffer {
             
             const rocksnifferData = await this.sniff();
 
+            // The path must be updated before snorting
+            this.updatePath(rocksnifferData);
+
             // Check if it is time to snort
             await this.checkSnort(rocksnifferData);
 
             this.updateSongInfo(rocksnifferData);
             this.updateLiveFeed(rocksnifferData);
-            this.updatePath(rocksnifferData);
 
             // Monitor progress
             await this.monitorProgress(rocksnifferData);
