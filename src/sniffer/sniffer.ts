@@ -870,7 +870,8 @@ export class Sniffer {
 
                 // If the progress timer gets 0.3 seconds out of sync with the song change to "unverified"
                 // 0.3 seconds allows it to be off for two refreshes
-                if (!this._maybePaused && !approxEqual(this._progressTimer / 1000, songTime, speedTolerance)) {
+                // Also make sure the song is fully loaded (give it 10 seconds because that is the typical amount of leading silence charts have)
+                if (!this._maybePaused && songTime > 10 && !approxEqual(this._progressTimer / 1000, songTime, speedTolerance)) {
                     this.setVerificationState(VerificationState.Unverified, "Song speed change detected.\n"
                                                                           + "\n"
                                                                           + "You must fully exit the song and restart for your score to be verified.");
