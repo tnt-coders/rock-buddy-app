@@ -47,6 +47,7 @@ export class Sniffer {
     private _nonstopPlayOrScoreAttack: boolean = false;
     private _verified: boolean = true;
     private _inSong: boolean = false;
+    private _refreshCounter: number = 0; // When a new song starts we want to allow 5 refreshes before verification checks start
     private _progressTimer: number = 0;
     private _progressTimerSyncOffset: number = 0; // Sometimes more than one refresh occurs between updates on slower PCs
     private _pauseTimer: number = 0;
@@ -289,6 +290,7 @@ export class Sniffer {
     }
 
     private async refresh(): Promise<void> {
+        this._refreshCounter++;
         this._timeSinceLastSnort += Sniffer.refreshRate;
 
         if (this._refreshActive === true) {
@@ -717,6 +719,7 @@ export class Sniffer {
             logMessage(debugInfo);
 
             this._inSong = true;
+            this._refreshCounter = 0;
             this._progressTimer = songTime * 1000;
             this._maybePaused = false;
             this._isPaused = false;
@@ -741,6 +744,11 @@ export class Sniffer {
                 return;
             }
 
+            // Allow 5 refreshes for the song to fully load in.
+            if (this._refreshCounter < 5) {
+                this._progressTimer = songTime * 1000;
+            }
+
             // Check if the song restarted (only check after resuming from pause)
             if (!approxEqual(songTime, previousSongTime) && this._isPaused) {
                 if (songTime < previousSongTime && songTime < startTime && totalNotes === 0) {
@@ -752,6 +760,7 @@ export class Sniffer {
                     }
 
                     this._inSong = true;
+                    this._refreshCounter = 0;
                     this._progressTimer = songTime * 1000;
                     this._maybePaused = false;
                     this._isPaused = false;
@@ -871,7 +880,7 @@ export class Sniffer {
                 // If the progress timer gets 0.3 seconds out of sync with the song change to "unverified"
                 // 0.3 seconds allows it to be off for two refreshes
                 // Also make sure the song is fully loaded (give it 10 seconds because that is the typical amount of leading silence charts have)
-                if (!this._maybePaused && songTime > 10 && !approxEqual(this._progressTimer / 1000, songTime, speedTolerance)) {
+                if (!this._maybePaused && !approxEqual(this._progressTimer / 1000, songTime, speedTolerance)) {
                     this.setVerificationState(VerificationState.Unverified, "Song speed change detected.\n"
                                                                           + "\n"
                                                                           + "You must fully exit the song and restart for your score to be verified.");
