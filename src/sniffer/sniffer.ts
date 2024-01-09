@@ -699,6 +699,7 @@ export class Sniffer {
             previousArrangementNotes: previousArrangementNotes,
             seenNotes: seenNotes,
             inSong: this._inSong,
+            refreshCounter: this._refreshCounter,
             progressTimer: this._progressTimer,
             maybePaused: this._maybePaused,
             isPaused: this._isPaused,
