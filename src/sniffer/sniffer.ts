@@ -746,7 +746,7 @@ export class Sniffer {
             }
 
             // Allow 5 refreshes for the song to fully load in.
-            if (this._refreshCounter < 5) {
+            if (this._refreshCounter <= 5) {
                 this._progressTimer = songTime * 1000;
             }
 
