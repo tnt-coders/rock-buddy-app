@@ -105,7 +105,8 @@ export class Sniffer {
         return sniffer;
     }
 
-    public start(): void {
+    public async start(): Promise<void> {
+        const version = await window.api.getVersion();
 
         // Create a fresh log file
         const currentDate = new Date();
@@ -116,7 +117,7 @@ export class Sniffer {
         const minutes = currentDate.getMinutes().toString().padStart(2, '0');
         const seconds = currentDate.getSeconds().toString().padStart(2, '0');
         const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-        window.api.writeFile("rock-buddy-log.txt", "Sniffer started: " + formattedDate + "\n\n");
+        window.api.writeFile("rock-buddy-log.txt", "Rock Buddy v" + version + "\n\nSniffer started: " + formattedDate + "\n\n");
 
         setInterval(this.refresh.bind(this), Sniffer.refreshRate);
     }

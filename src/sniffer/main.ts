@@ -28,7 +28,7 @@ async function main() {
 
     try {
         sniffer = await Sniffer.create();
-        sniffer.start();
+        await sniffer.start();
     }
     catch (error) {
         showError(error);
