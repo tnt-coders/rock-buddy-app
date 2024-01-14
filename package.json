@@ -7,7 +7,7 @@
         "build": "python pre_build.py && tsc && webpack --mode=development",
         "start": "npm run build && electron .",
         "dev": "npm run build && electron . http://raspberrypi:8080",
-        "release": "npm run build && electron-builder"
+        "release": "git clean -dfX && git submodule foreach --recursive git clean -dfX && npm install && npm run build && electron-builder"
     },
     "author": "TNTMusicStudios",
     "license": "MIT",
