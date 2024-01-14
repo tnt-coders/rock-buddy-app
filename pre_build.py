@@ -5,13 +5,13 @@ import subprocess
 # Build RockSniffer
 def build_rocksniffer(rocksniffer_srcdir):
 
-    # Remove any old RockSniffer cache files
-    release_path = "./RockSniffer/RockSniffer/bin/x64/Release/net6.0-windows"
-    if os.path.exists(release_path):
+    # Remove any old RockSniffer build files
+    rocksniffer_bin = "./RockSniffer/RockSniffer/bin"
+    if os.path.exists(rocksniffer_bin):
 
         try:
-            shutil.rmtree(release_path)
-            print(f'Removed directory: {release_path}')
+            shutil.rmtree(rocksniffer_bin)
+            print(f'Removed directory: {rocksniffer_bin}')
         except Exception as e:
             print(f'Error: {e}')
 
