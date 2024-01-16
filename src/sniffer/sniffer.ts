@@ -271,20 +271,14 @@ export class Sniffer {
         if (rocksnifferData === null) {
             throw new Error("RockSniffer is starting...");
         }
-
+        else if (!rocksnifferData['RocksmithFound']) {
+            throw new Error("Waiting for Rocksmith...");
+        }
+        else if (rocksnifferData['psarcProcessingCount'] > 0) {
+            throw new Error("RockSniffer is enumerating DLC... " + rocksnifferData['psarcProcessingCount'] + " files remaining.")
+        }
         else if (!rocksnifferData['success']) {
-            if (rocksnifferData['memoryReadout'] === null) {
-                throw new Error("Waiting for Rocksmith...");
-            }
-            else {
-                const gameStage = rocksnifferData['memoryReadout']['gameStage'];
-                if (gameStage === 'LAS_SongsList' || gameStage === 'SA_SongsList' || gameStage === 'NonStopPlay_Hub') {
-                    throw new Error('RockSniffer is enumerating DLC, please wait...');
-                }
-                else {
-                    throw new Error('Navigate to a song in Rocksmith to begin sniffing.');
-                }
-            }
+            throw new Error('Navigate to a song in Rocksmith to begin sniffing.');
         }
 
         return rocksnifferData;
