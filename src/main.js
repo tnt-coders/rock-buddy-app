@@ -330,6 +330,14 @@ function createWindow() {
                     console.error('Failed to start RockSniffer: ', error);
                 }
             });
+
+            // DO NOT REMOVE THESE LINES
+            // Ignore stdout/stderr (the info is logged)
+            // For some reason RockSniffer enumeration will hang without these lines
+            // I suspect that the process may be filling its STDOUT buffer and these lines allow it to clear the buffer?
+            rocksnifferChildProcess.stdout.on('data', (data) => { });
+            rocksnifferChildProcess.stderr.on('data', (data) => { });
+            // [end]
         }
     });
 
