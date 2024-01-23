@@ -18,156 +18,160 @@
     <a href="../account/account.html">Account</a>
   </div>
 
-  <div style="display: flex; flex-direction: row; align-items: center; width: 100%;">
-    <h1 style="display: inline;">Config</h1>
-    <label style="margin-left: auto; margin-right: 10px;" id="streamer-color-name" for="streamer-color">Background
-      Color:</label>
-    <input style="margin-right: 20px;" type="color" id="streamer-color" name="streamer-color"
-      onchange="setStreamerColor()">
+  <div style="padding-bottom: 40px;">
+    <div style="display: flex; flex-direction: row; align-items: center; width: 100%;">
+      <h1 style="display: inline;">Config</h1>
+      <label style="margin-left: auto; margin-right: 10px;" id="streamer-color-name" for="streamer-color">Background
+        Color:</label>
+      <input style="margin-right: 20px;" type="color" id="streamer-color" name="streamer-color"
+        onchange="setStreamerColor()">
 
-    <label style="margin-right: 10px;" id="streamer-text-color-name" for="streamer-text-color">Text Color:</label>
-    <input class="colortext" type="color" id="streamer-text-color" name="streamer-text-color"
-      onchange="setStreamerTextColor()">
-    <label for="theme-select" style="margin-left: auto;">Theme:</label>
-    <select id="theme-select" style="margin-left: 10px; min-width: 100px;" onchange="setTheme()">
-      <option value="dark">Dark</option>
-      <option value="light">Light</option>
-      <option value="classic">Retro</option>
-      <option value="streamer">Custom</option>
-    </select>
-  </div>
-  <div id="general">
-    <div style="display: flex; flex-direction:column; gap: 10px;">
-      <div style="display: flex; flex-direction: row;">
-        <span style="margin-right: 10px; font-weight: bold; min-width: 200px;">Steam User Data Path:</span>
-        <span id="steam_user_data_path">[none selected]</span>
-        <div style="margin-left: auto;">
-          <button class="btn-primary" style="cursor: pointer;" onclick="getSteamUserDataPath()">Browse</button>
+      <label style="margin-right: 10px;" id="streamer-text-color-name" for="streamer-text-color">Text Color:</label>
+      <input class="colortext" type="color" id="streamer-text-color" name="streamer-text-color"
+        onchange="setStreamerTextColor()">
+      <label for="theme-select" style="margin-left: auto;">Theme:</label>
+      <select id="theme-select" style="margin-left: 10px; min-width: 100px;" onchange="setTheme()">
+        <option value="dark">Dark</option>
+        <option value="light">Light</option>
+        <option value="classic">Retro</option>
+        <option value="streamer">Custom</option>
+      </select>
+    </div>
+    <div id="general">
+      <div style="display: flex; flex-direction:column; gap: 10px;">
+        <div style="display: flex; flex-direction: row;">
+          <span style="margin-right: 10px; font-weight: bold; min-width: 200px;">Steam User Data Path:</span>
+          <span id="steam_user_data_path">[none selected]</span>
+          <div style="margin-left: auto;">
+            <button class="btn-primary" style="cursor: pointer;" onclick="getSteamUserDataPath()">Browse</button>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: row;">
+          <span style="margin-right: 10px; font-weight: bold; min-width: 200px;">Steam Profile:</span>
+          <select id="steam_profile" style="min-width: 100px;"></select>
+        </div>
+        <div style="display: flex; flex-direction: row;">
+          <span style="margin-right: 10px; font-weight: bold; min-width: 200px;">Rocksmith Profile:</span>
+          <select id="rocksmith_profile" style="min-width: 100px;"></select>
         </div>
       </div>
-      <div style="display: flex; flex-direction: row;">
-        <span style="margin-right: 10px; font-weight: bold; min-width: 200px;">Steam Profile:</span>
-        <select id="steam_profile" style="min-width: 100px;"></select>
-      </div>
-      <div style="display: flex; flex-direction: row;">
-        <span style="margin-right: 10px; font-weight: bold; min-width: 200px;">Rocksmith Profile:</span>
-        <select id="rocksmith_profile" style="min-width: 100px;"></select>
+      <div style="display: flex; flex-direction: row; margin-top: 10px;">
+        <span style="margin-right: 10px; font-weight: bold; min-width: 200px;">Window Size:</span>
+        <input type="number" id="window_width" style="width: 100px; margin-right: 10px;">
+        <span style="margin-right: 10px">x</span>
+        <input type="number" id="window_height" style="width: 100px;">
       </div>
     </div>
-    <div style="display: flex; flex-direction: row; margin-top: 10px;">
-      <span style="margin-right: 10px; font-weight: bold; min-width: 200px;">Window Size:</span>
-      <input type="number" id="window_width" style="width: 100px; margin-right: 10px;">
-      <span style="margin-right: 10px">x</span>
-      <input type="number" id="window_height" style="width: 100px;">
-    </div>
-  </div>
-  <hr>
-  <div style="display: flex; flex-direction: row; align-items: baseline; width: 100%;">
-    <h2 style="min-width: 200px; margin-right: 10px;">Sniffer</h2>
+    <hr>
+    <div style="display: flex; flex-direction: row; align-items: baseline; width: 100%;">
+      <h2 style="min-width: 200px; margin-right: 10px;">Sniffer</h2>
       <div style="display: flex; flex-direction: row;">
-        <input id="lurk_mode" title="While in Lurk Mode, scores are not recorded to the Rock Buddy database." type="checkbox" style="width: 16px; height: 16px; margin-right: 10px;">
+        <input id="lurk_mode" title="While in Lurk Mode, scores are not recorded to the Rock Buddy database."
+          type="checkbox" style="width: 16px; height: 16px; margin-right: 10px;">
         <label for="lurk_mode">Lurk Mode</label>
       </div>
       <div style="margin-left: auto;">
-        <button class="btn-primary" style="cursor: pointer;" onclick="openRocksnifferConfig()">Rocksniffer Config</button>
-      </div>
-  </div>
-  <div id="sniffer">
-    <div style="display: flex; flex-direction:column; gap: 10px;">
-      <div style="display: flex; flex-direction: row;">
-        <label for="preferred_path" style="margin-right: 10px; font-weight: bold; min-width: 200px;">Preferred
-          Path:</label>
-        <select id="preferred_path" style="margin-right: 10px; min-width: 120px;">
-          <option value="lead" selected>Lead</option>
-          <option value="rhythm">Rhythm</option>
-          <option value="bass">Bass</option>
-        </select>
-      </div>
-      <div style="display: flex; flex-direction: row;">
-        <label for="miss_sfx" style="margin-right: 10px; font-weight: bold; min-width: 200px;">Miss SFX:</label>
-        <select id="miss_sfx" style="margin-right: 10px; min-width: 120px;">
-          <option value="none" selected>None</option>
-          <option value="guitar_hero">Guitar Hero</option>
-          <option value="doh">D'oh!</option>
-          <option value="oof">Oof</option>
-          <option value="oof2">Oof 2</option>
-          <option value="custom" title="Uses the selected sound file">Custom</option>
-          <option value="custom_multi" title="Uses all sound files in the selected folder">Custom (multi)</option>
-        </select>
-        <div id="custom_miss_sfx" style="display: none; flex-grow: 1;">
-          <span id="custom_miss_sfx_path">[none selected]</span>
-          <div style="margin-left: auto;">
-            <button class="btn-primary" style="cursor: pointer;" onclick="getCustomMissSFXPath()">Browse</button>
-          </div>
-        </div>
-        <div id="custom_miss_sfx_multi" style="display: none; flex-grow: 1;">
-          <span id="custom_miss_sfx_multi_path">[none selected]</span>
-          <div style="margin-left: auto;">
-            <button class="btn-primary" style="cursor: pointer;" onclick="getCustomMissSFXMultiPath()">Browse</button>
-          </div>
-        </div>
+        <button class="btn-primary" style="cursor: pointer;" onclick="openRocksnifferConfig()">Rocksniffer
+          Config</button>
       </div>
     </div>
-  </div>
-  <hr>
-  <div style="display: flex; flex-direction: row; align-items: center; width: 100%;">
-    <h2>Addons</h2>
-    <div style="margin-left: auto;">
-      <button class="btn-primary" style="cursor: pointer;" onclick="openAddonsFolder()">Open Addons Folder</button>
-    </div>
-  </div>
-  <div id="addons">
-    <div style="display: flex; flex-direction:column; gap: 10px;">
-      <div style="display: flex; flex-direction: row;">
-        <input type="checkbox" id="addons_enabled" style="width: 16px; height: 16px; margin-right: 10px;">
-        <label for="addons_enabled" style="margin-right: 10px;">Enabled</label>
-        <span style="font-style: italic;">(Enabling addons will turn on a local web server.)</span>
-      </div>
-      <div style="display: flex; flex-direction: row;">
-        <span style="margin-right: 10px; font-weight: bold; min-width: 40px;">Host:</span>
-        <input type="text" id="addons_host" style="width: 250px; margin-right: 20px;">
-        <span style="margin-right: 10px; font-weight: bold; min-width: 40px;">Port:</span>
-        <input type="number" id="addons_port" style="width: 100px; margin-right: 10px;">
-      </div>
-    </div>
-  </div>
-  <hr>
-  <h2>Debug</h2>
-  <div id="debug">
-    <div style="display: flex; flex-direction: row;">
-      <input type="checkbox" id="extra_logging" style="width: 16px; height: 16px; margin-right: 10px;">
-      <label for="extra_logging" style="margin-right: 10px;">Extra Logging</label>
-      <span style="font-style: italic;">(Enabling extra logging may impact performance.)</span>
-    </div>
-  </div>
-  <div id="rocksniffer_config_popup" class="modal">
-    <span id="close_rocksniffer_config_popup" class="close">&times;</span>
-    <div class="popup-data">
-      <center>
-        <h3>Rocksniffer Config</h3>
-      </center>
+    <div id="sniffer">
       <div style="display: flex; flex-direction:column; gap: 10px;">
-        <h2 style="color: red;">DO NOT CHANGE THESE SETTINGS IF YOU DON'T KNOW WHAT YOU ARE DOING</h2>
         <div style="display: flex; flex-direction: row;">
-          <input type="checkbox" id="use_external_rocksniffer" style="width: 16px; height: 16px; margin-right: 10px;">
-          <label for="use_external_rocksniffer" style="margin-right: 10px;">Use External Rocksniffer</label>
-          <span style="font-style: italic;">(Disables internal Rocksniffer and turns on lurk mode)</span>
+          <label for="preferred_path" style="margin-right: 10px; font-weight: bold; min-width: 200px;">Preferred
+            Path:</label>
+          <select id="preferred_path" style="margin-right: 10px; min-width: 120px;">
+            <option value="lead" selected>Lead</option>
+            <option value="rhythm">Rhythm</option>
+            <option value="bass">Bass</option>
+          </select>
+        </div>
+        <div style="display: flex; flex-direction: row;">
+          <label for="miss_sfx" style="margin-right: 10px; font-weight: bold; min-width: 200px;">Miss SFX:</label>
+          <select id="miss_sfx" style="margin-right: 10px; min-width: 120px;">
+            <option value="none" selected>None</option>
+            <option value="guitar_hero">Guitar Hero</option>
+            <option value="doh">D'oh!</option>
+            <option value="oof">Oof</option>
+            <option value="oof2">Oof 2</option>
+            <option value="custom" title="Uses the selected sound file">Custom</option>
+            <option value="custom_multi" title="Uses all sound files in the selected folder">Custom (multi)</option>
+          </select>
+          <div id="custom_miss_sfx" style="display: none; flex-grow: 1;">
+            <span id="custom_miss_sfx_path">[none selected]</span>
+            <div style="margin-left: auto;">
+              <button class="btn-primary" style="cursor: pointer;" onclick="getCustomMissSFXPath()">Browse</button>
+            </div>
+          </div>
+          <div id="custom_miss_sfx_multi" style="display: none; flex-grow: 1;">
+            <span id="custom_miss_sfx_multi_path">[none selected]</span>
+            <div style="margin-left: auto;">
+              <button class="btn-primary" style="cursor: pointer;" onclick="getCustomMissSFXMultiPath()">Browse</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <hr>
+    <div style="display: flex; flex-direction: row; align-items: center; width: 100%;">
+      <h2>Addons</h2>
+      <div style="margin-left: auto;">
+        <button class="btn-primary" style="cursor: pointer;" onclick="openAddonsFolder()">Open Addons Folder</button>
+      </div>
+    </div>
+    <div id="addons">
+      <div style="display: flex; flex-direction:column; gap: 10px;">
+        <div style="display: flex; flex-direction: row;">
+          <input type="checkbox" id="addons_enabled" style="width: 16px; height: 16px; margin-right: 10px;">
+          <label for="addons_enabled" style="margin-right: 10px;">Enabled</label>
+          <span style="font-style: italic;">(Enabling addons will turn on a local web server.)</span>
         </div>
         <div style="display: flex; flex-direction: row;">
           <span style="margin-right: 10px; font-weight: bold; min-width: 40px;">Host:</span>
-          <input type="text" id="rocksniffer_host" style="width: 250px; margin-right: 20px;">
+          <input type="text" id="addons_host" style="width: 250px; margin-right: 20px;">
           <span style="margin-right: 10px; font-weight: bold; min-width: 40px;">Port:</span>
-          <input type="number" id="rocksniffer_port" style="width: 100px; margin-right: 10px;">
+          <input type="number" id="addons_port" style="width: 100px; margin-right: 10px;">
         </div>
       </div>
     </div>
-  </div>
-  <div id="boulder_bro_popup" class="modal">
-    <span id="close_boulder_bro_popup" class="close">&times;</span>
-    <center>
-      <h3>You found Boulder Bro, Rock Buddy's big brother!</h3>
-    </center>
-    <img class="boulder-bro" src="./../../images/boulder-bro.png" alt="you found him!">
+    <hr>
+    <h2>Debug</h2>
+    <div id="debug">
+      <div style="display: flex; flex-direction: row;">
+        <input type="checkbox" id="extra_logging" style="width: 16px; height: 16px; margin-right: 10px;">
+        <label for="extra_logging" style="margin-right: 10px;">Extra Logging</label>
+        <span style="font-style: italic;">(Enabling extra logging may impact performance.)</span>
+      </div>
+    </div>
+    <div id="rocksniffer_config_popup" class="modal">
+      <span id="close_rocksniffer_config_popup" class="close">&times;</span>
+      <div class="popup-data">
+        <center>
+          <h3>Rocksniffer Config</h3>
+        </center>
+        <div style="display: flex; flex-direction:column; gap: 10px;">
+          <h2 style="color: red;">DO NOT CHANGE THESE SETTINGS IF YOU DON'T KNOW WHAT YOU ARE DOING</h2>
+          <div style="display: flex; flex-direction: row;">
+            <input type="checkbox" id="use_external_rocksniffer" style="width: 16px; height: 16px; margin-right: 10px;">
+            <label for="use_external_rocksniffer" style="margin-right: 10px;">Use External Rocksniffer</label>
+            <span style="font-style: italic;">(Disables internal Rocksniffer and turns on lurk mode)</span>
+          </div>
+          <div style="display: flex; flex-direction: row;">
+            <span style="margin-right: 10px; font-weight: bold; min-width: 40px;">Host:</span>
+            <input type="text" id="rocksniffer_host" style="width: 250px; margin-right: 20px;">
+            <span style="margin-right: 10px; font-weight: bold; min-width: 40px;">Port:</span>
+            <input type="number" id="rocksniffer_port" style="width: 100px; margin-right: 10px;">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="boulder_bro_popup" class="modal">
+      <span id="close_boulder_bro_popup" class="close">&times;</span>
+      <center>
+        <h3>You found Boulder Bro, Rock Buddy's big brother!</h3>
+      </center>
+      <img class="boulder-bro" src="./../../images/boulder-bro.png" alt="you found him!">
+    </div>
   </div>
   <footer>
     <p>

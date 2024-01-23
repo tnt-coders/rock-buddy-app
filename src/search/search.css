@@ -24,4 +24,10 @@
 
 .leaderboard {
     width: 100%;
+    height: 460px;
+    overflow-y: auto;
+}
+
+.main-content {
+    padding-bottom: 40px;
 }
