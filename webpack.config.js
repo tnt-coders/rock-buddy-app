@@ -7,6 +7,7 @@ module.exports = {
         search: './dist/search/main.js',
         stats: './dist/stats/main.js',
         rank: './dist/rank/main.js',
+        weekly_song_challenge: './dist/weekly_song_challenge/main.js'
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
