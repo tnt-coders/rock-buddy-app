@@ -2,7 +2,7 @@ import { post } from '../common/functions';
 
 const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
 
-export class WeeklySongChallenge {
+export class Contest {
     // private readonly _verifiedScoresOverallElement = document.getElementById('verified_scores_overall') as HTMLElement;
     // private readonly _verifiedScoresLeadElement = document.getElementById('verified_scores_lead') as HTMLElement;
     // private readonly _verifiedScoresRhythmElement = document.getElementById('verified_scores_rhythm') as HTMLElement;
@@ -12,10 +12,10 @@ export class WeeklySongChallenge {
     // private readonly _accuracyRhythmElement = document.getElementById('accuracy_rhythm') as HTMLElement;
     // private readonly _accuracyBassElement = document.getElementById('accuracy_bass') as HTMLElement;
 
-    public static async create(): Promise<WeeklySongChallenge> {
-        const weeklySongChallenge = new WeeklySongChallenge();
-        await weeklySongChallenge.init();
-        return weeklySongChallenge;
+    public static async create(): Promise<Contest> {
+        const contest = new Contest();
+        await contest.init();
+        return contest;
     }
 
     private async init(): Promise<void> {
