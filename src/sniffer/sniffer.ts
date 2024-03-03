@@ -633,10 +633,10 @@ export class Sniffer {
         }
 
         let arrangementName = null;
-        let arrangementHash = null;
+        let arrangementNoteDataHash = null;
         if (arrangementDetails !== undefined) {
             arrangementName = arrangementDetails['name'];
-            arrangementHash = arrangementDetails['hash'];
+            arrangementNoteDataHash = arrangementDetails['noteDataHash'];
         }
 
         // Get current sniff details
@@ -719,7 +719,7 @@ export class Sniffer {
         if (approxEqual(previousSongTime, 0) && !approxEqual(songTime, 0) && totalNotes === 0) {
             logMessage("SONG STARTING");
             logMessage("ARRANGEMENT NAME: " + arrangementName);
-            logMessage("ARRANGEMENT HASH: " + arrangementHash);
+            logMessage("ARRANGEMENT NOTE DATA HASH: " + arrangementNoteDataHash);
             this.setVerificationState(VerificationState.Verified, "No violations detected.");
             logMessage(debugInfo);
 
