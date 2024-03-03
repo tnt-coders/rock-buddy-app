@@ -632,6 +632,13 @@ export class Sniffer {
             previousArrangementNotes = previousArrangementDetails['totalNotes'];
         }
 
+        let arrangementName = null;
+        let arrangementHash = null;
+        if (arrangementDetails !== undefined) {
+            arrangementName = arrangementDetails['name'];
+            arrangementHash = arrangementDetails['hash'];
+        }
+
         // Get current sniff details
         const songTime = rocksnifferData['memoryReadout']['songTimer'];
         const songLength = rocksnifferData['songDetails']['songLength'];
@@ -711,6 +718,8 @@ export class Sniffer {
         // Song is starting
         if (approxEqual(previousSongTime, 0) && !approxEqual(songTime, 0) && totalNotes === 0) {
             logMessage("SONG STARTING");
+            logMessage("ARRANGEMENT NAME: " + arrangementName);
+            logMessage("ARRANGEMENT HASH: " + arrangementHash);
             this.setVerificationState(VerificationState.Verified, "No violations detected.");
             logMessage(debugInfo);
 
