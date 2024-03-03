@@ -1136,6 +1136,7 @@ export class Sniffer {
 
             const hash = arrangement['arrangementID'];
             arrangementData['hash'] = hash;
+            arrangementData['note_data_hash'] = arrangement['noteDataHash'];
 
             // Get the name of the arrangement
             availablePaths.forEach((path) => {
