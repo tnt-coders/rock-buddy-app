@@ -632,13 +632,6 @@ export class Sniffer {
             previousArrangementNotes = previousArrangementDetails['totalNotes'];
         }
 
-        let arrangementName = null;
-        let arrangementNoteDataHash = null;
-        if (arrangementDetails !== undefined) {
-            arrangementName = arrangementDetails['name'];
-            arrangementNoteDataHash = arrangementDetails['noteDataHash'];
-        }
-
         // Get current sniff details
         const songTime = rocksnifferData['memoryReadout']['songTimer'];
         const songLength = rocksnifferData['songDetails']['songLength'];
@@ -718,8 +711,6 @@ export class Sniffer {
         // Song is starting
         if (approxEqual(previousSongTime, 0) && !approxEqual(songTime, 0) && totalNotes === 0) {
             logMessage("SONG STARTING");
-            logMessage("ARRANGEMENT NAME: " + arrangementName);
-            logMessage("ARRANGEMENT NOTE DATA HASH: " + arrangementNoteDataHash);
             this.setVerificationState(VerificationState.Verified, "No violations detected.");
             logMessage(debugInfo);
 
@@ -1130,6 +1121,11 @@ export class Sniffer {
         // Define object to hold arrangement data
         snortData['arrangements'] = {};
 
+        //TODO: change to extra logging later
+        //if (this._extraLogging) {
+            logMessage("SONG: " + snortData['artist'] + " - " + snortData['title']);
+        //}
+
         // Loop athrough each arrangement
         rocksnifferData['songDetails']['arrangements'].forEach((arrangement: any) => {
             let arrangementData: any = {};
@@ -1144,6 +1140,11 @@ export class Sniffer {
                     arrangementData['name'] = path['name'];
                 }
             });
+
+            //TODO: change to extra logging later
+            //if (this._extraLogging) {
+                logMessage("ARRANGEMENT: " + arrangementData['name'] + " - " + arrangementData['note_data_hash']);
+            //}
 
             const lasDataExists = rocksmithData['Stats']['Songs'].hasOwnProperty(hash);
             const saDataExists = rocksmithData['SongsSA'].hasOwnProperty(hash);
