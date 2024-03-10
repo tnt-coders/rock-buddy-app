@@ -19,26 +19,36 @@ export class SoundEffect {
 
         if (type === 'guitar_hero') {
             for (let i = 0; i < 6; i++) {
-                sounds.push(new Audio(await window.api.pathJoin(srcdir, '../media/guitar_hero', 'miss' + (i + 1) + '.mp3')));
+                const sound = new Audio(await window.api.pathJoin(srcdir, '../media/guitar_hero', 'miss' + (i + 1) + '.mp3'));
+                sound.preload = 'auto';
+                sounds.push(sound);
             }
         }
         else if (type == 'doh') {
             const files = await window.api.readDir(await window.api.pathJoin(srcdir, '../media/doh'));
             for (let i = 0; i < files.length; i++) {
-                sounds.push(new Audio(await window.api.pathJoin(srcdir, '../media/doh', files[i])));
+                const sound = new Audio(await window.api.pathJoin(srcdir, '../media/doh', files[i]));
+                sound.preload = 'auto';
+                sounds.push(sound);
             }
         }
         else if (type === 'oof') {
-            sounds.push(new Audio(await window.api.pathJoin(srcdir, '../media/oof.mp3')));
+            const sound = new Audio(await window.api.pathJoin(srcdir, '../media/oof.mp3'));
+            sound.preload = 'auto';
+            sounds.push();
         }
         else if (type === 'oof2') {
-            sounds.push(new Audio(await window.api.pathJoin(srcdir, '../media/oof2.wav')));
+            const sound = new Audio(await window.api.pathJoin(srcdir, '../media/oof2.wav'));
+            sound.preload = 'auto';
+            sounds.push(sound);
         }
 
         // If a file is selected, load it
         else if (type === 'custom') {
             if (path !== null) {
-                sounds.push(new Audio(path));
+                const sound = new Audio(path);
+                sound.preload = 'auto';
+                sounds.push(sound);
             }
             else {
                 throw new Error('Miss SFX set to "Custom", but no file has been selected.');
@@ -52,7 +62,9 @@ export class SoundEffect {
                 for (let i = 0; i < files.length; i++) {
                     const file = files[i];
                     if (file.toLowerCase().endsWith('.mp3') || file.toLowerCase().endsWith('.wav')) {
-                        sounds.push(new Audio(await window.api.pathJoin(path, file)));
+                        const sound = new Audio(await window.api.pathJoin(path, file));
+                        sound.preload = 'auto';
+                        sounds.push(sound);
                     }
                 }
             }
@@ -97,6 +109,7 @@ export class SoundEffect {
 
     async playSound() {
         if (this._sounds.length === 0) return;
-        this._sounds[Math.floor(Math.random() * this._sounds.length)].play().catch(err => console.log(err))
+        const audio = this._sounds[Math.floor(Math.random() * this._sounds.length)].cloneNode() as HTMLAudioElement;
+        audio.play().catch(err => console.log(err));
     }
 }
