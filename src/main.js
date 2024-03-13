@@ -273,9 +273,9 @@ function createWindow() {
     ipcMain.on('launch-rocksniffer', (event) => {
         const rocksnifferPath = getRocksnifferPath();
 
+        // If Rocksniffer is already running leave it running
         if (rocksnifferChildProcess !== null) {
-            rocksnifferChildProcess.kill('SIGTERM');
-            rocksnifferChildProcess = null;
+            return;
         }
 
         // Rebuild the rocksniffer addons config file
