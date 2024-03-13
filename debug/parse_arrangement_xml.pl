@@ -74,7 +74,7 @@ for my $phrase(@phrases) {
         if ($note_time >= $start_time and $note_time < $end_time) {
             $note_count++;
             $total++;
-            #print $note."\n";
+            print $note."\n";
         }
     }
 
@@ -84,13 +84,13 @@ for my $phrase(@phrases) {
         if ($chord_time >= $start_time and $chord_time < $end_time) {
             $chord_count++;
             $total++;
-            #print $chord."\n";
+            print $chord."\n";
         }
     }
 
     my $note_and_chord_count = $note_count + $chord_count;
 
-    print "PHRASE - DIFFICULTY ($difficulty) - TIME ($start_time - $end_time) - (NOTES, CHORDS, BOTH): ($note_count, $chord_count, $note_and_chord_count)\n";
+    #print "PHRASE - DIFFICULTY ($difficulty) - TIME ($start_time - $end_time) - (NOTES, CHORDS, BOTH): ($note_count, $chord_count, $note_and_chord_count)\n";
 }
 
-print "\nTOTAL: $total\n";
+#print "\nTOTAL: $total\n";
