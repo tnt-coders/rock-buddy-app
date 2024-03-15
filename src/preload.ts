@@ -6,6 +6,7 @@ export const API = {
     getRocksnifferPath: () => ipcRenderer.invoke('get-rocksniffer-path'),
     launchRocksniffer: () => ipcRenderer.send('launch-rocksniffer'),
     clearRocksnifferCache: () => ipcRenderer.send('clear-rocksniffer-cache'),
+    onLatestBetaVersion: async () => ipcRenderer.invoke('on-latest-beta-version'),
     getSrcDir: async () => ipcRenderer.invoke('get-src-dir'),
     info: (message: string) => ipcRenderer.send('info', message),
     warning: (message: string) => ipcRenderer.send('warning', message),

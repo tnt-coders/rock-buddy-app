@@ -16,6 +16,8 @@ const { unzipSync } = require('node:zlib');
 const args = process.argv.slice(2);
 const host = args[0] || 'https://rock-buddy.com';
 
+let onLatestBetaVersion = false;
+
 // Store for user config data
 const store = new Store();
 
@@ -45,12 +47,23 @@ function checkForUpdates(win) {
     getAllReleases(owner, repo).then((releases) => {
         const currentVersion = require('../package.json').version;
 
+        const authData = store.get('auth_data');
+        let betaTesting = false;
+        if (authData !== undefined)
+        {
+            const userId = authData['user_id'];
+            betaTesting = store.get('user_data.' + userId + '.beta_testing');
+        }
+
         for (let i = 0; i < releases.length; i++) {
             let version = releases[i];
 
             // Ignore pre-release versions
             if (semver.prerelease(version)) {
-                continue;
+                
+                if (!betaTesting) {
+                    continue;
+                }
             }
             
             if (semver.gt(version, currentVersion)) {
@@ -72,6 +85,9 @@ function checkForUpdates(win) {
                 });
 
                 break;
+            }
+            else if (betaTesting) {
+                onLatestBetaVersion = true;
             }
         };
     });
@@ -339,6 +355,10 @@ function createWindow() {
             rocksnifferChildProcess.stderr.on('data', (data) => { });
         }
     });
+
+    ipcMain.handle('on-latest-beta-version', (event) => {
+        return onLatestBetaVersion;
+    })
 
     ipcMain.handle('get-src-dir', (event) => {
         return __dirname;

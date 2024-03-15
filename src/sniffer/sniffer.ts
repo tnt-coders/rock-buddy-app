@@ -20,7 +20,7 @@ export class Sniffer {
     // Refresh rate in milliseconds
     private static readonly refreshRate: number = 100; // milliseconds
     private static readonly rocksnifferTimeout: number = 1000 // milliseconds
-    private static readonly snortRate: number = 3000; // milliseconds
+    private static snortRate: number = 3000; // milliseconds
     private static readonly pauseThreshold: number = 500; // milliseconds
 
     private readonly _rocksmith: Rocksmith;
@@ -129,6 +129,10 @@ export class Sniffer {
     }
 
     private async init(): Promise<void> {
+        if (await window.api.onLatestBetaVersion()) {
+            Sniffer.snortRate = 0;
+        }
+
         // Bind the snort button to the snort function
         const snortButton = document.getElementById('snort') as HTMLButtonElement;
         snortButton.addEventListener('click', this.queueSnort.bind(this));
