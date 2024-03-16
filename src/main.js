@@ -16,7 +16,7 @@ const { unzipSync } = require('node:zlib');
 const args = process.argv.slice(2);
 const host = args[0] || 'https://rock-buddy.com';
 
-let onLatestBetaVersion = false;
+let onLatestVersion = false;
 
 // Store for user config data
 const store = new Store();
@@ -86,8 +86,8 @@ function checkForUpdates(win) {
 
                 break;
             }
-            else if (betaTesting) {
-                onLatestBetaVersion = true;
+            else {
+                onLatestVersion = true;
             }
         };
     });
@@ -357,7 +357,19 @@ function createWindow() {
     });
 
     ipcMain.handle('on-latest-beta-version', (event) => {
-        return onLatestBetaVersion;
+        const authData = store.get('auth_data');
+        let betaTesting = false;
+        if (authData !== undefined) {
+            const userId = authData['user_id'];
+            betaTesting = store.get('user_data.' + userId + '.beta_testing');
+        }
+
+        if (betaTesting) {
+            return onLatestVersion;
+        }
+        else {
+            return false;
+        }
     })
 
     ipcMain.handle('get-src-dir', (event) => {

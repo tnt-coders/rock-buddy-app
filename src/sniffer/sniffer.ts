@@ -400,12 +400,6 @@ export class Sniffer {
     }
 
     private updateSongInfo(rocksnifferData: any): void {
-        // Hide the alert icon until snort
-        if (!this._snorted) {
-            const newVersionAlertIconElement = document.getElementById('new_version_alert_icon') as HTMLElement;
-            newVersionAlertIconElement.style.visibility = 'hidden';
-        }
-
         const albumArtElement = document.getElementById('album_art') as HTMLImageElement;
         const artistElement = document.getElementById('artist') as HTMLElement;
         const titleElement = document.getElementById('title') as HTMLElement;
@@ -1048,6 +1042,10 @@ export class Sniffer {
 
         if (this._previousRocksnifferData !== null &&
             rocksnifferData['songDetails']['songID'] !== this._previousRocksnifferData['songDetails']['songID']) {
+
+            // Hide the new version alert icon until after snorting is completed
+            const newVersionAlertIconElement = document.getElementById('new_version_alert_icon') as HTMLElement;
+            newVersionAlertIconElement.style.visibility = 'hidden';
 
             // Allow the user to snort immediately
             snortButton.disabled = false;
