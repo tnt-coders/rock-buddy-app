@@ -11,6 +11,7 @@ let addonsEnabled = false;
 let addonsHost = 'localhost';
 let addonsPort = 9001;
 let extraLogging = false;
+let betaTesting = false;
 
 api.windowResized((event, width, height) => {
     const windowWidthEntry = document.getElementById('window_width');
@@ -145,6 +146,17 @@ async function openRocksnifferConfig() {
 
     closeRocksnifferConfigPopupElement.addEventListener('click', async() => {
         rocksnifferConfigPopup.style.display = 'none';
+    });
+}
+
+async function openAdvancedConfig() {
+    const advancedConfigPopup = document.getElementById('advanced_config_popup');
+    const closeAdvancedConfigPopupElement = document.getElementById('close_advanced_config_popup');
+
+    advancedConfigPopup.style.display = 'block';
+
+    closeAdvancedConfigPopupElement.addEventListener('click', async() => {
+        advancedConfigPopup.style.display = 'none';
     });
 }
 
@@ -330,6 +342,23 @@ async function initRocksnifferConfig() {
     });
 }
 
+async function initAdvancedConfig() {
+    const betaTestingCheckbox = document.querySelector('#beta_testing');
+
+    let savedBetaTesting = await api.storeGet('user_data.' + userId + '.beta_testing');
+    if (savedBetaTesting === null) {
+        await api.storeSet('user_data.' + userId + '.beta_testing', betaTesting);
+    }
+    else {
+        betaTesting = savedBetaTesting;
+    }
+    betaTestingCheckbox.checked = betaTesting;
+
+    betaTestingCheckbox.addEventListener('change', async () => {
+        await api.storeSet('user_data.' + userId + '.beta_testing', betaTestingCheckbox.checked);
+    });
+}
+
 // TODO wrap config into a class so when addon values are changed we can use
 // the saved values to auto-restart the server with the new values
 async function initAddonConfig() {
@@ -393,7 +422,7 @@ async function initAddonConfig() {
     });
 }
 
-async function initDebugConfig() {
+async function initOtherConfig() {
     const extraLoggingCheckbox = document.querySelector('#extra_logging');
 
     let savedExtraLogging = await api.storeGet('user_data.' + userId + '.extra_logging');
@@ -440,7 +469,9 @@ async function main() {
 
     await initAddonConfig();
 
-    await initDebugConfig();
+    await initOtherConfig();
+
+    await initAdvancedConfig();
 }
 
 main();

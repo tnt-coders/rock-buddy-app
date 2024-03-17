@@ -3,4 +3,4 @@ release/
 node_modules/
 .idea
 
-rock-buddy-log.txt
+rock_buddy_log*.txt

@@ -135,8 +135,13 @@
       </div>
     </div>
     <hr>
-    <h2>Debug</h2>
-    <div id="debug">
+    <div style="display: flex; flex-direction: row; align-items: center; width: 100%;">
+      <h2>Other</h2>
+      <div style="margin-left: auto;">
+        <button class="btn-primary" style="cursor: pointer;" onclick="openAdvancedConfig()">Advanced Config</button>
+      </div>
+    </div>
+    <div id="other">
       <div style="display: flex; flex-direction: row;">
         <input type="checkbox" id="extra_logging" style="width: 16px; height: 16px; margin-right: 10px;">
         <label for="extra_logging" style="margin-right: 10px;">Extra Logging</label>
@@ -162,6 +167,21 @@
             <input type="text" id="rocksniffer_host" style="width: 250px; margin-right: 20px;">
             <span style="margin-right: 10px; font-weight: bold; min-width: 40px;">Port:</span>
             <input type="number" id="rocksniffer_port" style="width: 100px; margin-right: 10px;">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="advanced_config_popup" class="modal">
+      <span id="close_advanced_config_popup" class="close">&times;</span>
+      <div class="popup-data">
+        <center>
+          <h3>Advanced Config</h3>
+        </center>
+        <div style="display: flex; flex-direction:column; gap: 10px;">
+          <div style="display: flex; flex-direction: row;">
+            <input type="checkbox" id="beta_testing" style="width: 16px; height: 16px; margin-right: 10px;">
+            <label for="beta_testing" style="margin-right: 10px;">Beta Testing</label>
+            <span style="font-style: italic;">(Beta testers get a reduced snort timer as a gesture of appreciation)</span>
           </div>
         </div>
       </div>
