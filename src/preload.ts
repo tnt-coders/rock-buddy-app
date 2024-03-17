@@ -8,6 +8,7 @@ export const API = {
     clearRocksnifferCache: () => ipcRenderer.send('clear-rocksniffer-cache'),
     onLatestBetaVersion: async () => ipcRenderer.invoke('on-latest-beta-version'),
     getSrcDir: async () => ipcRenderer.invoke('get-src-dir'),
+    logMessage: async (message: string) => ipcRenderer.send('log-message', message),
     info: (message: string) => ipcRenderer.send('info', message),
     warning: (message: string) => ipcRenderer.send('warning', message),
     error: (message: string) => ipcRenderer.send('error', message),

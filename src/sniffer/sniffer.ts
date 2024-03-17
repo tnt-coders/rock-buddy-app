@@ -108,16 +108,9 @@ export class Sniffer {
     public async start(): Promise<void> {
         const version = await window.api.getVersion();
 
-        // Create a fresh log file
-        const currentDate = new Date();
-        const year = currentDate.getFullYear();
-        const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
-        const day = currentDate.getDate().toString().padStart(2, '0');
-        const hours = currentDate.getHours().toString().padStart(2, '0');
-        const minutes = currentDate.getMinutes().toString().padStart(2, '0');
-        const seconds = currentDate.getSeconds().toString().padStart(2, '0');
-        const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-        window.api.writeFile("rock-buddy-log.txt", "Rock Buddy v" + version + "\n\nSniffer started: " + formattedDate + "\n\n");
+        // Log that the sniffer is started
+        logMessage("Sniffer started");
+        logMessage("");
 
         setInterval(this.refresh.bind(this), Sniffer.refreshRate);
     }
@@ -899,14 +892,22 @@ export class Sniffer {
 
             logMessage("SONG ENDING");
 
+            // This seems to be happening occasionally, the reason is not yet clear
+            if (previousArrangementNotes === null) {
+                const errorMessage = "The total number of notes in the arrangement is unknown.\n"
+                                   + "\n"
+                                   + "This should never happen. If you get this error please report the issue in the Rock Buddy Discord server and send a log file.";
+                this.setVerificationState(VerificationState.Unverified, errorMessage);
+            }
+
             // If there are less notes than expected assume the user had dynamic difficulty on and played on an easier difficulty
-            if (previousTotalNotes < previousArrangementNotes) {
+            else if (previousTotalNotes < previousArrangementNotes) {
                 const errorMessage = "The total number of notes seen was less than the total note count of the arrangement.\n"
                                    + "\n"
                                    + "Make sure you did not exit the chart early and that dynamic difficulty is disabled.";
                 this.setVerificationState(VerificationState.Unverified, errorMessage);
                 logMessage("TOTAL NOTES: " + previousTotalNotes);
-                logMessage("ARRANGEMENT NOTES: " + arrangementNotes);
+                logMessage("ARRANGEMENT NOTES: " + previousArrangementNotes);
                 logMessage("");
             }
 
@@ -929,7 +930,7 @@ export class Sniffer {
                 this.setVerificationState(VerificationState.Verified, "Your score is verified!");
 
                 // Record verified score
-                await this.recordVerifiedScore(this._previousRocksnifferData);
+                await this.recordVerifiedScore(this._previousRocksnifferData, previousArrangementNotes);
             }
 
             // Create a blank line in the log
@@ -1002,7 +1003,7 @@ export class Sniffer {
         }
     }
 
-    private async recordVerifiedScore(rocksnifferData: any): Promise<void> {
+    private async recordVerifiedScore(rocksnifferData: any, totalNotes: number): Promise<void> {
         
         // Define object to hold snort data
         let data: any = {};
@@ -1013,6 +1014,7 @@ export class Sniffer {
         data['arrangement_hash'] = rocksnifferData['memoryReadout']['arrangementID'];
         data['streak'] = rocksnifferData['memoryReadout']['noteData']['HighestHitStreak'];
         data['mastery'] = rocksnifferData['memoryReadout']['noteData']['Accuracy'] / 100;
+        data['total_notes'] = totalNotes;
 
         logMessage("RECORDING SCORE");
         logMessage(data);

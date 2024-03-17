@@ -16,6 +16,7 @@ const { unzipSync } = require('node:zlib');
 const args = process.argv.slice(2);
 const host = args[0] || 'https://rock-buddy.com';
 
+const currentVersion = require('../package.json').version;
 let onLatestVersion = false;
 
 // Store for user config data
@@ -26,6 +27,50 @@ const rocksmithAppId = 221680;
 
 // Variable to store Rocksniffer child process
 let rocksnifferChildProcess = null;
+
+// Purge log files older than 30 days
+function purgeOldLogs() {
+    const logRegex = /rock_buddy_log_\d{4}-\d{2}-\d{2}[.]txt$/;
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    try {
+        const files = fs.readdirSync('.');
+        files.forEach(file => {
+
+            // Process all log files
+            if (logRegex.test(file)) {
+
+                // Remove logs older than 30 days
+                const stats = fs.statSync(file);
+                if (stats.mtime < thirtyDaysAgo) {
+                    fs.unlinkSync(file);
+                    console.log('Removed old log file: ' + file);
+                }
+            }
+        })
+    } catch (error) {
+        console.error('Error purging old log files:', error);
+    }
+}
+
+function logMessage(message) {
+    let text = message;
+    if (typeof message !== "string") {
+        text = JSON.stringify(message);
+    }
+
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+    const day = currentDate.getDate().toString().padStart(2, '0');
+    const hours = currentDate.getHours().toString().padStart(2, '0');
+    const minutes = currentDate.getMinutes().toString().padStart(2, '0');
+    const seconds = currentDate.getSeconds().toString().padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+
+    fs.appendFileSync("rock_buddy_log_" + year + "-" + month + "-" + day + ".txt", formattedDate + ': ' + text + "\n");
+}
 
 async function getAllReleases(owner, repo) {
     try {
@@ -45,8 +90,6 @@ function checkForUpdates(win) {
     const repo = 'rock-buddy-app';
 
     getAllReleases(owner, repo).then((releases) => {
-        const currentVersion = require('../package.json').version;
-
         const authData = store.get('auth_data');
         let betaTesting = false;
         if (authData !== undefined)
@@ -95,6 +138,13 @@ function checkForUpdates(win) {
 
 // Initialize some app data
 function init() {
+
+    // purge old logs on startup
+    purgeOldLogs();
+
+    logMessage("");
+    logMessage("Rock Buddy v" + currentVersion + " starting");
+    logMessage("");
 
     // Set Steam user data path to the system default location
     const steamUserDataPath = store.get('default_steam_user_data_path');
@@ -375,6 +425,10 @@ function createWindow() {
     ipcMain.handle('get-src-dir', (event) => {
         return __dirname;
     });
+
+    ipcMain.on('log-message', (event, message) => {
+        logMessage(message);
+    })
 
     ipcMain.on('info', (event, message) => {
         dialog.showMessageBox({
