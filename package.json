@@ -1,6 +1,6 @@
 {
     "name": "rock-buddy",
-    "version": "1.7.3",
+    "version": "1.7.4-beta",
     "description": "Rock Buddy",
     "main": "./src/main.js",
     "scripts": {

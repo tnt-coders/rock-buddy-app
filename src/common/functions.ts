@@ -1,3 +1,5 @@
+var connected = true;
+
 export function logMessage(message: any) {
     console.log(message);
     window.api.logMessage(message);
@@ -278,9 +280,17 @@ export async function post(url: string, data: any) {
 
         // Cloudflare returns a status of 530 when communication with the server is lost
         if (response.status === 530) {
-            window.api.error("Communication with server lost.");
+            if (connected) {
+                connected = false;
+                window.api.error("Communication with server lost.");
+            }
+
+            return { 'error': "Communication with server lost." };
         }
     }
+
+    // Server provided a response
+    connected = true;
 
     const responseJson = await response.json();
     if (responseJson.hasOwnProperty('error') && responseJson['error'] === 'Invalid API key.') {
