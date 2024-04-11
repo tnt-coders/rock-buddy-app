@@ -85,8 +85,8 @@ export function getAvailablePaths(arrangementData: any) {
         else if (type === 'Rhythm') {
 
             // 5/6 string bass is often charted as alt/bonus rhythm
-            // -1200 is A220... if it is below -1000 treat it as extended range bass
-            if ((isBonus || isAlt ) && centOffset < -1000) {
+            // -1200 is A220... if it is below -1150 treat it as extended range bass
+            if ((isBonus || isAlt ) && centOffset < -1150) {
                 pathGroups.bass.push({
                     name: 'Bass*',
                     hash: hash
