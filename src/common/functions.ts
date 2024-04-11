@@ -60,6 +60,7 @@ export function getAvailablePaths(arrangementData: any) {
         const type = arrangement['type'];
         const isAlt = arrangement['isAlternateArrangement'];
         const isBonus = arrangement['isBonusArrangement'];
+        const centOffset = arrangement['tuning']['CentsOffset'];
 
         if (type === 'Lead') {
             if (isBonus) {
@@ -82,7 +83,16 @@ export function getAvailablePaths(arrangementData: any) {
             }
         }
         else if (type === 'Rhythm') {
-            if (isBonus) {
+
+            // 5/6 string bass is often charted as alt/bonus rhythm
+            // -1200 is A220... if it is below -1000 treat it as extended range bass
+            if ((isBonus || isAlt ) && centOffset < -1000) {
+                pathGroups.bass.push({
+                    name: 'Bass*',
+                    hash: hash
+                });
+            }
+            else if (isBonus) {
                 pathGroups.bonusRhythm.push({
                     name: 'Bonus ' + type,
                     hash: hash
