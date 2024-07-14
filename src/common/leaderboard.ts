@@ -1,4 +1,5 @@
 import { approxEqual, post } from "./functions";
+import { displayProfile } from "./profile";
 
 async function getScoresLAS(song_key: string, psarc_hash: string, arrangement: string): Promise<any> {
     const authData = JSON.parse(window.sessionStorage.getItem('auth_data') as any);
@@ -133,7 +134,13 @@ export async function displayLASLeaderboard(song_key: string, psarc_hash: string
                     usernameElement.appendChild(kingElement);
                 }
 
-                const usernameText = document.createTextNode(row[column]);
+                const usernameText = document.createElement('span');
+                usernameText.innerText = row[column];
+                usernameText.style.cursor = 'pointer';
+                usernameText.addEventListener('click', () => {
+                    displayProfile(row[column])
+                });
+
                 usernameElement.appendChild(usernameText);
 
                 dataCell.appendChild(usernameElement);
@@ -292,7 +299,13 @@ export async function displaySALeaderboard(song_key: string, psarc_hash: string,
                     usernameElement.appendChild(kingElement);
                 }
 
-                const usernameText = document.createTextNode(row[column]);
+                const usernameText = document.createElement('span');
+                usernameText.innerText = row[column];
+                usernameText.style.cursor = 'pointer';
+                usernameText.addEventListener('click', () => {
+                    displayProfile(row[column])
+                });
+
                 usernameElement.appendChild(usernameText);
 
                 dataCell.appendChild(usernameElement);

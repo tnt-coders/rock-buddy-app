@@ -1,4 +1,5 @@
 import { getVersion, post } from "../common/functions";
+import { displayProfile } from "../common/profile";
 
 function getRandomVerb() {
     const verbs: string[] = [
@@ -250,7 +251,13 @@ async function display_leaderboard(type: string) {
                     usernameElement.appendChild(kingElement);
                 }
 
-                const usernameText = document.createTextNode(row[column]);
+                const usernameText = document.createElement('span');
+                usernameText.innerText = row[column];
+                usernameText.style.cursor = 'pointer';
+                usernameText.addEventListener('click', () => {
+                    displayProfile(row[column])
+                });
+
                 usernameElement.appendChild(usernameText);
 
                 dataCell.appendChild(usernameElement);

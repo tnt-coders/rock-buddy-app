@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+  <link rel="stylesheet" href="../common/profile.css">
   <link rel="stylesheet" href="../common/footer.css">
   <link rel="stylesheet" href="../common/dark-theme.css" id="theme">
   <title>Rock Buddy</title>
@@ -11,13 +12,24 @@
   <div style="display: flex; flex-direction: row; align-items: center; gap: 5px; width: 100%; min-width: 800px;" class="navtop">
     <a href="../sniffer/sniffer.html">Sniffer</a>|
     <a href="../search/search.html">Search</a>|
-    <a href="../stats/stats.html">Stats</a>|
-    <a href="../rank/rank.html">Rank</a>
+    <a href="../rank/rank.html">Rank</a>|
+    <a href="../profile/profile.html">Profile</a>
     <a href="../config/config.html" style="margin-left: auto;">Config</a>|
     <a href="../account/account.html">Account</a>
   </div>
-  <h1>Stats</h1>
-  <p><i>This page is a work in progress...</i></p>
+  <div class="header">
+    <h1 id="title">Profile</h1>
+    <button class="btn-primary" id="save_button" title="Save profile data">Save</button>
+  </div>
+  <div class="profile">
+    <div class="twitch-data">
+      <span class="profile-label">Twitch:</span>
+      <div class="twitch-enterable">
+        <span>https://twitch.tv/</span>
+        <input type="string" id="twitch_username">
+      </div>
+    </div>
+  </div>
   <div class="stats">
     <h2>Verified Scores</h2>
     <div class="stats-entry">
@@ -71,7 +83,7 @@
     </div>
     </p>
   </footer>
-  <script src="../../dist/stats/bundle.js"></script>
+  <script src="../../dist/profile/bundle.js"></script>
   <script src="../common/boulder_bro.js"></script>
   <script src="../common/theme.js"></script>
 

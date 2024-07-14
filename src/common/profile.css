@@ -1,0 +1,35 @@
+.header {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    width: 100%;
+}
+
+.profile-label {
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+.twitch-data {
+    display: flex;
+    flex-direction: row;
+}
+
+.stats {
+    display: flex;
+    flex-direction: column;
+}
+
+.stats-entry {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+#save_button {
+    margin-left: auto;
+}
+
+#twitch_username {
+    min-width: 200px;
+}

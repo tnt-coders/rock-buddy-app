@@ -5,7 +5,7 @@ module.exports = {
     entry: {
         sniffer: './dist/sniffer/main.js',
         search: './dist/search/main.js',
-        stats: './dist/stats/main.js',
+        profile: './dist/profile/main.js',
         rank: './dist/rank/main.js',
     },
     output: {

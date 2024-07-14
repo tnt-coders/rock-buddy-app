@@ -79,6 +79,7 @@
 }
 
 .btn-primary {
+    cursor: pointer;
     background-color: #6819da;
     background-image: -moz-linear-gradient(top, #a26ede, #6819da);
     background-image: -ms-linear-gradient(top, #a26ede, #6819da);

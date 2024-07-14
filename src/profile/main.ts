@@ -1,13 +1,13 @@
-import { Stats } from "./stats";
+import { Profile } from "./profile";
 import { getVersion } from "../common/functions";
 
-let stats: Stats | null = null;
+let profile: Profile | null = null;
 
 async function main() {
     const version = await getVersion();
     document.title = 'Rock Buddy v' + version;
 
-    stats = await Stats.create();
+    profile = await Profile.create();
 }
 
 main();
