@@ -3,6 +3,7 @@
 const userId = JSON.parse(sessionStorage.getItem('auth_data'))['user_id'];
 
 // Globals (default settings)
+let alwaysSniff = false;
 let lurkMode = false;
 let useExternalRocksniffer = false;
 let rocksnifferHost = '127.0.0.1';
@@ -188,6 +189,23 @@ async function getPreferences() {
 }
 
 async function initSnifferConfig() {
+    // Always sniff
+    const alwaysSniffCheckbox = document.querySelector('#always_sniff');
+
+    let savedAlwaysSniff = await api.storeGet('user_data.' + userId + '.always_sniff');
+    if (savedAlwaysSniff === null) {
+        await api.storeSet('user_data.' + userId + '.always_sniff', alwaysSniff);
+    }
+    else {
+        alwaysSniff = savedAlwaysSniff;
+    }
+    alwaysSniffCheckbox.checked = alwaysSniff;
+
+    alwaysSniffCheckbox.addEventListener('change', async () => {
+        await api.storeSet('user_data.' + userId + '.always_sniff', alwaysSniffCheckbox.checked);
+    });
+
+    // Lurk mode
     const lurkModeCheckbox = document.querySelector('#lurk_mode');
 
     let savedLurkMode = await api.storeGet('user_data.' + userId + '.lurk_mode');

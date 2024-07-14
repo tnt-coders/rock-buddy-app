@@ -1,5 +1,5 @@
 import { Search } from "./search";
-import { getVersion } from "../common/functions";
+import { getVersion, checkAlwaysSniff } from "../common/functions";
 
 let search: Search | null = null;
 
@@ -9,6 +9,8 @@ async function main() {
 
     // Create the search element
     search = new Search();
+
+    checkAlwaysSniff();
 }
 
 main();

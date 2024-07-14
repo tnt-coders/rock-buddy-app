@@ -1,5 +1,5 @@
 import { Profile } from "./profile";
-import { getVersion } from "../common/functions";
+import { getVersion, checkAlwaysSniff } from "../common/functions";
 
 let profile: Profile | null = null;
 
@@ -8,6 +8,8 @@ async function main() {
     document.title = 'Rock Buddy v' + version;
 
     profile = await Profile.create();
+
+    checkAlwaysSniff();
 }
 
 main();

@@ -1,4 +1,4 @@
-import { logMessage } from "../common/functions";
+import { approxEqual, logMessage } from "../common/functions";
 
 export class Rocksniffer {
     public static readonly timeout: number = 100; // milliseconds

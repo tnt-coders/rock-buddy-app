@@ -1,4 +1,4 @@
-import { getVersion, post } from "../common/functions";
+import { getVersion, post, checkAlwaysSniff } from "../common/functions";
 import { displayProfile } from "../common/profile";
 
 function getRandomVerb() {
@@ -360,6 +360,8 @@ async function main() {
     get_ranks_top3();
 
     create_popup_elements();
+
+    checkAlwaysSniff();
 }
 
 main();
