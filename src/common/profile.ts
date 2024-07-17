@@ -46,10 +46,19 @@ export async function displayProfile(username: string): Promise<void> {
 
     const twitchLink = document.createElement('a');
     twitchLink.href = '#';
-    twitchLink.innerText = 'https://twitch.tv/' + profile_response['twitch_username'];
-    twitchLink.addEventListener('click', () => {
-        window.api.openExternalLink(twitchLink.innerText);
-    })
+    if (profile_response['twitch_username'] === null) {
+        twitchLink.innerText = 'N/A'
+        twitchLink.addEventListener('click', () => {
+            window.api.openExternalLink('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+        })
+    }
+    else {
+        twitchLink.innerText = 'https://twitch.tv/' + profile_response['twitch_username'];
+        twitchLink.addEventListener('click', () => {
+            window.api.openExternalLink(twitchLink.innerText);
+        })
+    }
+    
     twitchData.appendChild(twitchLink);
 
     profileData.appendChild(twitchData);
