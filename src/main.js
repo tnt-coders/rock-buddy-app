@@ -354,12 +354,22 @@ function createWindow() {
             serveAddons: false
         };
 
+        // Rebuild the rocksniffer rpc config file
+        let rocksnifferRpcConfig = {
+            "enabled": false,
+            "updatePeriodMs": 1000,
+            "client_id": "573253140682375193",
+            "enableCoverArt": true
+        };
+
         let useExternalRocksniffer = false;
 
+        // Get saved user data
         const authData = store.get('auth_data');
         if (authData !== undefined) {
             const userId = authData['user_id'];
 
+            // Addon settings
             const savedRocksnifferHost = store.get('user_data.' + userId + '.rocksniffer_host');
             if (savedRocksnifferHost !== undefined) {
                 rocksnifferAddonConfig.ipAddress = savedRocksnifferHost;
@@ -370,15 +380,23 @@ function createWindow() {
                 rocksnifferAddonConfig.port = savedRocksnifferPort;
             }
 
+            // Discord rich presence
+            const savedDiscordRichPresence = store.get('user_data.' + userId + '.discord_rich_presence');
+            if (savedDiscordRichPresence !== undefined) {
+                rocksnifferRpcConfig.enabled = savedDiscordRichPresence;
+            }
+
+            // Use external Rocksniffer
             const savedUseExternalRocksniffer = store.get('user_data.' + userId + '.use_external_rocksniffer');
             if (savedUseExternalRocksniffer !== undefined) {
                 useExternalRocksniffer = savedUseExternalRocksniffer;
             }
         }
 
-        // Convert JSON data to a string
-        const rocksnifferAddonConfigJSON = JSON.stringify(rocksnifferAddonConfig, null, 2);
         const configPath = path.join(rocksnifferPath, 'config');
+
+        // Update addon config
+        const rocksnifferAddonConfigJSON = JSON.stringify(rocksnifferAddonConfig, null, 2);
         try {
             if (!fs.existsSync(configPath)) {
                 fs.mkdirSync(configPath, { recursive: true });
@@ -387,6 +405,18 @@ function createWindow() {
         }
         catch (error) {
             console.error('Failed to write rocksniffer addons config: ', error.message);
+        }
+
+        // Update rpc config
+        const rocksnifferRpcConfigJSON = JSON.stringify(rocksnifferRpcConfig, null, 2);
+        try {
+            if (!fs.existsSync(configPath)) {
+                fs.mkdirSync(configPath, { recursive: true });
+            }
+            fs.writeFileSync(path.join(configPath, 'rpc.json'), rocksnifferRpcConfigJSON);
+        }
+        catch (error) {
+            console.error('Failed to write rocksniffer rpc config: ', error.message);
         }
 
         if (!useExternalRocksniffer) {

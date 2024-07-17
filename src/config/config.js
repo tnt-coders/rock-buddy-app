@@ -5,6 +5,7 @@ const userId = JSON.parse(sessionStorage.getItem('auth_data'))['user_id'];
 // Globals (default settings)
 let alwaysSniff = false;
 let lurkMode = false;
+let discordRichPresence = false;
 let useExternalRocksniffer = false;
 let rocksnifferHost = '127.0.0.1';
 let rocksnifferPort = 9002;
@@ -292,11 +293,27 @@ async function initSnifferConfig() {
 }
 
 async function initRocksnifferConfig() {
+    const discordRichPresenceCheckbox = document.querySelector('#discord_rich_presence');
     const useExternalRocksnifferCheckbox = document.querySelector('#use_external_rocksniffer');
     const rocksnifferHostEntry = document.querySelector('#rocksniffer_host');
     const rocksnifferPortEntry = document.querySelector('#rocksniffer_port');
     const lurkModeCheckbox = document.querySelector('#lurk_mode');
 
+    // Discord rich presence
+    let savedDiscordRichPresence = await api.storeGet('user_data.' + userId + '.discord_rich_presence');
+    if (savedDiscordRichPresence === null) {
+        await api.storeSet('user_data.' + userId + '.discord_rich_presence', discordRichPresence);
+    }
+    else {
+        discordRichPresence = savedDiscordRichPresence;
+    }
+    discordRichPresenceCheckbox.checked = discordRichPresence;
+
+    discordRichPresenceCheckbox.addEventListener('change', async () => {
+        await api.storeSet('user_data.' + userId + '.discord_rich_presence', discordRichPresenceCheckbox.checked);
+    });
+
+    // Use external Rocksniffer
     let savedUseExternalRocksniffer = await api.storeGet('user_data.' + userId + '.use_external_rocksniffer');
     if (savedUseExternalRocksniffer === null) {
         await api.storeSet('user_data.' + userId + '.use_external_rocksniffer', useExternalRocksniffer);
