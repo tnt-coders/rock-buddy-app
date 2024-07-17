@@ -27,7 +27,9 @@ async function post(url, data) {
         if (!response.ok) {
 
             // Cloudflare returns a status of 530 when communication with the server is lost
-            if (response.status === 530) {
+            // A status of 502 also indicates a Cloudflare issue
+            if (response.status === 530 || response.status === 502) {
+                console.error("Communication with server lost - HTML error code:" + response.status);
                 throw new Error("Communication with server lost.");
             }
         }

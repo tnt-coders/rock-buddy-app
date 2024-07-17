@@ -1,3 +1,5 @@
+import { UserData } from "./user_data";
+
 var connected = true;
 
 export function logMessage(message: any) {
@@ -309,4 +311,21 @@ export async function post(url: string, data: any) {
     }
 
     return responseJson;
+}
+
+// If "Always Sniff" is enabled and Rock Buddy loses focus, jump to the sniffer page
+export async function checkAlwaysSniff(): Promise<void> {
+    
+    let alwaysSniff = await UserData.get('always_sniff');
+    if (alwaysSniff === null || alwaysSniff === false) {
+        return;
+    }
+
+    // Jump to the sniffer page if Rock Buddy loses focus
+    setInterval(async () => {
+        if (!document.hasFocus()) {
+            const srcDir = await window.api.getSrcDir();
+            window.location.href = await window.api.pathJoin(srcDir, 'sniffer/sniffer.html');
+        }
+    }, 100);
 }
