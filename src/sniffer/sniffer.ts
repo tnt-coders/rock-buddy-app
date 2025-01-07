@@ -1016,6 +1016,12 @@ export class Sniffer {
         data['mastery'] = rocksnifferData['memoryReadout']['noteData']['Accuracy'] / 100;
         data['total_notes'] = totalNotes;
 
+        let version = rocksnifferData['songDetails']['toolkit']['version'];
+        if (version.trim() == 'test') {
+            // Test versions of songs are not supported
+            return;
+        }
+
         logMessage("RECORDING SCORE");
         logMessage(data);
 
@@ -1125,10 +1131,9 @@ export class Sniffer {
         // Define object to hold arrangement data
         snortData['arrangements'] = {};
 
-        //TODO: change to extra logging later
-        //if (this._extraLogging) {
+        if (this._extraLogging) {
             logMessage("SONG: " + snortData['artist'] + " - " + snortData['title']);
-        //}
+        }
 
         // Loop athrough each arrangement
         rocksnifferData['songDetails']['arrangements'].forEach((arrangement: any) => {
@@ -1145,10 +1150,9 @@ export class Sniffer {
                 }
             });
 
-            //TODO: change to extra logging later
-            //if (this._extraLogging) {
+            if (this._extraLogging) {
                 logMessage("ARRANGEMENT: " + arrangementData['name'] + " - " + arrangementData['note_data_hash']);
-            //}
+            }
 
             const lasDataExists = rocksmithData['Stats']['Songs'].hasOwnProperty(hash);
             const saDataExists = rocksmithData['SongsSA'].hasOwnProperty(hash);
@@ -1198,6 +1202,13 @@ export class Sniffer {
     private async syncWithServer(snortData: any): Promise<boolean> {
         const host = await window.api.getHost();
 
+        logMessage(snortData['version']);
+        if (snortData['version'].trim() == 'test') {
+            const leaderboardDataElement = document.getElementById('leaderboard_data') as HTMLElement;
+            leaderboardDataElement.innerText = 'Test versions of songs are not supported.';
+            return false;
+        }
+
         const sync_response = await post(host + '/api/data/sniffer_sync.php', {
             auth_data: authData,
             song_data: snortData,
@@ -1205,11 +1216,7 @@ export class Sniffer {
         });
 
         if ('error' in sync_response) {
-            if (sync_response['error'] === 'Test versions of songs are not supported.') {
-                const leaderboardDataElement = document.getElementById('leaderboard_data') as HTMLElement;
-                leaderboardDataElement.innerText = sync_response['error'];
-            }
-            else if (!this._syncErrorDisplayed) {
+            if (!this._syncErrorDisplayed) {
                 window.api.error(sync_response['error']);
                 this._syncErrorDisplayed = true;
             }
