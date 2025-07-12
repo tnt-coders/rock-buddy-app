@@ -10,7 +10,7 @@ def build_rocksniffer(rocksniffer_srcdir):
     print('Executing dotnet build on RockSniffer...')
 
     try:
-        build_output = subprocess.run('dotnet build /p:LangVersion=11.0 /p:Configuration=Release /p:Platform=x64', shell=True, cwd=rocksniffer_srcdir, check=True)
+        build_output = subprocess.run('dotnet build /p:LangVersion=12.0 /p:Configuration=Release /p:Platform=x64', shell=True, cwd=rocksniffer_srcdir, check=True)
         print(f'RockSniffer Build Output: {build_output}')
     except Exception as e:
         print(f'Error executing dotnet build: {e}')
