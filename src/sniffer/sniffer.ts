@@ -724,13 +724,6 @@ export class Sniffer {
                 logMessage(debugInfo);
             }
 
-            // Verify the u ser has the latest RSMods
-            const modsActive = rocksnifferData['memoryReadout']['modsActive'];
-            if (!modsActive) {
-                this.setVerificationState(VerificationState.Unverified, "Verified scores disabled: Requires RSMods v1.2.7.3 or later.");
-                return;
-            }
-
             // Allow 10 refreshes for the song to fully load in.
             if (this._refreshCounter <= 10) {
                 this._progressTimer = songTime * 1000;
