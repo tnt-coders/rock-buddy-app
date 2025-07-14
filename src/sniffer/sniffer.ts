@@ -357,7 +357,7 @@ export class Sniffer {
                                                      + "<br>"
                                                      + "If this takes more than a few seconds Rocksniffer may have failed to start. If this problem persists, try the following:<br>"
                                                      + "<ul>"
-                                                     + "<li>Ensure <a href=\"https://dotnet.microsoft.com/en-us/download/dotnet/6.0/runtime\">.NET framework 6.0</a> (for console apps) is installed.</li>"
+                                                     + "<li>Ensure <a href=\"https://dotnet.microsoft.com/en-us/download/dotnet/8.0/runtime\">.NET framework 8.0</a> (for console apps) is installed.</li>"
                                                      + "<li>Try running Rock Buddy as administrator.</li>"
                                                      + "<li>Ensure no other app is using the port Rock Buddy uses for Rocksniffer (port 9002 by default).</li>"
                                                      + "</ul>"
