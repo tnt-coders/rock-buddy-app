@@ -1,6 +1,6 @@
 const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron');
 const isDev = require('electron-is-dev');
-const Store = require('electron-store');
+const Store = require('electron-store').default;
 const aesjs = require('aes-js');
 const axios = require('axios');
 const http = require('http');
