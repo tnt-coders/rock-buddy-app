@@ -1,5 +1,4 @@
 const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron');
-const isDev = require('electron-is-dev');
 const Store = require('electron-store').default;
 const aesjs = require('aes-js');
 const axios = require('axios');
@@ -18,6 +17,9 @@ const host = args[0] || 'https://rock-buddy.com';
 
 const currentVersion = require('../package.json').version;
 let onLatestVersion = false;
+
+// Check if in dev environment
+const isDev = !app.isPackaged || process.env.NODE_ENV === "development";
 
 // Store for user config data
 const store = new Store();

@@ -39,7 +39,7 @@
         "extraFiles": [
             {
                 "from": "RockSniffer/RockSniffer/bin/x64/Release/net8.0",
-                "to": "Rocksniffer"
+                "to": "RockSniffer"
             },
             {
                 "from": "rock-buddy-addons",
