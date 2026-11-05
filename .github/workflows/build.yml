@@ -1,28 +1,103 @@
 name: Build
-on: [push, pull_request]
+on:
+  # Feature branches are checked by their PR, not again by a fork push.
+  push:
+    branches: [main, develop]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      installer:
+        description: beta = rehearsal; production-beta = official prerelease; production = stable
+        type: choice
+        options: [none, beta, production-beta, production]
+        default: none
+      version:
+        description: beta uses 1.12.0-beta7; production-beta uses 1.12.0-beta.7; production uses 1.12.0
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+# New pushes replace obsolete checks instead of accumulating queued builds.
+concurrency:
+  group: desktop-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 jobs:
   build_on_win:
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     runs-on: windows-latest
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          submodules: 'recursive'
-      - uses: actions/setup-node@master
+          submodules: recursive
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
-          node-version: 18
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v1
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
         with:
-          dotnet-version: 6.0.x
-      - uses: actions/setup-python@v4
+          dotnet-version: 8.0.x
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
-          python-version: '3.10'
-          cache: 'pip' # caching pip dependencies
-      - run: pip install -r requirements.txt
-      - name: install dependencies
-        run: npm install
-      - name: build
-        run: npm run build
+          python-version: '3.12'
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+
+      # Pushes and PRs stop after checks: no installers, uploads, or releases.
+      - name: Set requested installer version
+        if: github.event_name == 'workflow_dispatch' && inputs.installer != 'none'
+        run: node tooling/prepare-installer.cjs
+        env:
+          INSTALLER_VERSION: ${{ inputs.version }}
+          ROCK_BUDDY_PACKAGE_TARGET: ${{ inputs.installer }}
+      - name: Bundle RockSniffer and its runtime
+        if: github.event_name == 'workflow_dispatch' && inputs.installer != 'none'
+        run: dotnet publish RockSniffer/RockSniffer/RockSniffer.csproj -c Release -r win-x64 --self-contained true -p:Platform=x64 -p:LangVersion=12.0 -o .generated/rocksniffer-release
+      - name: Prepare NSIS 3.12
+        if: github.event_name == 'workflow_dispatch' && inputs.installer != 'none'
+        shell: pwsh
+        run: |
+          $root = Join-Path $env:RUNNER_TEMP 'rock-buddy-nsis'
+          New-Item -ItemType Directory -Path $root -Force | Out-Null
+          $archive = Join-Path $root 'bundle.tar.gz'
+          Invoke-WebRequest 'https://github.com/electron-userland/electron-builder-binaries/releases/download/nsis%402.0.1/nsis-bundle-3.12.tar.gz' -OutFile $archive
+          if ((Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'fe36a357f3a220db893498e830fd80e0769768a18a99f4e4d2447b982538feed') { throw 'NSIS checksum mismatch' }
+          tar -xzf $archive -C $root
+          if ($LASTEXITCODE -ne 0) { throw 'NSIS extraction failed' }
+          $nsis = Join-Path $root 'nsis-bundle/windows'
+          # electron-builder 26 expects the compiler in Bin rather than the bundle root.
+          Copy-Item "$nsis/makensis.exe" "$nsis/Bin/makensis.exe"
+          Copy-Item "$root/nsis-bundle/elevate.exe" "$nsis/elevate.exe"
+          "ELECTRON_BUILDER_NSIS_DIR=$nsis" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - name: Package requested installer
+        if: github.event_name == 'workflow_dispatch' && inputs.installer != 'none'
+        run: npm run package:desktop
+        env:
+          ROCK_BUDDY_PACKAGE_TARGET: ${{ inputs.installer }}
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Install and check installer
+        if: github.event_name == 'workflow_dispatch' && inputs.installer != 'none'
+        run: node tooling/smoke-staging-installer.cjs
+        env:
+          ROCK_BUDDY_PACKAGE_TARGET: ${{ inputs.installer }}
+      - name: Validate update files and write checksums
+        if: github.event_name == 'workflow_dispatch' && inputs.installer != 'none'
+        run: node tooling/check-installer.cjs
+        env:
+          ROCK_BUDDY_PACKAGE_TARGET: ${{ inputs.installer }}
+      # Temporary test downloads expire. Publishing to a release remains a separate manual decision.
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: github.event_name == 'workflow_dispatch' && inputs.installer != 'none'
+        with:
+          name: rock-buddy-${{ inputs.installer }}-${{ inputs.version }}
+          path: |
+            release/${{ inputs.installer }}/*-Setup.exe
+            release/${{ inputs.installer }}/*.blockmap
+            release/${{ inputs.installer }}/*.yml
+            release/${{ inputs.installer }}/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 7

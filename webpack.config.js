@@ -1,13 +1,10 @@
 var path = require('path');
 
 module.exports = {
-    target: 'electron-renderer',
-    entry: {
-        sniffer: './dist/sniffer/main.js',
-        search: './dist/search/main.js',
-        profile: './dist/profile/main.js',
-        rank: './dist/rank/main.js',
-    },
+    target: 'web',
+    // Keep development bundles compatible with pages that disallow eval in their CSP.
+    devtool: 'source-map',
+    entry: { ui: './dist/ui/main.js' },
     output: {
         path: path.resolve(__dirname, 'dist'),
         filename: '[name]/bundle.js',

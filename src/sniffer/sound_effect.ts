@@ -3,6 +3,7 @@ export class SoundEffect {
     _lastMisses?: number;
     _enabled: boolean = false;
 
+    // Load the selected miss sounds before gameplay begins.
     public static async create(type: string, path: string | null) {
         let soundEffect = new SoundEffect();
         await soundEffect.enable(type, path);
@@ -13,6 +14,7 @@ export class SoundEffect {
         return this._enabled;
     }
 
+    // Load built-in sounds or the selected custom files and reset the miss counter.
     async enable(type: string, path: string | null) {
         const srcdir = await window.api.getSrcDir();
         const sounds = [];
@@ -35,7 +37,7 @@ export class SoundEffect {
         else if (type === 'oof') {
             const sound = new Audio(await window.api.pathJoin(srcdir, '../media/oof.mp3'));
             sound.preload = 'auto';
-            sounds.push();
+            sounds.push(sound);
         }
         else if (type === 'oof2') {
             const sound = new Audio(await window.api.pathJoin(srcdir, '../media/oof2.wav'));
@@ -86,14 +88,17 @@ export class SoundEffect {
         this._enabled = true;
     }
     
+    // Stop loaded sounds when this gameplay session ends.
     disable() {
         for (let sound of this._sounds) {
+            sound.pause();
             sound.remove();
         }
 
         this._enabled = false;
     }
 
+    // Play a sound only when the missed-note count increases.
     update(misses: number | undefined) {
         if (!this._enabled) return;
         if (misses === undefined) return;
@@ -107,6 +112,7 @@ export class SoundEffect {
         this._lastMisses = misses
     }
 
+    // Clone a random sound so nearby misses can play without cutting each other off.
     async playSound() {
         if (this._sounds.length === 0) return;
         const audio = this._sounds[Math.floor(Math.random() * this._sounds.length)].cloneNode() as HTMLAudioElement;

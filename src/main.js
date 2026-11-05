@@ -1,7 +1,6 @@
-const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, clipboard, dialog, ipcMain, shell, screen } = require('electron');
 const Store = require('electron-store').default;
 const aesjs = require('aes-js');
-const axios = require('axios');
 const http = require('http');
 const path = require('path');
 const openFileExplorer = require('open-file-explorer');
@@ -10,19 +9,56 @@ const glob = require('glob');
 const semver = require('semver');
 const { spawn } = require('child_process');
 const { unzipSync } = require('node:zlib');
+const { resolveRocksmithConfig } = require('./rocksmith-config');
+const { createBackendClient, CONNECTION_MESSAGE } = require('./backend-client');
+const { createDesktopUpdates, updatesEnabled } = require('./desktop-updates');
+const { createSupportCheckout } = require('./support-checkout');
+const { isSupportLocation } = require('./support-link');
+const { restoreWindowState, trackWindowState, applyWindowSize } = require('./window-state');
+const { MINIMUM_SIZE } = require('./window-size');
+const { pathToFileURL } = require('node:url');
+let supportCheckout = null;
+let desktopUpdates = null;
+let playing = false;
+let lastGameplayReport = 0;
+
+// Share status across page navigation without logging request bodies or credentials.
+function broadcast(channel, state) {
+    for (const window of BrowserWindow.getAllWindows()) {
+        if (!window.isDestroyed()) window.webContents.send(channel, state);
+    }
+}
 
 // Process input args
-const args = process.argv.slice(2);
-const host = args[0] || 'https://rock-buddy.com';
+const { HOSTS, resolveBackend } = require('./backend-config');
+const packageInfo = require('../package.json');
+const backend = resolveBackend(process.argv.slice(app.isPackaged ? 1 : 2), packageInfo.rockBuddyBackend);
+// Packaged assets and writable bundled helpers are relative to the install directory,
+// including launches from Explorer, shortcuts, or another working directory.
+if (app.isPackaged) process.chdir(path.dirname(app.getPath('exe')));
+const host = backend.host;
+const backendClient = createBackendClient(host, {
+    onState: state => broadcast('connection-state', state),
+});
+const isCommunityBeta = packageInfo.rockBuddyBackend === 'beta';
+const betaNotice = 'Rock Buddy Beta — Test scores and account changes stay here and will be discarded after testing.';
 
-const currentVersion = require('../package.json').version;
+// Keep beta credentials and preferences separate even when launched from a shortcut.
+if (isCommunityBeta) {
+    const betaUserData = path.join(app.getPath('appData'), 'rock-buddy-beta');
+    fs.mkdirSync(betaUserData, { recursive: true });
+    app.setPath('userData', betaUserData);
+    if (process.platform === 'win32') app.setAppUserModelId('com.rockbuddy.beta');
+}
+
+const currentVersion = packageInfo.version;
 let onLatestVersion = false;
 
 // Check if in dev environment
 const isDev = !app.isPackaged || process.env.NODE_ENV === "development";
 
 // Store for user config data
-const store = new Store();
+const store = new Store(backend.storeOptions);
 
 // Define Rocksmith app ID
 const rocksmithAppId = 221680;
@@ -56,6 +92,7 @@ function purgeOldLogs() {
     }
 }
 
+// Append diagnostics to the daily log using the local date and time.
 function logMessage(message) {
     let text = message;
     if (typeof message !== "string") {
@@ -74,68 +111,48 @@ function logMessage(message) {
     fs.appendFileSync("rock_buddy_log_" + year + "-" + month + "-" + day + ".txt", formattedDate + ': ' + text + "\n");
 }
 
-async function getAllReleases(owner, repo) {
-    try {
-        const response = await axios.get(`https://api.github.com/repos/${owner}/${repo}/releases`);
-        const releases = response.data.map((release) => release.tag_name);
-        return releases;
-    } catch (error) {
-        console.error('Error fetching releases:', error);
-        return [];
-    }
-}
-
+// Keep updates on the installer-provided feed; source and custom-backend launches cannot update.
 function checkForUpdates(win) {
-    console.log("Checking for updates...");
-
-    const owner = 'tnt-coders';
-    const repo = 'rock-buddy-app';
-
-    getAllReleases(owner, repo).then((releases) => {
-        const authData = store.get('auth_data');
-        let betaTesting = false;
-        if (authData !== undefined)
-        {
-            const userId = authData['user_id'];
-            betaTesting = store.get('user_data.' + userId + '.beta_testing');
-        }
-
-        for (let i = 0; i < releases.length; i++) {
-            let version = releases[i];
-
-            // Ignore pre-release versions
-            if (semver.prerelease(version)) {
-                
-                if (!betaTesting) {
-                    continue;
+    if (!updatesEnabled(app.isPackaged, process.platform, host, packageInfo.rockBuddyBackend, HOSTS)) return;
+    const { autoUpdater } = require('electron-updater');
+    desktopUpdates = createDesktopUpdates(autoUpdater, {
+        version: currentVersion,
+        allowBeta: () => {
+            if (isCommunityBeta) return true;
+            const id = store.get('auth_data')?.user_id;
+            return id !== undefined && store.get(`user_data.${id}.beta_testing`) === true;
+        },
+        canInstall: async () => {
+            if (backendClient.isBusy()) return false;
+            // Recheck gameplay immediately before installing, including when Sniffer is not the open page.
+            try {
+                const configFile = path.join(process.cwd(), 'RockSniffer', 'config', 'addons.json');
+                const config = JSON.parse(fs.readFileSync(configFile, 'utf8'));
+                const response = await fetch(`http://127.0.0.1:${config.port || 9002}`, { signal: AbortSignal.timeout(1500) });
+                const snapshot = await response.json();
+                if (!response.ok || typeof snapshot.RocksmithFound !== 'boolean') return false;
+                if (snapshot.RocksmithFound) {
+                    if (!Number.isFinite(snapshot.memoryReadout?.songTimer)) return false;
+                    if (snapshot.memoryReadout.songTimer > 0) return false;
                 }
+            } catch {
+                // If the helper is running but unreadable, wait instead of risking a song interruption.
+                if (playing || (rocksnifferChildProcess && rocksnifferChildProcess.exitCode === null)) return false;
             }
-            
-            if (semver.gt(version, currentVersion)) {
-
-                // Create popup
-                const options = {
-                    type: 'question',
-                    buttons: ['Proceed to download page', 'Close'],
-                    defaultId: 0,
-                    title: 'Update Available',
-                    message: 'A new version of Rock Buddy is available!'
-                };
-
-                dialog.showMessageBox(options).then(response => {
-                    if (response.response === 0) {
-                        const url = `https://github.com/${owner}/${repo}/releases/tag/${version}`;
-                        shell.openExternal(url);
-                    }
-                });
-
-                break;
-            }
-            else {
-                onLatestVersion = true;
-            }
-        };
+            return !(playing && Date.now() - lastGameplayReport < 2000) && !backendClient.isBusy();
+        },
+        onState: state => {
+            if (state.status === 'error') logMessage(state.message);
+            broadcast('update-state', state);
+        },
+        onLatest: latest => { onLatestVersion = latest; },
     });
+
+    // Check once at startup and every four hours without keeping the process alive.
+    void desktopUpdates.check();
+    const timer = setInterval(() => void desktopUpdates.check(), 4 * 60 * 60 * 1000);
+    timer.unref();
+    win.on('closed', () => clearInterval(timer));
 }
 
 // Initialize some app data
@@ -166,12 +183,14 @@ function readRocksmithData(dataFile) {
     const key = Buffer.from('\x72\x8B\x36\x9E\x24\xED\x01\x34\x76\x85\x11\x02\x18\x12\xAF\xC0\xA3\xC2\x5D\x02\x06\x5F\x16\x6B\x4B\xCC\x58\xCD\x26\x44\xF2\x9E', 'ascii');
 
     try {
+        // Skip the save header before decrypting the compressed payload.
         let saveFile = fs.readFileSync(dataFile, { encoding: null });
         saveFile = saveFile.slice(20);
 
         const aesEcb = new aesjs.ModeOfOperation.ecb(key);
         const decrypted = aesEcb.decrypt(saveFile);
 
+        // Inflate the decrypted data and remove its trailing terminator before parsing JSON.
         const unzipped = unzipSync(decrypted);
         const text = unzipped.toString('utf8').slice(0, -1);
 
@@ -182,6 +201,7 @@ function readRocksmithData(dataFile) {
     }
 }
 
+// Map Steam display names to their local userdata folder IDs.
 function getSteamProfiles(steamUserDataPath) {
     let profiles = {};
     try {
@@ -212,13 +232,17 @@ function getSteamProfiles(steamUserDataPath) {
     }
 }
 
+// Map Rocksmith profile names to save IDs within the chosen Steam account.
 function getRocksmithProfiles(steamUserDataPath, steamProfile) {
     let profiles = {};
+    if (!steamUserDataPath || !steamProfile) return profiles;
     const rocksmithDataFolder = path.join(steamUserDataPath, steamProfile.toString(), rocksmithAppId.toString(), 'remote');
     const localProfilesFile = path.join(rocksmithDataFolder, 'LocalProfiles.json');
+    if (!fs.existsSync(localProfilesFile)) return profiles;
 
     // Read the localProfiles.json file to get the list of available profiles
     const localProfiles = readRocksmithData(localProfilesFile);
+    if (!Array.isArray(localProfiles?.Profiles)) return profiles;
     localProfiles['Profiles'].forEach((profile) => {
         profiles[profile['PlayerName']] = profile['UniqueID'];
     });
@@ -226,6 +250,7 @@ function getRocksmithProfiles(steamUserDataPath, steamProfile) {
     return profiles;
 }
 
+// Use the build output during development and the bundled reader after installation.
 function getRocksnifferPath() {
     let rocksnifferPath = 'RockSniffer';
     if (isDev) {
@@ -273,25 +298,42 @@ function createWindow() {
         }
     }
 
+    // Use the old account dimensions once if this installation has no saved window state yet.
+    const windowState = restoreWindowState(
+        store.get('window_state') ?? { width: screenWidth, height: screenHeight },
+        screen,
+    );
+    const { x, y, width, height } = windowState;
     const win = new BrowserWindow({
-        width: screenWidth,
-        height: screenHeight,
+        x, y, width, height,
+        minWidth: MINIMUM_SIZE.width,
+        minHeight: MINIMUM_SIZE.height,
+        show: false,
         webPreferences: {
             preload: path.join(__dirname, '..', 'dist', 'preload.js'),
-            backgroundThrottling: false
+            backgroundThrottling: false,
+            ...backend.webPreferences
         },
         icon: path.join(__dirname, '..', 'images', 'favicon.ico')
     });
 
-    let resizeTimer;
-    win.on('resize', () => {
-        const { width, height } = win.getBounds();
-
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
-            win.webContents.send('window-resized', width, height);
-        }, 500);
+    trackWindowState(win, store, screen, windowState);
+    win.once('ready-to-show', () => {
+        if (windowState.maximized) {
+            win.maximize();
+        }
+        win.show();
     });
+
+    // Keep every page visibly labeled, including login and account screens.
+    if (isCommunityBeta) {
+        const title = `Rock Buddy Beta v${currentVersion}`;
+        win.setTitle(title);
+        win.on('page-title-updated', event => {
+            event.preventDefault();
+            win.setTitle(title);
+        });
+    }
 
     // Hide the menu bar
     win.setMenuBarVisibility(false);
@@ -318,6 +360,7 @@ function createWindow() {
         server.close();
     });
 
+    // Remove reader cache files after a backend-requested cache refresh.
     ipcMain.on('clear-rocksniffer-cache', (event) => {
         const rocksnifferPath = getRocksnifferPath();
 
@@ -338,6 +381,7 @@ function createWindow() {
         return getRocksnifferPath();
     });
 
+    // Start the reader once, using the signed-in account's local connection and Discord settings.
     ipcMain.on('launch-rocksniffer', (event) => {
         const rocksnifferPath = getRocksnifferPath();
 
@@ -438,6 +482,7 @@ function createWindow() {
         }
     });
 
+    // Grant instant snorts only when Beta Testing is enabled and this version is confirmed current.
     ipcMain.handle('on-latest-beta-version', (event) => {
         const authData = store.get('auth_data');
         let betaTesting = false;
@@ -479,6 +524,7 @@ function createWindow() {
     });
 
     ipcMain.on('error', (event, message) => {
+        if (message === CONNECTION_MESSAGE) return;
         dialog.showMessageBox({
             type: 'error',
             message: message,
@@ -486,23 +532,25 @@ function createWindow() {
         });
     });
 
-    ipcMain.handle('get-window-size', (event) => {
-        return win.getBounds();
-    });
+    // Open links through the operating system and report failures outside the renderer.
+    ipcMain.on('open-external-link', async (event, url) => {
+        try {
+            await shell.openExternal(url);
+        } catch {
+            // Let users copy the contact address when their email app cannot open.
+            const email = typeof url === 'string' && url.startsWith('mailto:')
+                ? url.slice('mailto:'.length).split('?')[0]
+                : null;
+            const { response } = await dialog.showMessageBox({
+                type: 'error',
+                message: email ? 'Could not open your email app.' : 'Could not open this link.',
+                detail: email || 'Please try again.',
+                buttons: email ? ['Copy email address', 'Close'] : ['OK'],
+                cancelId: email ? 1 : 0,
+            });
 
-    ipcMain.on('set-window-size', (event, width, height) => {
-        win.setBounds({
-            width: parseInt(width),
-            height: parseInt(height)
-        });
-    });
-
-    ipcMain.on('load-url', (event, url) => {
-        win.loadURL(url);
-    });
-
-    ipcMain.on('open-external-link', (event, url) => {
-        shell.openExternal(url);
+            if (email && response === 0) clipboard.writeText(email);
+        }
     });
 
     ipcMain.handle('get-version', (event) => {
@@ -654,7 +702,11 @@ function createWindow() {
         return readRocksmithData(dataFile);
     });
 
-    // Gets a map of Steam profiles and their corresponding folder names
+    // Discover a unique local save for this account without claiming who is playing.
+    ipcMain.handle('resolve-rocksmith-config', () => {
+        return resolveRocksmithConfig(store, store.get('auth_data')?.user_id, getSteamProfiles, getRocksmithProfiles);
+    });
+
     ipcMain.handle('get-steam-profiles', (event, steamUserDataPath) => {
         return getSteamProfiles(steamUserDataPath);
     });
@@ -664,6 +716,7 @@ function createWindow() {
         return getRocksmithProfiles(steamUserDataPath, steamProfile);
     });
 
+    // Serve window screenshots to local streaming overlays while the addon server is enabled.
     let enableAddons = (event, host, port) => {
         server.on('error', (error) => {
             console.log("Server error: " + error);
@@ -710,6 +763,7 @@ function createWindow() {
 
     ipcMain.on('enable-addons', enableAddons);
 
+    // Stop screenshot capture and close the addon server together.
     ipcMain.on('disable-addons', (event) => {
         if (captureInterval !== null) {
             clearInterval(captureInterval);
@@ -730,6 +784,51 @@ function createWindow() {
 
     checkForUpdates(win);
 }
+
+// Share request cooldowns and connection status across renderer screens.
+ipcMain.handle('backend-post', (_event, url, data) => backendClient.post(url, data));
+ipcMain.handle('get-connection-state', () => backendClient.getState());
+
+// Window controls operate on the requesting window, not account-specific settings.
+ipcMain.handle('get-window-size', event => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win || win.isDestroyed()) throw new Error('The window is no longer available.');
+    const { width, height } = win.getNormalBounds();
+    return { width, height };
+});
+ipcMain.handle('set-window-size', (event, size) =>
+    applyWindowSize(BrowserWindow.fromWebContents(event.sender), size?.width, size?.height));
+ipcMain.handle('get-update-state', () => desktopUpdates?.getState() || { status: 'disabled', message: 'Updates are available in installed Windows builds.' });
+// The changelog uses the same guarded check as the automatic schedule.
+ipcMain.handle('check-desktop-update', () => desktopUpdates?.check() || { status: 'disabled', message: 'Updates are available in installed Windows builds.' });
+ipcMain.handle('install-desktop-update', () => desktopUpdates?.install());
+// Checkout is available only while the bundled app's support dialog is open.
+const appPage = pathToFileURL(path.join(__dirname, 'index.html')).href;
+let supportSession = null;
+
+// Require an open bundled support dialog and reset checkout state for each new dialog session.
+function supportClient(event, session) {
+    if (!isSupportLocation(event.senderFrame?.url || 'about:blank', appPage)) {
+        throw new Error('Open Support Rock Buddy first.');
+    }
+    if (session && session !== supportSession) {
+        supportSession = session;
+        supportCheckout = null;
+    }
+    supportCheckout ??= createSupportCheckout(host, HOSTS, { openExternal: url => shell.openExternal(url) });
+    return supportCheckout;
+}
+
+ipcMain.handle('support-info', (event, session) => supportClient(event, session).info());
+ipcMain.handle('support-checkout', (event, input) => supportClient(event).start(input));
+ipcMain.handle('support-manage', event => supportClient(event).manage());
+// Keep a recent gameplay signal for the final update-install safety check.
+ipcMain.on('gameplay-state', (_event, active) => {
+    playing = active === true;
+    lastGameplayReport = Date.now();
+});
+
+ipcMain.handle('get-beta-notice', () => isCommunityBeta ? betaNotice : null);
 
 app.on('ready', createWindow);
 

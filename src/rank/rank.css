@@ -1,6 +1,13 @@
+.rank-page-heading {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+}
+
 #disclaimer {
     margin-left: auto;
     margin-right: 10px;
+    text-align: right;
     color: rgba(255, 255, 255, 0.4);
     font-style: italic;
 }

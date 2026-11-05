@@ -4,3 +4,4 @@ node_modules/
 .idea
 
 rock_buddy_log*.txt
+.generated/

@@ -44,21 +44,19 @@
 }
 
 .live-data {
-    border: 2px solid;
-    border-color: #303030;
-    background-color: #22222280;
+    border: 2px solid #303030;
+    background: #22222280;
+    color: inherit;
     border-radius: 12px;
-    padding: 1%;
+    padding: 10px;
 }
 
 .live-data .circle {
     width: 10px;
-    /* set the width and height of the circle */
     height: 10px;
+    flex-shrink: 0;
     border-radius: 50%;
-    /* create a circle shape */
     background-color: red;
-    /* set the background color of the circle */
 }
 
 #score_attack {

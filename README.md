@@ -71,3 +71,9 @@ For information, visit <a href="https://rock-buddy.com/" target="_blank">rock-bu
 TNTMusicStudios - tntmusicstudios2018@gmail.com
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+## Desktop development
+
+See [desktop release preparation](docs/desktop-release.md) for the next public
+version, manual installer builds, imported-data testing, automatic updates, and
+PayPal sandbox support. Read [AGENTS.md](AGENTS.md) for local setup.

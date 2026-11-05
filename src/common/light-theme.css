@@ -1,0 +1,174 @@
+@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
+/*  Head nav */
+
+.app-shell[data-theme="light"] .navtop {
+    background: #ffffff;
+    border: 1px solid #e4e4e7;
+    border-radius: 12px;
+    padding: 1%;
+}
+
+table tr {
+    -webkit-transition:
+        background 0.3s,
+        box-shadow 0.3s;
+    -moz-transition:
+        background 0.3s,
+        box-shadow 0.3s;
+    transition:
+        background 0.3s,
+        box-shadow 0.3s;
+    background: #336ca63f;
+}
+
+table tr:hover {
+    background: rgba(35, 27, 80, 0.062);
+    box-shadow:
+        inset 0 -1px rgba(0, 0, 0, 0.25),
+        inset 0 1px rgba(0, 0, 0, 0.25);
+}
+
+.app-shell[data-theme="light"] table tr.current-user {
+    background: #e4ddec;
+    --current-row-accent: #7950a5;
+}
+
+table {
+    width: 100%;
+    max-width: 100%;
+}
+
+table th,
+table td {
+    white-space: normal;
+}
+
+table th {
+    word-wrap: break-word;
+}
+
+table td {
+    word-break: break-all;
+}
+
+.card {
+    background-color: #222;
+    color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    width: 80%;
+    margin: 0 auto;
+    text-align: center;
+    box-shadow: 0 30px 60px 0 rgba(0, 0, 0, 0.4);
+}
+
+.card a {
+    color: #3c97bf;
+}
+
+.card h1 {
+    color: #fff;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    letter-spacing: 1px;
+    text-align: center;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+#streamer-color {
+    display: none;
+}
+
+#streamer-color-name {
+    display: none;
+}
+
+#streamer-text-color-name {
+    display: none;
+}
+
+#streamer-text-color {
+    display: none;
+}
+
+body, body p, h1, h2, h3, label { color: #202024; }
+body { background: #f4f4f5; }
+input, select { color: #202024; background: #e7e2ef; }
+.card, .card h1, .card p { color: white; }
+
+/* Keep ranking panels light instead of inheriting the dark theme's gray fill. */
+.app-shell[data-theme="light"] :is(.rank, .king, .expand-button) {
+    background: #eeebf2;
+    border-color: #d6cfdf;
+    color: #202024;
+}
+
+.app-shell[data-theme="light"] .expand-button:hover {
+    background: #e4ddec;
+    border-color: #b9a9cb;
+}
+
+.app-shell[data-theme="light"] #disclaimer {
+    color: #635a6d;
+}
+
+/* Support uses the same pale surfaces and dark text as the rest of Light mode. */
+.app-shell[data-theme="light"] .frequency span {
+    background: #eeebf2;
+    border-color: #d6cfdf;
+    color: #202024;
+}
+
+.app-shell[data-theme="light"] .frequency input:checked + span {
+    background: #e4ddec;
+    border-color: #9a7bbd;
+    color: #402064;
+}
+
+.app-shell[data-theme="light"] #support-amount {
+    background: #e7e2ef;
+    border-color: #b6abbe;
+    color: #202024;
+}
+
+.app-shell[data-theme="light"] .support-page .text-button {
+    color: #402064;
+}
+
+.app-shell[data-theme="light"] .support-page :is(.muted, .sandbox-note) {
+    color: #635a6d;
+}
+
+.app-shell[data-theme="light"] #support-status.error {
+    color: #9b1515;
+}
+
+.app-shell[data-theme="light"] .support-page :is(button, input):focus-visible,
+.app-shell[data-theme="light"] .frequency input:focus-visible + span {
+    outline-color: #65349b;
+}
+
+/* Live stats use the same pale surface as other Light panels. */
+.app-shell[data-theme="light"] .live-data {
+    background: #eeebf2;
+    color: #202024;
+    border-color: #d6cfdf;
+}
+
+/* Shared dialogs, including the column picker, use a light surface and readable text. */
+.app-shell[data-theme="light"] .app-dialog {
+    background: #f4f4f5;
+    color: #202024;
+    border-color: #d6cfdf;
+    scrollbar-color: #8a739f #f4f4f5;
+    color-scheme: light;
+}
+
+.app-shell[data-theme="light"] .app-dialog :is(h2, h3, p, label, .close) {
+    color: inherit;
+}

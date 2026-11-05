@@ -14,5 +14,6 @@ def build_rocksniffer(rocksniffer_srcdir):
         print(f'RockSniffer Build Output: {build_output}')
     except Exception as e:
         print(f'Error executing dotnet build: {e}')
+        raise
 
 build_rocksniffer('./RockSniffer')

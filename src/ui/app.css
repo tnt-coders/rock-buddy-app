@@ -1,0 +1,1208 @@
+/* Shared layout keeps every route inside the same document. */
+html,
+body,
+#desktop-root {
+    height: 100%;
+    overflow: hidden;
+}
+html,
+.app-shell * {
+    scrollbar-width: auto;
+}
+body {
+    margin: 0;
+    min-width: 400px;
+    background: #18181b;
+    color: white;
+}
+.app-shell {
+    --control-font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    padding: 8px 8px 0;
+    overflow: hidden;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    --scrollbar-thumb: #80639b;
+    --scrollbar-track: #18181b;
+    --select-background: #272131;
+    --select-text: #eee4fb;
+    --select-border: #493b59;
+    --select-scheme: dark;
+    --header-text: #a26ede;
+    --footer-background: #222222;
+    --footer-text: #eee4fb;
+    --footer-border: #3d3347;
+    --footer-link: #b78be9;
+}
+.app-shell[data-theme="light"] {
+    --scrollbar-thumb: #8a739f;
+    --scrollbar-track: #f4f4f5;
+    --select-background: #e7e2ef;
+    --select-text: #202024;
+    --select-border: #b6abbe;
+    --select-scheme: light;
+    --header-text: #402064;
+    --footer-background: #eeebf2;
+    --footer-text: #202024;
+    --footer-border: #d6cfdf;
+    --footer-link: #402064;
+}
+.app-shell[data-theme="classic"] {
+    --scrollbar-thumb: #848584;
+    --scrollbar-track: #c6c6c6;
+    --select-background: #ffffff;
+    --select-text: #000000;
+    --select-border: #999999;
+    --select-scheme: light;
+    --header-text: #402064;
+    --footer-background: #c6c6c6;
+    --footer-text: #000000;
+    --footer-border: #fefefe;
+    --footer-link: #1034a6;
+}
+.app-shell[data-theme="streamer"] {
+    --scrollbar-thumb: color-mix(in srgb, var(--streamer-text-color) 55%, var(--streamer-color));
+    --scrollbar-track: var(--streamer-color);
+    --select-background: var(--streamer-panel-color);
+    --select-text: var(--streamer-text-color);
+    --select-border: color-mix(in srgb, var(--streamer-text-color) 30%, var(--streamer-panel-color));
+    --select-scheme: normal;
+    --header-text: var(--streamer-text-color);
+    --footer-background: var(--streamer-panel-color);
+    --footer-text: var(--streamer-text-color);
+    --footer-border: color-mix(in srgb, var(--streamer-text-color) 30%, var(--streamer-panel-color));
+    --footer-link: var(--streamer-accent-color);
+}
+/* Native menus need explicit option colors as well as a themed closed control. */
+.app-shell select {
+    background: var(--select-background);
+    color: var(--select-text);
+    border: 1px solid var(--select-border);
+    border-radius: 4px;
+    padding: 1px 4px;
+    max-width: 100%;
+    font-family: inherit;
+    font-size: var(--control-font-size);
+    line-height: 1.3;
+    color-scheme: var(--select-scheme);
+    text-shadow: none;
+    box-shadow: none;
+    transition: none;
+}
+.app-shell select option {
+    background: var(--select-background);
+    color: var(--select-text);
+}
+.app-shell input:where(:not([type]), [type="text"], [type="email"], [type="password"], [type="search"], [type="url"], [type="tel"], [type="number"]) {
+    padding: 3px 6px;
+    font-size: var(--control-font-size);
+    line-height: 1.3;
+    background-image: none;
+    text-shadow: none;
+    transition: none;
+}
+.app-shell input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+.app-shell input:focus {
+    box-shadow: none;
+}
+/* Dark text fields share the dropdowns' purple surface and border. */
+.app-shell[data-theme="dark"] input:where(:not([type]), [type="text"], [type="email"], [type="password"], [type="search"], [type="url"], [type="tel"], [type="number"]) {
+    background: var(--select-background);
+    color: var(--select-text);
+    border-color: var(--select-border);
+    border-radius: 6px;
+    color-scheme: dark;
+}
+.navtop {
+    /* Navigation stays outside the content's scrolling area. */
+    position: relative;
+    flex-shrink: 0;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    width: 100%;
+}
+/* Override the legacy dark theme link color for each header theme. */
+.app-shell .navtop > a {
+    color: var(--header-text) !important;
+}
+.navtop .header-tab {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: var(--control-font-size);
+    font-weight: 600;
+    line-height: 1.4;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.navtop .header-tab:hover {
+    background: color-mix(in srgb, var(--header-text) 10%, transparent);
+}
+.navtop .header-tab[aria-current="page"] {
+    background: color-mix(in srgb, var(--header-text) 18%, transparent);
+}
+.navtop :is(.header-tab, .header-brand):focus-visible {
+    outline: 2px solid var(--header-text);
+    outline-offset: 2px;
+}
+.navtop :is(.header-signout, .header-theme-trigger) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 7px;
+    margin-inline-start: 4px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--header-text);
+}
+.navtop :is(.header-signout, .header-theme-trigger):hover {
+    background: color-mix(in srgb, var(--header-text) 10%, transparent);
+}
+.navtop :is(.header-signout, .header-theme-trigger):focus-visible {
+    outline: 2px solid var(--header-text);
+    outline-offset: 2px;
+}
+.navtop .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-inline-end: 10px;
+    flex-shrink: 0;
+    color: var(--header-text);
+    text-decoration: none;
+}
+.header-brand img {
+    display: block;
+    object-fit: contain;
+}
+.header-title {
+    font-weight: bold;
+    white-space: nowrap;
+    user-select: none;
+}
+main {
+    padding: 0 4px 16px;
+}
+main > h1,
+.page-heading > h1,
+.rank-page-heading > h1,
+.team-heading > h1 {
+    margin: 16px 0;
+}
+main > h2 {
+    margin: 12px 0 8px;
+}
+.app-content {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    scrollbar-gutter: stable;
+    overscroll-behavior: contain;
+}
+/* Dialogs scroll internally while the page underneath stays in place. */
+.app-shell:has(dialog[open]) .app-content {
+    overflow: hidden;
+}
+.page-loading-indicator {
+    position: fixed;
+    inset: 0 0 auto;
+    height: 3px;
+    background: #a26ede;
+    z-index: 2000;
+    pointer-events: none;
+}
+.page-placeholder {
+    padding: 16px 0;
+    color: inherit;
+}
+.placeholder-line {
+    height: 16px;
+    max-width: 640px;
+    margin-top: 16px;
+    background: currentColor;
+    opacity: 0.1;
+    border-radius: 3px;
+}
+.placeholder-line:last-child {
+    max-width: 420px;
+}
+.page-heading,
+.song-info,
+.score-toolbar,
+.live-heading,
+.live-values {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.page-heading > :last-child:not(:first-child),
+.score-toolbar > :last-child {
+    margin-left: auto;
+}
+.song-info h2 {
+    margin: 0;
+}
+.song-info p {
+    margin: 5px 0;
+}
+.sniffer-page .page-heading {
+    align-items: baseline;
+    flex-wrap: wrap;
+}
+.sniffer-page {
+    padding-inline: 0;
+}
+.app-content:has(.sniffer-page) {
+    scrollbar-gutter: auto;
+}
+.sniffer-actions {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: auto;
+}
+.lurk-mode-notice {
+    color: #ff6666;
+    font-size: 12px;
+}
+.sniffer-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+}
+.sniffer-summary .song-info {
+    align-items: flex-start;
+    min-width: 0;
+    gap: 10px;
+    padding-right: 10px;
+}
+.song-info .coveralbum {
+    flex-shrink: 0;
+}
+.song-details {
+    min-width: 0;
+}
+.song-details :is(h2, p) {
+    margin: 2px 0;
+    font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.song-album {
+    font-weight: bold;
+}
+.song-details .song-version {
+    font-size: 13px;
+    font-style: italic;
+}
+.sniffer-summary .live-data {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto 20px auto;
+    min-height: 104px;
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+}
+.live-heading {
+    grid-area: 1 / 1;
+    align-self: start;
+    gap: 10px;
+}
+.live-verification {
+    grid-area: 4 / 1;
+    justify-self: start;
+}
+.live-verification .verification-badge {
+    height: 20px;
+}
+.live-accuracy { grid-area: 1 / 2; }
+.live-streak { grid-area: 2 / 2; }
+.live-time { grid-area: 4 / 2; }
+.live-accuracy, .live-streak, .live-time {
+    text-align: right;
+}
+.sniffer-page .score-toolbar {
+    margin: 24px 0 20px;
+}
+.sniffer-page .score-filters {
+    margin: 0;
+}
+@media (max-width: 720px) {
+    .sniffer-summary {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+    }
+}
+.score-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+    margin: 6px 0;
+}
+.score-toolbar {
+    flex-wrap: wrap;
+}
+.score-filters label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.score-filters label:has(span) {
+    margin-right: 10px;
+}
+.score-badge {
+    width: 15px;
+    height: 15px;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+.verified-score-icon {
+    width: 18px;
+    height: 18px;
+}
+.verification-badge {
+    height: 25px;
+}
+/* Theme every button by default; specific controls can override this base style. */
+button,
+.app-shell button.btn,
+.app-shell button.btn-primary {
+    padding: 3px 8px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: #65349b;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: var(--control-font-size, 14px);
+    font-weight: 600;
+    line-height: 1.3;
+    text-shadow: none;
+    box-shadow: none;
+    filter: none;
+    cursor: pointer;
+}
+button:where(:hover:not(:disabled)),
+.app-shell button.btn:hover:not(:disabled),
+.app-shell button.btn-primary:hover:not(:disabled) {
+    background: #7743ad;
+}
+.app-shell button.btn:disabled,
+.app-shell button.btn-primary:disabled {
+    cursor: default;
+}
+.search-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.search-form input {
+    margin-bottom: 0;
+    min-width: 0;
+}
+.profile-twitch-form > button {
+    margin-inline-start: 10px;
+}
+.text-button {
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    text-align: left;
+}
+button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 2px solid #a26ede;
+    outline-offset: 2px;
+}
+fieldset {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+}
+.auth-page {
+    width: 320px;
+    margin: 55px auto;
+    text-align: center;
+}
+.auth-page input {
+    width: 100%;
+    padding: 10px;
+}
+.auth-page fieldset {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.rockbuddy {
+    max-width: 200px;
+    margin-top: 20px;
+}
+.center-page {
+    margin: 40px auto;
+    text-align: center;
+}
+.account-fields {
+    display: grid;
+    grid-template-columns: 100px minmax(0, 1fr);
+    gap: 16px 24px;
+    max-width: 560px;
+    margin: 24px 0;
+    align-items: baseline;
+}
+.account-fields dd {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 16px;
+    margin: 0;
+}
+.account-fields dd span {
+    overflow-wrap: anywhere;
+}
+.stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 48px;
+}
+.stats-entry {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    margin: 8px 0;
+    min-width: 180px;
+}
+.capitalize {
+    text-transform: capitalize;
+}
+.app-dialog {
+    color: inherit;
+    background: #18181b;
+    scrollbar-color: #80639b #18181b;
+    border: 1px solid #50415f;
+    border-radius: 8px;
+    width: min(1000px, 95vw);
+    max-height: 90vh;
+    padding: 16px;
+}
+.app-dialog > h2 {
+    margin: 0 32px 12px 0;
+    font-size: 20px;
+    line-height: 1.3;
+}
+.song-dialog {
+    inset-block: 0 auto;
+    margin-block: 12px;
+    max-height: calc(100dvh - 24px);
+    padding: 12px;
+}
+.song-dialog > h2 {
+    margin-bottom: 4px;
+    font-size: 16px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.song-dialog > .song-metadata {
+    margin: 4px 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.app-dialog::backdrop {
+    background: rgb(0 0 0 / 0.8);
+}
+.app-dialog .close {
+    background: none;
+    border: 0;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    line-height: 1;
+}
+.app-shell[data-theme] .app-dialog .close:focus {
+    outline: 1px solid color-mix(in srgb, currentColor 55%, transparent);
+    outline-offset: 2px;
+}
+.app-shell > footer {
+    position: relative;
+    inset: auto;
+    flex-shrink: 0;
+    margin-inline: -8px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 12px;
+    padding: 0 12px;
+    box-sizing: border-box;
+    background: var(--footer-background);
+    color: var(--footer-text);
+    border-top: 1px solid var(--footer-border);
+}
+.app-shell > footer p {
+    flex: 1 1 auto;
+    color: inherit;
+}
+.app-shell > footer .desktop-version {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+.app-shell > footer a {
+    color: var(--footer-link) !important;
+}
+.app-shell > footer p a:is(:hover, :focus-visible) {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.app-shell > footer .desktop-version:hover {
+    color: var(--footer-link);
+}
+.desktop-version {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+    font: 12px/1.4 sans-serif;
+}
+.desktop-version:hover {
+    color: #d4b0ff;
+    text-decoration: underline;
+}
+.changelog-dialog {
+    width: min(640px, calc(100vw - 48px));
+    max-height: calc(100dvh - 48px);
+    padding: 0;
+    overflow: hidden;
+    color: white;
+    text-align: left;
+    font: 14px/1.6 sans-serif;
+}
+.changelog-dialog[open] {
+    display: flex;
+    flex-direction: column;
+}
+.changelog-dialog h2,
+.changelog-dialog h3 {
+    color: inherit;
+}
+.changelog-dialog h2 {
+    margin: 0;
+    padding: 20px 64px 12px 20px;
+    flex-shrink: 0;
+}
+.changelog-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    padding: 0 20px 16px;
+    border-bottom: 1px solid #50415f;
+    flex-shrink: 0;
+}
+.changelog-controls button {
+    display: grid;
+    padding: 6px 10px;
+    border: 1px solid #a26ede;
+    border-radius: 4px;
+    background: #312044;
+    color: #e6d1ff;
+    font: inherit;
+    cursor: pointer;
+}
+
+/* Both labels reserve space so checking never changes the button size. */
+.changelog-controls button > span {
+    grid-area: 1 / 1;
+}
+.changelog-controls button > span[aria-hidden="true"] {
+    visibility: hidden;
+}
+.changelog-controls button:hover:not(:disabled) {
+    background: #49305f;
+}
+.changelog-controls [role="status"] {
+    font-size: 12px;
+}
+.changelog-update-hint {
+    flex-basis: 100%;
+    color: #bcb4c7;
+    font-size: 12px;
+}
+/* Only the notes scroll; the title, close button and update check stay visible. */
+.changelog-content {
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    overscroll-behavior: contain;
+    padding: 0 20px 20px;
+    outline-offset: -3px;
+}
+.changelog-dialog section + section {
+    margin-top: 20px;
+    border-top: 1px solid #50415f;
+}
+.changelog-dialog h3 {
+    margin-bottom: 6px;
+    color: #d4b0ff;
+}
+.changelog-dialog ul {
+    margin: 0;
+    padding-left: 20px;
+}
+.changelog-dialog li + li {
+    margin-top: 4px;
+}
+/* The header only calls attention to an update once a download starts. */
+.navtop .header-update {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-shrink: 0;
+    margin: 2px 0 2px 6px;
+    padding: 5px 9px;
+    border: 1px solid #a26ede;
+    border-radius: 5px;
+    background: #312044;
+    color: #e6d1ff;
+    font: 12px/1.4 sans-serif;
+    white-space: nowrap;
+}
+.navtop .update-ready {
+    cursor: pointer;
+}
+.navtop .update-ready:hover {
+    background: #49305f;
+    border-color: #d4b0ff;
+}
+.navtop .update-download {
+    border-color: #604477;
+}
+.update-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+.update-dialog {
+    width: min(420px, calc(100vw - 64px));
+    color: white;
+    text-align: left;
+    font: 16px/1.5 sans-serif;
+}
+.update-dialog h2,
+.update-dialog p {
+    color: inherit;
+}
+.update-dialog h2 {
+    margin-top: 0;
+    font-size: 20px;
+}
+.update-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+}
+.update-actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 8px 12px;
+    border: 1px solid #a26ede;
+    border-radius: 4px;
+    background: #6e3bb0;
+    color: white;
+    font: inherit;
+    cursor: pointer;
+}
+.update-actions button:last-child {
+    background: #27272a;
+}
+.update-actions button:hover:not(:disabled) {
+    background: #8050be;
+}
+.update-actions button:last-child:hover:not(:disabled) {
+    background: #3b3146;
+}
+.update-actions button:disabled {
+    opacity: 0.6;
+}
+.rank-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(8px, 1vw, 12px);
+}
+.rank-grid section {
+    container-type: inline-size;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: clamp(6px, 1vw, 10px);
+}
+.rank-grid section > h3 {
+    font-size: clamp(16px, calc(12px + 2cqi), 18px);
+}
+.rank-grid .rank-card {
+    width: 100%;
+    max-width: none;
+    gap: clamp(6px, 3cqi, 10px);
+    padding: clamp(6px, 2.6cqi, 8px);
+}
+.rank-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    min-width: 0;
+}
+.rank-card > div {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.rank-card h2 {
+    font-size: 28px;
+    flex-shrink: 0;
+}
+.rank-card .text-button {
+    font-size: 16px;
+    white-space: normal;
+}
+.rank-card p {
+    margin: 5px 0;
+    font-size: 13px;
+}
+/* Two-column cards regain larger text because sizing follows each column's width. */
+.rank-grid .rank-card h2 {
+    font-size: clamp(22px, calc(10px + 6cqi), 28px);
+}
+.rank-grid .rank-card .text-button {
+    font-size: clamp(14px, calc(8px + 3cqi), 16px);
+}
+.rank-grid .rank-card p {
+    font-size: clamp(12px, calc(9px + 1.4cqi), 13px);
+}
+.king {
+    width: fit-content;
+}
+.rank-card img {
+    max-height: 80px;
+}
+/* Keep the four paths balanced instead of leaving Bass alone on a second row. */
+@media (max-width: 959px) {
+    .rank-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.config-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin: 6px 0;
+}
+.config-row > strong,
+.config-row > label[for="preferred-path"],
+.config-sound-choice > strong,
+.config-section-heading > h2 {
+    flex: 0 0 200px;
+}
+.config-page .config-action {
+    margin-left: auto;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+.config-path {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.config-section-heading,
+.config-sound,
+.config-address {
+    flex-wrap: wrap;
+}
+.config-page h1 {
+    margin: 16px 0;
+}
+.config-section-heading h2 {
+    margin: 6px 0;
+    font-size: 20px;
+}
+.config-page hr {
+    margin: 10px 0;
+}
+.config-page select {
+    min-width: 100px;
+    max-width: 100%;
+}
+.config-page .config-choice {
+    min-width: 120px;
+}
+.config-sound-choice,
+.config-custom-sound,
+.config-address > label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+.config-custom-sound {
+    flex: 1 1 160px;
+}
+.config-page input:not([type="checkbox"]):not([type="color"]) {
+    margin: 0;
+}
+.config-page select {
+    margin: 0;
+}
+.config-address > label {
+    gap: 10px;
+    font-weight: bold;
+}
+.config-address .config-host {
+    width: 250px;
+}
+.config-address .config-port {
+    width: 100px;
+}
+.config-page .page-heading {
+    flex-wrap: wrap;
+}
+.config-page .checkbox-row {
+    margin: 4px 8px 4px 0;
+}
+@media (max-width: 640px) {
+    .config-row > strong,
+.config-row > label[for="preferred-path"],
+    .config-sound-choice > strong,
+    .config-section-heading > h2 {
+        flex-basis: 160px;
+    }
+    .config-row > select {
+        min-width: 0;
+        flex-shrink: 1;
+    }
+}
+.checkbox-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 16px 8px 0;
+}
+.checkbox-row input {
+    width: 16px;
+    margin: 0;
+}
+.window-size-row {
+    flex-wrap: wrap;
+}
+.window-size-row label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.window-size-row input {
+    width: 90px;
+}
+.custom-theme-dialog {
+    width: min(440px, calc(100vw - 48px));
+    max-height: calc(100dvh - 48px);
+    overflow: auto;
+    text-align: left;
+}
+.custom-theme-dialog h2 {
+    margin: 0 40px 24px 0;
+}
+.custom-theme-fields {
+    display: grid;
+    gap: 16px;
+}
+.custom-theme-color {
+    display: grid;
+    grid-template-columns: 1fr auto 44px;
+    align-items: center;
+    gap: 12px;
+}
+.custom-theme-color code {
+    font-size: 13px;
+}
+.custom-theme-color input[type="color"] {
+    width: 44px;
+    height: 32px;
+    padding: 3px;
+    margin: 0;
+    background: transparent;
+    border: 1px solid var(--select-border);
+    box-shadow: none;
+    cursor: pointer;
+}
+.custom-theme-corners {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.custom-theme-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 24px;
+}
+.footer-links {
+    flex: 0 0 auto;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.app-shell[data-theme] .footer-support {
+    background: transparent;
+    color: var(--footer-link);
+    border: 0;
+    box-shadow: none;
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 4px;
+}
+.app-shell[data-theme] .footer-support:hover {
+    background: color-mix(in srgb, var(--footer-link) 15%, transparent);
+}
+.footer-links :is(a, button):focus-visible {
+    outline: 2px solid var(--footer-link);
+    outline-offset: 2px;
+}
+table {
+    font-family: "Roboto Mono", monospace;
+}
+.column-picker-dialog {
+    width: min(360px, calc(100vw - 48px));
+    box-sizing: border-box;
+}
+.column-options {
+    display: grid;
+    gap: 12px;
+    margin: 16px 0;
+}
+/* Checkboxes must not inherit the old text inputs' half-page width. */
+.column-options input[type="checkbox"] {
+    flex: 0 0 16px;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    padding: 0;
+    accent-color: var(--streamer-accent-color, #7845b0);
+    color-scheme: var(--select-scheme);
+}
+.column-options label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+td,
+th {
+    padding: 1px 5px;
+    text-align: left;
+}
+.search-results tbody tr {
+    cursor: pointer;
+}
+.search-results td {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.search-results .text-button {
+    display: block;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.list-team-members li a:hover {
+    transform: none;
+}
+[role="alert"] {
+    color: #ffb5b5;
+}
+
+/* Fixed column widths keep dragging predictable; wide tables scroll inside Sniffer. */
+.leaderboard-data.fixed-columns {
+    table-layout: fixed;
+    max-width: none;
+    border-spacing: 0;
+}
+.leaderboard-data th {
+    text-align: center;
+}
+.leaderboard-data td {
+    text-align: right;
+}
+.leaderboard-data td:is([data-column="username"], [data-column="lastPlayed"], .unknown-value) {
+    text-align: left;
+}
+.fixed-columns .rank-cell {
+    padding-left: 12px;
+}
+.fixed-columns :is(th, td) {
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
+    overflow: hidden;
+}
+.resizable-columns th {
+    position: relative;
+}
+.fixed-columns th {
+    padding-inline-end: 12px;
+}
+.fixed-columns .text-button {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+.column-resize-handle {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: 10px;
+    cursor: col-resize;
+    touch-action: none;
+    user-select: none;
+}
+.column-resize-handle::after {
+    content: '';
+    position: absolute;
+    inset: 4px 4px;
+    background: currentColor;
+    opacity: 0;
+}
+.column-resize-handle:is(:hover, :focus-visible)::after {
+    background: var(--streamer-accent-color, #a26ede);
+    opacity: 1;
+}
+.column-resize-handle:focus-visible {
+    outline: 2px solid var(--streamer-accent-color, #a26ede);
+    outline-offset: -2px;
+}
+.column-picker-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.column-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.column-order-controls {
+    display: flex;
+    gap: 4px;
+}
+.column-order-controls button {
+    padding: 2px 7px;
+}
+.column-font-choice {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-block: 20px;
+}
+.column-font-choice select {
+    min-width: 0;
+    max-width: 100%;
+}
+.column-drag-label {
+    cursor: grab;
+    user-select: none;
+}
+.column-drag-label:active {
+    cursor: grabbing;
+}
+.resizable-columns th[data-drop-target] {
+    box-shadow: inset 3px 0 var(--streamer-accent-color, #a26ede);
+}
+
+.header-theme-chooser {
+    margin-inline-start: auto;
+    position: relative;
+    flex-shrink: 0;
+}
+/* The select covers the paintbrush so one click opens the native choices. */
+.app-shell .navtop .header-theme-trigger {
+    color: var(--header-text);
+    position: relative;
+    cursor: pointer;
+}
+.navtop .header-theme-trigger:focus-within {
+    outline: 2px solid var(--header-text);
+    outline-offset: 2px;
+}
+.app-shell .header-theme-trigger select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* Keep headings on one line and measure their natural width for the resize limit. */
+.resizable-columns [data-column-heading] {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+/* An inset stripe marks your row without changing column widths. */
+.app-shell table tr.current-user {
+    box-shadow: none;
+}
+.app-shell table tr.current-user > td:first-child {
+    box-shadow: inset 3px 0 var(--current-row-accent);
+}
+
+/* Keep the path lock legible in every theme without giving it a full button fill. */
+.app-shell[data-theme] .path-lock {
+    display: inline-grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    color: var(--select-text);
+    background: transparent;
+    border: 1px solid transparent;
+    box-shadow: none;
+}
+.app-shell[data-theme] .path-lock:hover,
+.app-shell[data-theme] .path-lock[aria-pressed="true"] {
+    background: var(--select-background);
+    border-color: var(--select-border);
+}

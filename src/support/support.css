@@ -1,0 +1,77 @@
+/* The compact checkout inherits the surrounding dialog's theme. */
+.app-dialog.support-dialog { width: min(480px, calc(100vw - 48px)); box-sizing: border-box; text-align: left; }
+.support-title-emote { width: 28px; height: 28px; margin-left: 8px; vertical-align: middle; object-fit: contain; }
+.support-page { margin: 0; }
+.app-dialog.support-welcome {
+    width: min(620px, calc(100vw - 32px));
+    box-sizing: border-box;
+    padding: 22px 28px 26px;
+}
+.app-shell[data-theme] .app-dialog.support-welcome {
+    --welcome-accent: #b78be9;
+}
+.app-shell[data-theme="light"] .app-dialog.support-welcome { --welcome-accent: #7541b1; }
+.app-shell[data-theme="streamer"] .app-dialog.support-welcome { --welcome-accent: var(--streamer-accent-color); }
+.app-shell[data-theme="classic"] .app-dialog.support-welcome { --welcome-accent: var(--retro-navy); }
+.support-welcome[open] { display: flex; flex-direction: column; }
+.support-welcome-logo {
+    order: -1;
+    align-self: center;
+    flex-shrink: 0;
+    object-fit: contain;
+    margin-bottom: 12px;
+    transform: rotate(-8deg);
+    filter: drop-shadow(4px 6px 0 color-mix(in srgb, var(--welcome-accent) 30%, transparent));
+}
+.app-dialog.support-welcome > h2 {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.25;
+    text-align: center;
+    margin: 0 12px 18px;
+}
+.support-welcome p { line-height: 1.6; margin: 0 0 18px; }
+.support-welcome-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    margin: 8px 0 20px;
+}
+.app-shell[data-theme] .support-welcome-actions button.btn-primary { padding: 12px 24px; font-size: 17px; font-weight: 700; }
+.support-welcome-actions .text-button { background: transparent; border: 0; color: inherit; text-decoration: underline; }
+.app-shell[data-theme] .support-welcome .support-welcome-signoff {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--welcome-accent);
+    text-align: center;
+    font-size: 24px;
+    font-weight: 800;
+    font-style: italic;
+    letter-spacing: 0.03em;
+    transform: rotate(-3deg);
+    margin: 0;
+}
+.support-welcome-signoff img { flex-shrink: 0; object-fit: contain; }
+.support-thanks { margin: 0 0 16px; line-height: 1.5; }
+.support-page button, .support-page input { font: inherit; }
+.support-page button { cursor: pointer; }
+.support-page button:disabled { cursor: default; opacity: 0.5; }
+.support-page .text-button { padding: 0; background: none; border: 0; color: #b78be9; text-align: left; }
+.frequency { display: flex; gap: 12px; border: 0; padding: 0; margin: 0 0 28px; }
+.frequency label { flex: 1; cursor: pointer; }
+.frequency input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.frequency span { display: block; padding: 12px; border: 1px solid #555; border-radius: 5px; text-align: center; }
+.frequency input:checked + span { background: #38234f; border-color: #a26ede; }
+.frequency input:focus-visible + span, .support-page button:focus-visible, #support-amount:focus-visible { outline: 2px solid #c5a0f0; outline-offset: 3px; }
+#support-amount { width: 100%; padding: 12px; margin: 8px 0 20px; background: #292431; border: 1px solid #625471; border-radius: 5px; color: #fafafa; }
+#support-submit { width: 100%; padding: 13px; background: #6819da; color: #fff; border: 0; border-radius: 5px; }
+#support-submit:hover:not(:disabled) { background: #7b32e1; }
+#support-manage { margin-top: 28px; }
+.muted { color: #bbb; font-size: 14px; }
+.sandbox-note { color: #c9abea; font-size: 14px; }
+#support-status { font-size: 14px; line-height: 1.5; }
+#support-status.error { color: #ffb5b5; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }

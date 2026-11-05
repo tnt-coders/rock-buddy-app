@@ -1,12 +1,11 @@
-import { UserData } from "./user_data";
 
-var connected = true;
-
+// Send diagnostics to both DevTools and the app's daily log.
 export function logMessage(message: any) {
     console.log(message);
     window.api.logMessage(message);
 }
 
+// Treat small floating-point differences as equal when comparing scores and timers.
 export function approxEqual(a: number, b: number, tolerance = 0.0001): boolean {
     return Math.abs(a - b) <= tolerance;
 }
@@ -57,6 +56,7 @@ export function getAvailablePaths(arrangementData: any) {
         bonusBass: [],
     };
 
+    // Group arrangements by instrument and variant before assigning their display labels.
     arrangementData.forEach((arrangement: any) => {
         const hash = arrangement['arrangementID'];
         const type = arrangement['type'];
@@ -247,6 +247,7 @@ export function getAvailablePaths(arrangementData: any) {
     return paths;
 }
 
+// Order Lead, Rhythm and Bass with each instrument's alternate and bonus paths.
 export function sortPaths(paths: string[]): string[] {
     const leadPaths: string[] = paths.filter(path => path.includes('Lead') && !path.includes('Alternate') && !path.includes('Bonus')).sort();
     const altLeadPaths: string[] = paths.filter(path => path.includes('Alternate Lead')).sort();
@@ -262,6 +263,7 @@ export function sortPaths(paths: string[]): string[] {
     return sortedPaths;
 }
 
+// Cache the installed version for API requests during this renderer session.
 export async function getVersion(): Promise<string | null> {
     let version = sessionStorage.getItem('version');
     if (version === null) {
@@ -275,57 +277,17 @@ export async function getVersion(): Promise<string | null> {
     return version;
 }
 
+// Send a versioned API request through Electron and handle explicit session expiry.
 export async function post(url: string, data: any) {
-    // Add version number to the data
-    data['version'] = await getVersion();
+    const response = await window.api.requestBackend(url, { ...data, version: await getVersion() });
 
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    });
-
-    // If the response is not OK log the response text
-    if (!response.ok) {
-
-        // Cloudflare returns a status of 530 when communication with the server is lost
-        if (response.status === 530) {
-            if (connected) {
-                connected = false;
-                window.api.error("Communication with server lost.");
-            }
-
-            return { 'error': "Communication with server lost." };
+    // Only an explicit authentication rejection ends the session; connection loss does not.
+    if (response.error === 'Invalid API key.') {
+        const submitted = data.auth_data || data;
+        const current = JSON.parse(sessionStorage.getItem('auth_data') || 'null');
+        if (current && JSON.stringify(submitted) === JSON.stringify(current)) {
+            window.dispatchEvent(new Event('session-expired'));
         }
     }
-
-    // Server provided a response
-    connected = true;
-
-    const responseJson = await response.json();
-    if (responseJson.hasOwnProperty('error') && responseJson['error'] === 'Invalid API key.') {
-        window.api.error("Your API key has expired.\n\nPlease log back in to verify your identity.");
-        window.location.href = './logout.html';
-    }
-
-    return responseJson;
-}
-
-// If "Always Sniff" is enabled and Rock Buddy loses focus, jump to the sniffer page
-export async function checkAlwaysSniff(): Promise<void> {
-    
-    let alwaysSniff = await UserData.get('always_sniff');
-    if (alwaysSniff === null || alwaysSniff === false) {
-        return;
-    }
-
-    // Jump to the sniffer page if Rock Buddy loses focus
-    setInterval(async () => {
-        if (!document.hasFocus()) {
-            const srcDir = await window.api.getSrcDir();
-            window.location.href = await window.api.pathJoin(srcDir, 'sniffer/sniffer.html');
-        }
-    }, 100);
+    return response;
 }
