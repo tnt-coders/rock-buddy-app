@@ -25,7 +25,7 @@ module.exports = {
         { from: '.generated/rocksniffer-release', to: 'RockSniffer' },
         ...base.extraFiles.slice(1),
     ],
-    nsis: { ...base.nsis, ...(beta ? { shortcutName: 'Rock Buddy Beta' } : {}), runAfterFinish: false },
+    nsis: { ...base.nsis, ...(beta ? { shortcutName: 'Rock Buddy Beta' } : {}), runAfterFinish: true },
     // Test updates have a dedicated feed, separate from all official desktop releases.
     publish: beta ? {
         provider: 'generic',

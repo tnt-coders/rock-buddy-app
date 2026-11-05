@@ -296,30 +296,37 @@ gameplay, upgrade, or PayPal sandbox acceptance below.
 
 ## Production-connected test candidate
 
-[Rock Buddy 1.12.0-beta.9](https://github.com/Jamesllllllllll/rock-buddy-app/releases/tag/production-beta-1.12.0-beta.9)
-is published in the fork as a separate manual download. Install
-`Rock-Buddy-1.12.0-beta.9-x64-Setup.exe` over regular Rock Buddy, not the rehearsal
-Beta. It uses production scores/accounts, live PayPal and TNT's update feed.
-Enable **Config → Advanced Config → Beta Testing** for future official prereleases.
-The next official build should use a higher version, such as `1.12.0-beta.10`.
-Beta.9 includes the October 29 UI changes and retains the profile-link fix and
-instant-snort timing fix from beta.8. Install it manually over the existing
-production-connected beta; fork releases do not appear in TNT's automatic update feed.
+[Rock Buddy 1.12.0-beta.10](https://github.com/Jamesllllllllll/rock-buddy-app/releases/tag/production-beta-1.12.0-beta.10)
+is published in the fork as a separate manual download, built from `491a6c2`.
+Install `Rock-Buddy-1.12.0-beta.10-x64-Setup.exe` over regular Rock Buddy, not the
+rehearsal Beta. It uses production scores/accounts, live PayPal and TNT's update
+feed. Enable **Config → Advanced Config → Beta Testing** for future official
+prereleases. Fork releases do not appear in TNT's automatic update feed.
+The next official build should use a higher version, such as `1.12.0-beta.11`.
 
-The beta.9 assets were replaced on October 29 with the final Team-page layout:
-the card is removed and the donation link is inline. The version remains
-`1.12.0-beta.9`; users who installed the earlier beta.9 must manually reinstall
-the refreshed download. The release tag points to the replacement build's source.
+[Windows build 42093568306](https://github.com/Jamesllllllllll/rock-buddy-app/actions/runs/42093568306)
+passed all 124 tests, native compilation, packaging, actual NSIS installation/startup,
+production settings preservation, routing, update-feed checks and mockup exclusion.
+The five published assets match the build checksums. CI performs no production
+login, score submission or payment.
 
-No official update can be tested end to end until TNT publishes that next version.
+Subsequent source changes add readability comments and the desktop style guide,
+plus automatic launch after an interactive installation. These changes are not in
+the published beta.10 installer. Beta.10 may need to be opened manually after
+installation; automatic update installation already requests an app restart.
+The next Windows candidate must confirm the new interactive installer launch.
 
-[Windows build 40823265338](https://github.com/Jamesllllllllll/rock-buddy-app/actions/runs/40823265338)
-at `fc62fb6` passed 121 tests, the native build, actual NSIS installation/startup,
-production settings preservation, production routing, TNT update-feed configuration,
-profile discovery and mockup exclusion. The installer and update manifests have
-verified checksums; public downloads are available. CI performs no production
-login, score submission or payment; real Windows gameplay and the 1.11.0 upgrade
-still require acceptance. The PR stays draft until those results are recorded.
+Jimmy's beta.10 gameplay checks confirmed a verified Rhythm score for Money City
+Maniacs, retention of that score after a lower replay, and the existing verified
+Rhythm score for Tristessa. Its unknown play count and last-played date reflect
+missing saved-history values. Head Like a Hole has no Rhythm arrangement in the
+queried chart, so its fallback to Lead matches the existing behavior. A proposed
+path-lock control is not implemented.
+
+Installed upgrade/restart, gameplay across tabs, history imports, Discord presence,
+account switching and payment handoff still need the remaining Windows acceptance.
+The PR stays draft until those results are recorded. No official update can be
+tested end to end until TNT publishes the next version.
 
 Rehearsal beta6 and its `desktop-beta/beta.yml` update feed are unchanged. Installing
 the official candidate does not transfer rehearsal scores or settings.
