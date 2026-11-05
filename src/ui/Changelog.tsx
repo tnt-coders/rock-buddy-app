@@ -11,7 +11,7 @@ const currentChanges = [
     'Refreshed themes, clearer score indicators and a header paintbrush for choosing or customizing colors.',
     'Window size and position are remembered. Width and Height changes in Config apply immediately, and rankings adapt to smaller windows.',
     'Faster navigation with cached results, clearer loading and connection errors, and a header and footer that stay visible.',
-    'A one-time community welcome and optional one-time or monthly support through the Team page.',
+    'A one-time community welcome and optional one-time or monthly support from Team or the footer, without leaving the current page.',
     'Automatic local save discovery preserves existing score imports without a startup profile prompt.',
 ];
 

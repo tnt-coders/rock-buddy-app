@@ -69,7 +69,9 @@ function UpdateDialog({ state, onLater }: { state: DesktopUpdateState; onLater: 
             }}
         >
             <h2 id="update-title">Rock Buddy {state.version} is ready</h2>
-            <p id="update-description">Restart to install the update.</p>
+            <p id="update-description">
+                Restart to install the update. Rock Buddy may take a few seconds to reopen after installation.
+            </p>
             {message && <p role="status">{message}</p>}
             <div className="update-actions">
                 <button onClick={() => void restart()} disabled={installing}>

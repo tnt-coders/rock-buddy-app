@@ -57,7 +57,23 @@ automatic feature-branch build. Historical test branches do not publish releases
   and `KillMode=control-group`. Give an
   interactive preview a longer runtime (for example eight hours). Check the unit
   before starting; do not start another watcher to recover a slow or stalled one.
-  Stop it with `systemctl --user stop rock-buddy-preview.service`.
+- Close Electron gracefully before stopping or replacing its preview service.
+  Prefer renderer reloads for renderer/CSS changes. For main-process changes, ask
+  the preview launcher to call `app.quit()` (or close its window), wait for the
+  actual Electron main PID to exit, and only then clean up the service and relaunch.
+  Do not directly restart a live preview service or kill its helper processes first.
+- Preview launchers must expose a local graceful-quit control and record the actual
+  Electron main PID. Configure `ExecStop` to request quit and wait for that PID
+  before systemd cleans up helpers, including when the runtime limit expires.
+  If quit times out, inspect the remaining processes; do not launch a replacement.
+  Keep these preview controls under ignored `.generated/`, outside shipped code.
+- Check `/proc/<pid>/cgroup` for both Electron's main process and helpers. On this
+  desktop, Electron's main process can move into a separate Chromium scope while
+  its helpers remain in the preview service. The service PID alone is not proof
+  that the app exited or that its main process shares the resource limits.
+  A November 5 preview restart was followed immediately by helper failures and
+  Electron's deliberate SIGILL trap; the evidence supports a shutdown race, not
+  an unsupported CPU instruction or a confirmed driver problem.
 - These are per-task limits, not changes to Omarchy or system-wide memory policy.
   If systemd user services are unavailable, use an equivalent process-tree limit
   and timeout; do not silently rerun an exhausted job without limits.

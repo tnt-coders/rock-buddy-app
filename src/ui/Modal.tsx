@@ -3,12 +3,14 @@ import { useEffect, useRef, type ReactNode } from 'react';
 // Native dialogs provide focus trapping and Escape handling without extra roots.
 export function Modal({
     title,
+    titleAccessory,
     onClose,
     children,
     className = '',
     dismissOnBackdrop = false,
 }: {
     title: string;
+    titleAccessory?: ReactNode;
     onClose: () => void;
     children: ReactNode;
     className?: string;
@@ -46,7 +48,7 @@ export function Modal({
             <button className="close" aria-label="Close" onClick={onClose}>
                 ×
             </button>
-            <h2 title={title}>{title}</h2>
+            <h2 title={title}>{title}{titleAccessory}</h2>
             {children}
         </dialog>
     );

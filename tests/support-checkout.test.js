@@ -4,11 +4,13 @@ const { createSupportCheckout, supportAmount } = require('../src/support-checkou
 const { HOSTS } = require('../src/backend-config');
 const { isSupportLocation } = require('../src/support-link');
 
-test('checkout accepts only the bundled Team support dialog, not another page or remote document', () => {
+test('checkout accepts the support overlay on bundled screens but rejects closed dialogs and remote documents', () => {
     const appPage = 'file:///C:/RockBuddy/src/index.html';
-    assert.equal(isSupportLocation(appPage + '#/team?support=1', appPage), true);
+    for (const path of ['/team', '/search', '/sniffer', '/account', '/config', '/login']) {
+        assert.equal(isSupportLocation(appPage + '#' + path + '?support=1', appPage), true);
+    }
     for (const url of [appPage + '#/team', appPage + '#/team?support=0', appPage + '#/support',
-        appPage + '#/account?support=1', appPage + '#https://elsewhere.invalid/team?support=1',
+        appPage + '#/account', appPage + '#https://elsewhere.invalid/team?support=1',
         'https://elsewhere.invalid/index.html#/team?support=1', 'file:///C:/other/index.html#/team?support=1', 'invalid']) {
         assert.equal(isSupportLocation(url, appPage), false, url);
     }

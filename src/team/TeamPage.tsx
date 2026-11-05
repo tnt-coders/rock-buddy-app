@@ -1,5 +1,4 @@
 import { useSearchParams } from 'react-router-dom';
-import { SupportDialog } from '../support/SupportDialog';
 
 const members = [
     ['TNTMusicStudios', 'Founder / Lead Developer', 'TNT.png'],
@@ -12,13 +11,6 @@ const members = [
 
 export function TeamPage() {
     const [params, setParams] = useSearchParams();
-    const supportOpen = params.get('support') === '1';
-    function closeSupport() {
-        const next = new URLSearchParams(params);
-        next.delete('support');
-        setParams(next, { replace: true });
-    }
-
     return <main className="team-page">
         <div className="team-heading">
             <h1>Team Members</h1>
@@ -34,6 +26,5 @@ export function TeamPage() {
                 Support Rock Buddy!
             </button>
         </div>
-        {supportOpen && <SupportDialog onClose={closeSupport} />}
     </main>;
 }

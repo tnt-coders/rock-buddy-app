@@ -18,8 +18,7 @@ public release's recorded submodule commits.
   focus, and refresh every 15 seconds while visible. Successful score uploads
   still invalidate score views immediately; Sniffer keeps its existing live reads.
   Preloads share the login session's memory cache and do not run Config discovery
-  or payment/account actions. These changes require the next candidate build;
-  they are not included in the published beta.9 installer.
+  or payment/account actions.
 
 - Adds automatic update downloads with **Restart now** and **Restart later**.
   Users on 1.11.0 must manually install this first update; later releases can be
@@ -27,9 +26,9 @@ public release's recorded submodule commits.
   and pending API requests.
 - Adds a prominent, themed **Support Rock Buddy!** button centered below the team
   members, with the Team heading also centered.
-  It opens a donation dialog over Team with community-support copy and one-time /
-  monthly PayPal support. Outside click, Escape or the top-right X closes it.
-  PayPal approval still opens in the browser.
+  The footer support icon opens the same donation dialog over the current page,
+  preserving its inputs and position. Outside click, Escape or the top-right X
+  closes it. PayPal approval still opens in the browser.
 - Shows a themed community thank-you and support invitation once at startup.
   The installation-wide setting is saved before display and is not tied to an
   account or app version, so dismissal, upgrades and signing into another account
@@ -46,41 +45,43 @@ public release's recorded submodule commits.
 - Shows verified 100% arrangement counts only when the backend supplies them.
   That backend change is separate and is not required to release this desktop.
 
-Navigation-prefetch validation (November 1): 124 tests and the Windows native /
-renderer development build pass. Component checks cover warm-cache rendering,
-fresh reads on entry/focus, upload invalidation, duplicate request sharing,
-quiet background preload, and discarding late reads across login sessions.
-Installed-candidate navigation and gameplay acceptance remain untested for this change.
+## Candidate validation
 
-Team/support dialog validation (November 1): 126 tests and the Windows native /
-renderer build pass. Windows UI preview verified the 1024x768 layout in dark and
-light themes, outside-click and X dismissal. Checkout remains restricted to the
-bundled Team dialog; automated checks use synthetic payments, and no live checkout
-was performed. This and the prefetch changes are not in the published beta.9.
+The November 5 source passes 124 tests and the renderer build on Linux. The
+previous Windows source passed its native development build; the candidate's
+Windows workflow must pass tests, native compilation, packaging, installed startup,
+production settings preservation, backend routing, update-feed and checksum checks.
+Those automated checks do not replace real gameplay or an installed upgrade test.
 
-This is a substantial renderer change, so earlier tests of the old Beta UI do not
-replace testing this candidate. Local save selection does not identify the active
-player inside Rocksmith. Failed verified uploads are
-reported but are not saved in a durable retry queue. Neither limitation should be
-advertised as fixed by this release.
+The current candidate includes the footer support overlay, compact footer layout,
+shared dialog styling, update restart explanation, and email-opening error fallback.
+Local preview accounts, fake songs, launchers and screenshots stay in ignored
+`.generated/` files and are excluded from packaging.
 
-The November 1 profile-confirmation implementation was superseded on November 2
-by removal of account linking. Saved-score/play-count imports remain separate
-from this change, including Score Attack history. Existing server links and
-previously uploaded scores are not deleted. Live verified scores still belong
-to the signed-in account; use Lurk Mode to prevent uploads. This change is not
-in the published beta.9; installed-candidate gameplay acceptance remains pending.
+Before marking PR #89 ready, record these Windows checks:
 
-November 2 validation: all 119 tests and the Windows native / renderer build pass.
-Focused checks exercise startup without a local save, catalog sync and live
-verified submission without history, and local history reads without linking.
-The reduced test count removes the superseded linking/dialog tests.
+- Install over regular Rock Buddy, then check retained login/settings after restart.
+- Complete a song while browsing another tab; confirm its verified score persists.
+  Check Config pause/resume between songs, not during a run intended for verification.
+- Check the selected save's history imports, including a song not previously opened.
+- Check saved window size, column choices, themes and smaller-window layout.
+- Open footer support from Search; close it and confirm the search is preserved.
+  Check browser checkout handoff/cancellation. This candidate uses real PayPal;
+  opening checkout is not proof of a completed payment.
+- Check Discord Rich Presence with Discord running; restart Rock Buddy after
+  enabling it. Check the footer email link with the Windows mail-app association.
+  Copy-address fallback appears only if the OS reports an opening failure.
+- Check logout/account switching does not display or submit another user's data.
 
-Community welcome validation (November 4): 124 tests and the Windows native /
-renderer build pass. The isolated Windows preview shows the themed invitation at
-1024x768 and retains its seen flag across reloads. Automated checks cover Strict
-Mode, dismissal, closing with the dialog open, readiness, failed persistence and
-navigation to Team support without starting checkout. No installer was produced.
+This is a substantial renderer change. Local save selection does not identify the
+active player inside Rocksmith. Saved-score/history imports and live verified
+scores still use the signed-in account; use Lurk Mode to prevent uploads.
+Failed verified uploads are reported but are not saved in a durable retry queue.
+Existing backend profile links and previously uploaded scores are not deleted.
+
+The official automatic-update test follows TNT's publication of a higher version.
+Keep one machine on the fork candidate with Beta Testing enabled. Publishing this
+fork candidate does not add an update to TNT's feed or the rehearsal beta feed.
 
 The welcome signoff includes the bundled [peepoLove emote by lexible on BetterTTV](https://betterttv.com/emotes/5f8fb66258e96102e9298b81)
 (`images/peepoLove.png`, downloaded from the emote's 3x CDN asset). Display uses the
@@ -117,49 +118,44 @@ that Rock Buddy's current reader supports these requirements.
 
 ## Release sequence
 
-The October 29 UI review restores the compact layout and Sniffer Live Feed position,
-automatic default column sizing, Search truncation/tooltips, heading alignment and
-the footer contact link. Column customization remains available. Window dimensions
-apply on change. Donations are reached from Team, with a return link on Support;
-the main menu has no Support link or Sniffer indicator.
+Jimmy (`Jamesllllllllll`) has write access to the fork and read-only access to
+`tnt-coders/rock-buddy-app`, verified November 5. TNT must approve upstream Actions,
+merge and publish official releases. Neither merge nor a manual build publishes.
 
-Local Windows validation: 121 tests and the native development build pass.
-The development app was compared alongside installed 1.11.0, including the same
-already-loaded song, immediate window resizing and Team/Support navigation.
-This UI comparison does not verify a completed gameplay upload, an installed
-upgrade, restart persistence, or a PayPal transaction. Those acceptance checks
-remain separate. The manually published beta.9 candidate below includes these UI changes.
+1. Jimmy updates the branch, PR description and this guide, then runs local checks.
+2. Jimmy manually builds `installer=production-beta`, version `1.12.0-beta.10`,
+   from `feat/desktop-release-prep` in the fork. After CI and installer checks pass,
+   publish a manual-download prerelease tagged `production-beta-1.12.0-beta.10`
+   in the fork, with all five checked assets. It uses production API/PayPal,
+   regular Rock Buddy settings and TNT's update feed, not rehearsal.
+3. Jimmy and TNT complete the Windows candidate checks above. Keep the PR draft
+   until acceptance is recorded. Jimmy then marks it ready for review.
+4. TNT approves the latest upstream Actions run if requested, waits for checks,
+   reviews and merges PR #89 into `main`. Wait for main's checks as well.
+5. TNT manually runs **Build** on `main` with `installer=production-beta`, version
+   `1.12.0-beta.11`. Download and extract the successful run's artifact.
+6. TNT creates a draft release tagged `v1.12.0-beta.11` at that exact build commit.
+   Attach the EXE, blockmap, `beta.yml`, `latest.yml` and `SHA256SUMS.txt` from the
+   same build; mark it as a prerelease, not latest stable. Test the installer on
+   one machine while leaving another on beta.10, then publish when accepted.
+7. On beta.10, enable **Config → Advanced Config → Beta Testing**, click the footer
+   version and check for updates. Confirm beta.11 downloads, **Restart later**
+   keeps the app running, and **Restart now** installs/reopens with settings intact.
+   Installation must be blocked during gameplay or pending uploads.
+8. Existing 1.11.0 users opted into Beta Testing receive the old download-page
+   notification after restart and install manually. Opted-out users wait for stable.
+   After beta acceptance, TNT builds/tests/publishes stable `1.12.0` with
+   `installer=production`, then verifies beta-to-stable and the 1.11.0 notification.
 
-1. Test the rehearsal Beta and record the remaining Windows checks. Tests already
-   completed on this React version carry forward unless related code changes.
-2. Prepare a production-connected candidate with `installer=production-beta` and
-   a standard version such as `1.12.0-beta.9`. This keeps regular Rock Buddy's
-   identity, settings, production API/PayPal and TNT's GitHub updater feed. A test
-   release in the fork is a manual download, separate from the rehearsal feed.
-3. Test that candidate over a regular 1.11.0 install: retained login/settings,
-   one verified production score while browsing other tabs, and Config pause/resume.
-   Enable **Config → Advanced Config → Beta Testing** to receive official betas.
-   The existing preference is respected; opting out waits for a newer stable release.
-4. Keep PR #89 draft until acceptance is recorded, then mark it ready for TNT to
-   review and merge into `main`. Merging runs checks, not installer publication.
-5. In TNT's repository, manually run **Build** on `main` with
-   `installer=production-beta` and a higher version, for example `1.12.0-beta.10`
-   after testing the fork's `beta.9`. Download the checked artifact and test it.
-6. Create a draft GitHub release tagged **v1.12.0-beta.10**, targeting the exact
-   build commit. Attach its EXE, blockmap, `beta.yml`, `latest.yml` and checksums;
-   mark **Set as a pre-release** and do not mark it as the latest stable release.
-   Publish only after Windows acceptance, then verify the installed candidate can
-   update from the official feed. Rehearsal installations do not cross to production.
-7. After the public beta is accepted, build `installer=production`, version `1.12.0`,
-   from the reviewed merged commit. Test it, then publish its EXE, blockmap,
-   `latest.yml` and checksums as the official stable release. Verify the beta can
-   update to stable and 1.11.0 shows its existing download notification.
+Use a higher unused version if another candidate is needed; never replace an
+existing version's installer with different bytes. These two deliberate builds
+produce seven-day workflow artifacts. Release assets remain until explicitly removed.
 
 If **Run workflow** is missing because the repository's default branch is still
 `develop`, TNT can dispatch the merged workflow explicitly with GitHub CLI:
 
 ```sh
-gh workflow run build.yml --repo tnt-coders/rock-buddy-app --ref main -f installer=production-beta -f version=1.12.0-beta.10
+gh workflow run build.yml --repo tnt-coders/rock-buddy-app --ref main -f installer=production-beta -f version=1.12.0-beta.11
 ```
 
 GitHub CLI must be installed and signed in (`gh auth login`). A maintainer can

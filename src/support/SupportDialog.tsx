@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supportAmount } from '../support-amount';
 import { Modal } from '../ui/Modal';
 
@@ -6,9 +7,24 @@ type CheckoutState =
     | { status: 'idle' | 'pending' | 'opened' }
     | { status: 'error'; message: string };
 
+// Keep the current screen mounted while support is open above it.
+export function SupportOverlay() {
+    const [params, setParams] = useSearchParams();
+    if (params.get('support') !== '1') return null;
+
+    function closeSupport() {
+        const next = new URLSearchParams(params);
+        next.delete('support');
+        setParams(next, { replace: true });
+    }
+
+    return <SupportDialog onClose={closeSupport} />;
+}
+
 // Keep the support form inside the app and leave PayPal approval to the browser.
 export function SupportDialog({ onClose }: { onClose: () => void }) {
-    return <Modal title="Support Rock Buddy" className="support-dialog" onClose={onClose} dismissOnBackdrop>
+    return <Modal title="Support Rock Buddy" className="support-dialog" onClose={onClose} dismissOnBackdrop
+        titleAccessory={<img className="support-title-emote" src="../images/peepoLove.png" alt="" width={28} height={28} />}>
         <SupportForm />
     </Modal>;
 }

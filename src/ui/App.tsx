@@ -1,11 +1,11 @@
 import { Component, useEffect, useRef, type ReactNode } from 'react';
-import { Link, Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { SessionProvider, useSession, useAuth } from './Session';
 import { ThemeProvider } from './Theme';
 import { AppHeader, HeaderAccount } from './AppHeader';
 import { DesktopStatus } from './DesktopStatus';
 import { DesktopUpdates, DesktopVersion } from './DesktopUpdates';
-import { Footer } from './Footer';
+import { Footer, FooterLinks } from './Footer';
 import { PageLoadingIndicator } from './PageData';
 import { PagePrefetchProvider } from './PagePrefetch';
 import { BoulderBro } from './BoulderBro';
@@ -19,6 +19,7 @@ import { SearchPage } from '../search/SearchPage';
 import { SnifferPage } from '../sniffer/SnifferPage';
 import { GameplayProvider } from '../sniffer/Gameplay';
 import { TeamPage } from '../team/TeamPage';
+import { SupportOverlay } from '../support/SupportDialog';
 import { SupportWelcome } from '../support/SupportWelcome';
 
 class ScreenBoundary extends Component<
@@ -194,9 +195,10 @@ function Shell() {
                     )}
                 </div>
             </SessionRuntime>
-            <Footer links={<Link className="team-link" to="/team">Team</Link>}>
+            <Footer links={<FooterLinks />}>
                 <DesktopVersion />
             </Footer>
+            <SupportOverlay />
             <BoulderBro />
             <SupportWelcome enabled={!initial} />
         </ThemeProvider>

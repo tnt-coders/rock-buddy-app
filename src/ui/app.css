@@ -534,15 +534,26 @@ fieldset {
 .app-dialog .close {
     background: none;
     border: 0;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    line-height: 1;
+}
+.app-shell[data-theme] .app-dialog .close:focus {
+    outline: 1px solid color-mix(in srgb, currentColor 55%, transparent);
+    outline-offset: 2px;
 }
 .app-shell > footer {
     position: relative;
     inset: auto;
     flex-shrink: 0;
     margin-inline: -8px;
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
+    gap: 4px 12px;
     padding: 0 12px;
     box-sizing: border-box;
     background: var(--footer-background);
@@ -550,10 +561,19 @@ fieldset {
     border-top: 1px solid var(--footer-border);
 }
 .app-shell > footer p {
+    flex: 1 1 auto;
     color: inherit;
+}
+.app-shell > footer .desktop-version {
+    flex: 0 0 auto;
+    white-space: nowrap;
 }
 .app-shell > footer a {
     color: var(--footer-link) !important;
+}
+.app-shell > footer p a:is(:hover, :focus-visible) {
+    text-decoration: underline;
+    text-underline-offset: 2px;
 }
 .app-shell > footer .desktop-version:hover {
     color: var(--footer-link);
@@ -689,7 +709,6 @@ fieldset {
     color: white;
     text-align: left;
     font: 16px/1.5 sans-serif;
-    border-top: 3px solid #a26ede;
 }
 .update-dialog h2,
 .update-dialog p {
@@ -730,22 +749,6 @@ fieldset {
 }
 .update-actions button:disabled {
     opacity: 0.6;
-}
-@media (max-width: 720px) {
-    .app-shell > footer {
-        grid-template-columns: 1fr auto;
-        padding-top: 8px;
-    }
-    footer > p {
-        grid-column: 1 / -1;
-        grid-row: 2;
-        margin: 8px 0;
-        font-size: 12px;
-    }
-    footer .team-link {
-        grid-column: 2;
-        grid-row: 1;
-    }
 }
 .rank-grid {
     display: grid;
@@ -966,9 +969,31 @@ fieldset {
     gap: 12px;
     margin-top: 24px;
 }
-.team-link {
-    grid-column: 3;
-    justify-self: end;
+.footer-links {
+    flex: 0 0 auto;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.app-shell[data-theme] .footer-support {
+    background: transparent;
+    color: var(--footer-link);
+    border: 0;
+    box-shadow: none;
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 4px;
+}
+.app-shell[data-theme] .footer-support:hover {
+    background: color-mix(in srgb, var(--footer-link) 15%, transparent);
+}
+.footer-links :is(a, button):focus-visible {
+    outline: 2px solid var(--footer-link);
+    outline-offset: 2px;
 }
 table {
     font-family: "Roboto Mono", monospace;

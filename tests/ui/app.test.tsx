@@ -99,6 +99,15 @@ test('one authenticated app survives navigation and logout without reinitializin
     fireEvent.click(screen.getByRole('link', { name: 'Search' }));
     await screen.findByRole('textbox', { name: 'Search songs' });
     assert.ok(!screen.queryByRole('link', { name: 'Support' }));
+    const searchInput = screen.getByRole('textbox', { name: 'Search songs' });
+    fireEvent.change(searchInput, { target: { value: 'Nirvana' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Support Rock Buddy' }));
+    await screen.findByRole('dialog', { name: 'Support Rock Buddy' });
+    assert.ok(!screen.queryByRole('heading', { name: 'Team Members' }));
+    assert.ok(searchInput.isConnected);
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    assert.ok(screen.getByRole('textbox', { name: 'Search songs' }) === searchInput);
+    assert.equal((searchInput as HTMLInputElement).value, 'Nirvana');
     fireEvent.click(screen.getByRole('link', { name: 'Team' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Support Rock Buddy!' }));
     await screen.findByRole('button', { name: 'Continue to PayPal' });

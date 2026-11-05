@@ -1,4 +1,4 @@
-const { app, BrowserWindow, dialog, ipcMain, shell, screen } = require('electron');
+const { app, BrowserWindow, clipboard, dialog, ipcMain, shell, screen } = require('electron');
 const Store = require('electron-store').default;
 const aesjs = require('aes-js');
 const http = require('http');
@@ -522,8 +522,24 @@ function createWindow() {
         });
     });
 
-    ipcMain.on('open-external-link', (event, url) => {
-        shell.openExternal(url);
+    ipcMain.on('open-external-link', async (event, url) => {
+        try {
+            await shell.openExternal(url);
+        } catch {
+            // Let users copy the contact address when their email app cannot open.
+            const email = typeof url === 'string' && url.startsWith('mailto:')
+                ? url.slice('mailto:'.length).split('?')[0]
+                : null;
+            const { response } = await dialog.showMessageBox({
+                type: 'error',
+                message: email ? 'Could not open your email app.' : 'Could not open this link.',
+                detail: email || 'Please try again.',
+                buttons: email ? ['Copy email address', 'Close'] : ['OK'],
+                cancelId: email ? 1 : 0,
+            });
+
+            if (email && response === 0) clipboard.writeText(email);
+        }
     });
 
     ipcMain.handle('get-version', (event) => {
@@ -772,12 +788,12 @@ ipcMain.handle('get-update-state', () => desktopUpdates?.getState() || { status:
 // The changelog uses the same guarded check as the automatic schedule.
 ipcMain.handle('check-desktop-update', () => desktopUpdates?.check() || { status: 'disabled', message: 'Updates are available in installed Windows builds.' });
 ipcMain.handle('install-desktop-update', () => desktopUpdates?.install());
-// Checkout is available only while the bundled app's Team support dialog is open.
+// Checkout is available only while the bundled app's support dialog is open.
 const appPage = pathToFileURL(path.join(__dirname, 'index.html')).href;
 let supportSession = null;
 function supportClient(event, session) {
     if (!isSupportLocation(event.senderFrame?.url || 'about:blank', appPage)) {
-        throw new Error('Open Support Rock Buddy from Team first.');
+        throw new Error('Open Support Rock Buddy first.');
     }
     if (session && session !== supportSession) {
         supportSession = session;

@@ -17,7 +17,7 @@ import { ThemeProvider } from '../../src/ui/Theme';
 import { AppHeader } from '../../src/ui/AppHeader';
 import { DesktopStatus } from '../../src/ui/DesktopStatus';
 import { DesktopUpdates, DesktopVersion } from '../../src/ui/DesktopUpdates';
-import { SupportForm } from '../../src/support/SupportDialog';
+import { SupportForm, SupportOverlay } from '../../src/support/SupportDialog';
 import { TeamPage } from '../../src/team/TeamPage';
 import { Footer } from '../../src/ui/Footer';
 import { useDesktopState } from '../../src/ui/useDesktopState';
@@ -193,7 +193,7 @@ test('header navigates inside React and updates the active link', async () => {
 test('Team opens support in a dialog, preserves the page and restores focus on close', async () => {
     let checkouts = 0;
     setApi({ supportInfo: async () => ({ sandbox: true }), startSupportCheckout: async () => { checkouts++; } });
-    render(<MemoryRouter initialEntries={['/team']}><TeamPage /></MemoryRouter>);
+    render(<MemoryRouter initialEntries={['/team']}><TeamPage /><SupportOverlay /></MemoryRouter>);
     const trigger = screen.getByRole('button', { name: 'Support Rock Buddy!' });
     const team = screen.getByRole('heading', { name: 'Team Members' });
     assert.ok(!screen.queryByText(/Community support makes/));
