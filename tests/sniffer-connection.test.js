@@ -13,6 +13,8 @@ function loadSniffer(api = {}) {
     vm.runInNewContext(source, {exports,Date,clearInterval,
         window:{sessionStorage:{getItem:()=>'{"user_id":1}'},api:{setGameplayActive(){}, storeGet: async () => null, ...api}},
         require:()=>({
+            approxEqual: (a, b) => Math.abs(a - b) < 0.0001,
+            getAvailablePaths: arrangements => arrangements,
             logMessage(){}, showExclusive(){}, showError:error=>assert.fail(String(error)),
             Rocksmith: { create: async () => ({ newProfileDataAvailable: async () => false }) },
             Rocksniffer: { create: async () => ({}) },
@@ -250,4 +252,70 @@ test('stopping an engine removes its listener and ignores pending eligibility re
     assert.equal(f.listeners.size, 1);
     second.stop();
     assert.equal(f.listeners.size, 0);
+});
+
+// A display preference must not change which arrangement receives a verified score.
+test('locked paths survive song changes and gameplay without requesting missing leaderboards', async () => {
+    const Sniffer = loadSniffer({ getHost: async () => 'https://example.invalid' });
+    const sniffer = new Sniffer({}, {}, { disable() {} }, { user_id: 1 });
+    sniffer._preferredPath = 'rhythm';
+    sniffer._pathLocked = true;
+    sniffer._snorted = true;
+    const data = {
+        songDetails: { songID: 'one', psarcFileHash: 'file', toolkit: { version: '1' },
+            arrangements: [{ name: 'Lead', hash: 'lead-id' }] },
+        memoryReadout: { songTimer: 30, arrangementID: 'lead-id', noteData: { HighestHitStreak: 42, Accuracy: 90 } },
+    };
+    sniffer.updatePath(data);
+    assert.equal(sniffer.getSnapshot().path, 'rhythm');
+    sniffer.select('path', 'lead');
+    assert.equal(sniffer.getSnapshot().path, 'rhythm');
+
+    const sent = [];
+    sniffer.send = async (url, body) => { sent.push({ url, body }); return []; };
+    await sniffer.showLeaderboard(data);
+    assert.equal(sent.length, 0);
+    assert.equal(sniffer.getSnapshot().leaderboard.message, 'No Rhythm arrangement available.');
+    await sniffer.recordVerifiedScore(data, 100);
+    assert.equal(sent.length, 1);
+    assert.ok(sent[0].url.endsWith('/record_verified_score.php'));
+    assert.equal(sent[0].body.song_data.arrangement_hash, 'lead-id');
+
+    // A later chart with Rhythm loads its scores normally, including Score Attack.
+    data.songDetails.songID = 'two';
+    data.songDetails.arrangements.push({ name: 'Rhythm', hash: 'rhythm-id' });
+    sniffer.updatePath(data);
+    sniffer.select('mode', 'sa');
+    sniffer._snorted = true;
+    await sniffer.showLeaderboard(data);
+    assert.equal(sent[1].body.arrangement, 'rhythm');
+    assert.ok(sent[1].url.endsWith('/get_scores_sa.php'));
+
+    // Unlocking restores the existing live arrangement detection and missing-path fallback.
+    sniffer._pathLocked = false;
+    sniffer.updatePath(data);
+    assert.equal(sniffer.getSnapshot().path, 'lead');
+    data.memoryReadout.songTimer = 0;
+    data.songDetails.arrangements = [{ name: 'Lead', hash: 'lead-id' }];
+    sniffer.updatePath(data);
+    assert.equal(sniffer.getSnapshot().path, 'lead');
+});
+
+// Each new engine restores only the settings belonging to its signed-in account.
+test('engine startup restores the saved path lock for the current account', async () => {
+    const stored = new Map([
+        ['user_data.1.preferred_path', 'rhythm'],
+        ['user_data.1.preferred_path_locked', true],
+    ]);
+    const Sniffer = loadSniffer({
+        storeGet: async key => stored.get(key),
+        onUpdateState: () => () => {},
+        onLatestBetaVersion: async () => false,
+    });
+    const first = await Sniffer.create({ user_id: 1 });
+    assert.equal(first.getSnapshot().pathLocked, true);
+    first.stop();
+    const second = await Sniffer.create({ user_id: 2 });
+    assert.equal(second.getSnapshot().pathLocked, false);
+    second.stop();
 });

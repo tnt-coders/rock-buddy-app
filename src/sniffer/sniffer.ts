@@ -25,6 +25,7 @@ export interface SnifferState {
     live: LiveFeed | null;
     paths: string[];
     path: string;
+    pathLocked: boolean;
     mode: string;
     difficulty: string;
     lurkMode: boolean;
@@ -62,6 +63,7 @@ export class Sniffer {
 
     // Game mode/path/difficulty combo box data
     private _preferredPath: string = 'lead';
+    private _pathLocked: boolean = false;
     private _gameMode: string = 'las';
     private _path: string = 'lead';
     private _difficulty: string = 'hard';
@@ -115,6 +117,7 @@ export class Sniffer {
         live: null,
         paths: [],
         path: 'lead',
+        pathLocked: false,
         mode: 'las',
         difficulty: 'hard',
         lurkMode: false,
@@ -183,6 +186,7 @@ export class Sniffer {
 
         try {
             sniffer._preferredPath = (await read('preferred_path')) || 'lead';
+            sniffer._pathLocked = (await read('preferred_path_locked')) === true;
             sniffer._lurkMode =
                 !!(await read('lurk_mode')) || !!(await read('use_external_rocksniffer'));
             sniffer._extraLogging = !!(await read('extra_logging'));
@@ -199,7 +203,7 @@ export class Sniffer {
             });
             await sniffer.refreshSnortRate();
             signal?.throwIfAborted();
-            sniffer.publish({ lurkMode: sniffer._lurkMode });
+            sniffer.publish({ lurkMode: sniffer._lurkMode, pathLocked: sniffer._pathLocked });
             return sniffer;
         } catch (error) {
             sniffer.stop();
@@ -266,7 +270,7 @@ export class Sniffer {
 
     // Update the leaderboard filters and request a refresh for the new selection.
     public select(field: 'path' | 'mode' | 'difficulty', value: string) {
-        if (field === 'path') this._path = value;
+        if (field === 'path' && !this._pathLocked) this._path = value;
         if (field === 'mode') this._gameMode = value;
         if (field === 'difficulty') this._difficulty = value;
         this.publish({ path: this._path, mode: this._gameMode, difficulty: this._difficulty });
@@ -448,14 +452,16 @@ export class Sniffer {
         }
     }
 
-    // Follow the played arrangement during a run and use the saved preference for new songs.
+    // Choose the displayed path without changing which arrangement is recorded.
     private updatePath(data: any): void {
         const available = getAvailablePaths(data.songDetails.arrangements);
         const paths = available.map((path) => path.name);
         const previous = this._path;
 
-        // Follow the detected arrangement during gameplay, otherwise prefer the saved path.
-        if (!approxEqual(data.memoryReadout.songTimer, 0)) {
+        // Lock only the displayed leaderboard; uploads still use the played arrangement ID.
+        if (this._pathLocked) {
+            this._path = this._preferredPath;
+        } else if (!approxEqual(data.memoryReadout.songTimer, 0)) {
             const playing = available.find(
                 (path) => path.hash === data.memoryReadout.arrangementID,
             );
@@ -1253,6 +1259,17 @@ export class Sniffer {
 
     // Load scores for the current filters and discard replies for older selections.
     private async showLeaderboard(data: any): Promise<void> {
+        // Do not request scores for a locked path that this chart does not contain.
+        const available = this._pathLocked ? getAvailablePaths(data.songDetails.arrangements) : [];
+        if (this._pathLocked && !available.some((path) => path.name.toLowerCase() === this._path)) {
+            this.leaderboardRequest++;
+            const label = this._path[0].toUpperCase() + this._path.slice(1);
+            this.publish({ leaderboard: {
+                message: `No ${label} arrangement available.`, scores: null, mode: this._gameMode,
+            } });
+            return;
+        }
+
         if (!this._snorted) {
             this.queueSnort();
             return;

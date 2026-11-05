@@ -18,6 +18,7 @@ function SnifferView({ engine }: { engine: Sniffer }) {
     const song = state.song;
     const live = state.live;
     const notes = live?.noteData;
+    const missingLockedPath = state.pathLocked && !state.paths.some((path) => path.toLowerCase() === state.path);
     const badge =
         state.verification === VerificationState.Verified
             ? 'verified'
@@ -99,6 +100,7 @@ function SnifferView({ engine }: { engine: Sniffer }) {
                         <ScoreFilters
                             paths={state.paths}
                             path={state.path}
+                            pathLocked={state.pathLocked}
                             mode={state.mode}
                             difficulty={state.difficulty}
                             showLabels
@@ -115,10 +117,11 @@ function SnifferView({ engine }: { engine: Sniffer }) {
                         />
                     </div>
                     <div id="leaderboard_data">
-                        {state.leaderboard.message && (
+                        {missingLockedPath && <p>No {state.path[0].toUpperCase() + state.path.slice(1)} arrangement available.</p>}
+                        {!missingLockedPath && state.leaderboard.message && (
                             <p role="status">{state.leaderboard.message}</p>
                         )}
-                        {state.leaderboard.scores && (
+                        {!missingLockedPath && state.leaderboard.scores && (
                             <ScoresTable
                                 scores={state.leaderboard.scores}
                                 mode={state.leaderboard.mode}

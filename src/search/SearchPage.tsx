@@ -29,27 +29,31 @@ function ChartScores({ chart }: { chart: Chart }) {
     const paths = useResource(
         `paths:${JSON.stringify([auth.user_id, chart.song_key, chart.psarc_hash])}`,
         async () => {
-            const [available, preferred] = await Promise.all([
+            const [available, preferred, locked] = await Promise.all([
                 request<string[]>('data/get_paths_from_psarc', {
                     auth_data: auth,
                     song_key: chart.song_key,
                     psarc_hash: chart.psarc_hash,
                 }),
                 window.api.storeGet(`user_data.${auth.user_id}.preferred_path`),
+                window.api.storeGet(`user_data.${auth.user_id}.preferred_path_locked`),
             ]);
             return {
                 available: sortPaths(available),
                 preferred: String(preferred || 'lead').toLowerCase(),
+                locked: locked === true,
             };
         },
     );
     const available = paths.data?.available || [];
 
-    // Prefer the configured path, falling back to an available path rather than a score.
-    const wanted = selection.path || paths.data?.preferred;
-    const path =
+    // A locked preference stays selected even when this chart has no matching arrangement.
+    const locked = paths.data?.locked ?? false;
+    const wanted = locked ? paths.data?.preferred : selection.path || paths.data?.preferred;
+    const path = locked ? wanted :
         available.find((name) => name.toLowerCase() === wanted)?.toLowerCase() ||
         available[0]?.toLowerCase();
+    const hasPath = available.some((name) => name.toLowerCase() === path);
 
     return (
         <>
@@ -60,16 +64,21 @@ function ChartScores({ chart }: { chart: Chart }) {
                         {...selection}
                         path={path}
                         paths={available}
+                        pathLocked={locked}
                         onChange={(field, value) =>
                             setSelection((current) => ({ ...current, [field]: value }))
                         }
                     />
-                    <Leaderboard
-                        song={chart.song_key}
-                        hash={chart.psarc_hash}
-                        {...selection}
-                        path={path}
-                    />
+                    {hasPath ? (
+                        <Leaderboard
+                            song={chart.song_key}
+                            hash={chart.psarc_hash}
+                            {...selection}
+                            path={path}
+                        />
+                    ) : (
+                        <p>No {path[0].toUpperCase() + path.slice(1)} arrangement available.</p>
+                    )}
                 </>
             )}
         </>

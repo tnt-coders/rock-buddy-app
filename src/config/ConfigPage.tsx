@@ -21,6 +21,7 @@ const defaults = {
     extra_logging: false,
     beta_testing: false,
     preferred_path: 'lead',
+    preferred_path_locked: false,
     miss_sfx: 'none',
     custom_miss_sfx_path: '',
     custom_miss_sfx_multi_path: '',
@@ -75,6 +76,7 @@ function ConfigForm({ initial, reload }: { initial: ConfigData; reload: () => vo
     const [pendingSaves, setPendingSaves] = useState(0);
     const [popup, setPopup] = useState<'reader' | 'advanced'>();
     const prefix = `user_data.${auth.user_id}.`;
+    const pathLockLabel = `Always show ${settings.preferred_path[0].toUpperCase() + settings.preferred_path.slice(1)}`;
 
     useEffect(() => {
         mounted.current = true;
@@ -109,7 +111,7 @@ function ConfigForm({ initial, reload }: { initial: ConfigData; reload: () => vo
         }
 
         // Cached chart filters include the preferred path as well as available arrangements.
-        if (key === 'preferred_path') {
+        if (key === 'preferred_path' || key === 'preferred_path_locked') {
             await client.invalidateQueries({
                 queryKey: ['resource'],
                 predicate: query => String(query.queryKey[1]).startsWith('paths:'),
@@ -285,9 +287,10 @@ function ConfigForm({ initial, reload }: { initial: ConfigData; reload: () => vo
                         RockSniffer Config
                     </button>
                 </div>
-                <label className="config-row">
-                    <strong>Preferred Path:</strong>
+                <div className="config-row">
+                    <label htmlFor="preferred-path"><strong>Preferred Path:</strong></label>
                     <select
+                        id="preferred-path"
                         className="config-choice"
                         value={settings.preferred_path}
                         onChange={(event) => change('preferred_path', event.target.value)}
@@ -298,7 +301,22 @@ function ConfigForm({ initial, reload }: { initial: ConfigData; reload: () => vo
                             </option>
                         ))}
                     </select>
-                </label>
+                    <button
+                        type="button"
+                        className="path-lock"
+                        aria-label={pathLockLabel}
+                        title={pathLockLabel}
+                        aria-pressed={settings.preferred_path_locked}
+                        onClick={() => change('preferred_path_locked', !settings.preferred_path_locked)}
+                    >
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <rect x="5" y="10" width="14" height="11" rx="2" />
+                            <path d={settings.preferred_path_locked ? 'M8 10V6a4 4 0 0 1 8 0v4' : 'M8 10V6a4 4 0 0 1 8 0'} />
+                            <path d="M12 14v3" />
+                        </svg>
+                    </button>
+                </div>
                 <div className="config-row config-sound">
                     <label className="config-sound-choice">
                         <strong>Miss SFX:</strong>

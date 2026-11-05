@@ -4,6 +4,8 @@ import { useDesktopState } from './useDesktopState';
 
 // These notes describe the code bundled with this installer, including beta builds.
 const currentChanges = [
+    'Lock your preferred path in Config to keep it selected in Search and Sniffer, including charts without that arrangement.',
+    'Rock Buddy opens automatically after an interactive Windows installation.',
     'Sniffing continues while browsing other pages; Config still pauses tracking.',
     'Updates download automatically, with a choice to restart now or later. Click the version number for release notes and a manual update check.',
     'Sniffer columns fit the window by default. Show, hide, resize and reorder them, choose a font, and keep your choices after restarting.',

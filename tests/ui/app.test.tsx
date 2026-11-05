@@ -480,3 +480,63 @@ test('older statistics responses hide the new count instead of inventing a zero'
     await screen.findByRole('heading', { name: 'Accuracy' });
     assert.ok(!screen.queryByRole('heading', { name: 'Verified 100% scores' }));
 });
+
+// Save the lock per account and restore both its state and tooltip after reopening Config.
+test('preferred path lock persists and follows the selected path', async () => {
+    const { stored } = mockApi();
+    stored.set('user_data.1.preferred_path', 'rhythm');
+    const open = () => render(<MemoryRouter initialEntries={['/config']}><App /></MemoryRouter>);
+    let view = open();
+    const lock = await screen.findByRole('button', { name: 'Always show Rhythm' });
+    assert.equal(lock.getAttribute('aria-pressed'), 'false');
+    fireEvent.click(lock);
+    await waitFor(() => assert.equal(stored.get('user_data.1.preferred_path_locked'), true));
+    assert.equal(lock.getAttribute('aria-pressed'), 'true');
+    fireEvent.change(screen.getByLabelText('Preferred Path:'), { target: { value: 'bass' } });
+    await screen.findByRole('button', { name: 'Always show Bass' });
+    view.unmount();
+    view = open();
+    const restored = await screen.findByRole('button', { name: 'Always show Bass' });
+    assert.equal(restored.getAttribute('aria-pressed'), 'true');
+    assert.equal(restored.getAttribute('title'), 'Always show Bass');
+    fireEvent.click(restored);
+    await waitFor(() => assert.equal(stored.get('user_data.1.preferred_path_locked'), false));
+    view.unmount();
+    stored.set('auth_data', { user_id: 2, api_key: 'other-synthetic' });
+    open();
+    assert.equal((await screen.findByRole('button', { name: 'Always show Lead' })).getAttribute('aria-pressed'), 'false');
+});
+
+for (const { locked, available, expected } of [
+    { locked: true, available: ['Lead', 'Bass'], expected: 'rhythm' },
+    { locked: false, available: ['Lead', 'Bass'], expected: 'lead' },
+    { locked: true, available: ['Lead', 'Rhythm'], expected: 'rhythm' },
+]) {
+    test(`Search respects path lock=${locked} with ${available.join('/')}`, async () => {
+        const { stored } = mockApi();
+        stored.set('user_data.1.preferred_path', 'rhythm');
+        stored.set('user_data.1.preferred_path_locked', locked);
+        const original = window.api.requestBackend;
+        const scorePaths: string[] = [];
+        window.api.requestBackend = async (url, body) => {
+            if (url.endsWith('/search.php')) return [{ artist: 'Artist', title: 'Song', album: 'Album', year: 2026 }];
+            if (url.endsWith('/get_available_charts.php')) return [{ song_key: 'song', psarc_hash: 'hash', author: 'Author', version: '1' }];
+            if (url.endsWith('/get_paths_from_psarc.php')) return available;
+            if (url.includes('/get_scores_')) { scorePaths.push((body as { arrangement: string }).arrangement); return []; }
+            return original(url, body);
+        };
+        render(<MemoryRouter initialEntries={['/search']}><App /></MemoryRouter>);
+        fireEvent.change(await screen.findByRole('textbox', { name: 'Search songs' }), { target: { value: 'Song' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Search' }));
+        fireEvent.click(await screen.findByRole('button', { name: 'Song' }));
+        const path = await screen.findByRole('combobox', { name: 'Arrangement' }) as HTMLSelectElement;
+        assert.equal(path.value, expected);
+        assert.equal(path.disabled, locked);
+        if (locked && !available.includes('Rhythm')) {
+            await screen.findByText('No Rhythm arrangement available.');
+            assert.equal(scorePaths.length, 0);
+        } else {
+            await waitFor(() => assert.ok(scorePaths.includes(expected)));
+        }
+    });
+}

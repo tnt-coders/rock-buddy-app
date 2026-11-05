@@ -122,45 +122,59 @@ Jimmy (`Jamesllllllllll`) has write access to the fork and read-only access to
 `tnt-coders/rock-buddy-app`, verified November 5. TNT must approve upstream Actions,
 merge and publish official releases. Neither merge nor a manual build publishes.
 
-1. Jimmy updates the branch, PR description and this guide, then runs local checks.
-2. Jimmy manually builds `installer=production-beta`, version `1.12.0-beta.10`,
-   from `feat/desktop-release-prep` in the fork. After CI and installer checks pass,
-   publish a manual-download prerelease tagged `production-beta-1.12.0-beta.10`
-   in the fork, with all five checked assets. It uses production API/PayPal,
-   regular Rock Buddy settings and TNT's update feed, not rehearsal.
-3. Jimmy and TNT complete the Windows candidate checks above. Keep the PR draft
-   until acceptance is recorded. Jimmy then marks it ready for review.
-4. TNT approves the latest upstream Actions run if requested, waits for checks,
-   reviews and merges PR #89 into `main`. Wait for main's checks as well.
-5. TNT manually runs **Build** on `main` with `installer=production-beta`, version
-   `1.12.0-beta.11`. Download and extract the successful run's artifact.
-6. TNT creates a draft release tagged `v1.12.0-beta.11` at that exact build commit.
-   Attach the EXE, blockmap, `beta.yml`, `latest.yml` and `SHA256SUMS.txt` from the
-   same build; mark it as a prerelease, not latest stable. Test the installer on
-   one machine while leaving another on beta.10, then publish when accepted.
-7. On beta.10, enable **Config → Advanced Config → Beta Testing**, click the footer
-   version and check for updates. Confirm beta.11 downloads, **Restart later**
+1. Jimmy updates the branch and PR, runs local checks, and manually builds the
+   fork candidate `production-beta`, version `1.12.0-beta.11`. It uses production
+   accounts/scores, live PayPal, regular settings and TNT's update feed.
+2. Jimmy downloads the candidate from its fork release page, installs it and
+   completes the Windows checks below. Keep one machine on this version for the
+   later automatic-update test. Record acceptance before marking PR #89 ready.
+3. TNT opens [PR #89](https://github.com/tnt-coders/rock-buddy-app/pull/89), approves
+   any pending workflow run using **Approve and run**, reviews, and merges after
+   the checks pass. Wait for the checks on `main` too. Merging does not publish.
+4. For GitHub's **Run workflow** button, the manual workflow must be on the default
+   branch. It currently is not: `develop` still has the old automatic workflow.
+   After merging, TNT can use **Settings → General → Default branch**, choose
+   `main`, and confirm the change. This also makes new PRs target `main` by default.
+   If TNT wants to keep `develop` as default, first bring the reviewed workflow
+   into `develop` instead; do not try to use its old build as a release build.
+5. TNT opens **Actions → Build → Run workflow**. Select branch **main**,
+   installer **production-beta**, version **1.12.0-beta.12**, and run it once.
+   Wait for success, then download the `rock-buddy-production-beta-1.12.0-beta.12`
+   artifact at the bottom of the run page and extract the ZIP.
+6. TNT tests that installer on one Windows machine, leaving another on beta.11.
+   Confirm it starts after installation, keeps settings and connects to production.
+7. TNT opens **Releases → Draft a new release**, creates tag `v1.12.0-beta.12`
+   at the exact commit shown on the successful build, and attaches the five files
+   from the extracted artifact: the EXE, its `.blockmap`, `beta.yml`, `latest.yml`,
+   and `SHA256SUMS.txt`. Use the commit selector rather than a newer branch tip.
+   Add release notes, check **Set as a pre-release**, and publish when accepted.
+   Do not mark it as the latest stable release or upload the artifact ZIP alone.
+8. On beta.11, enable **Config → Advanced Config → Beta Testing**, click the footer
+   version and check for updates. Confirm beta.12 downloads, **Restart later**
    keeps the app running, and **Restart now** installs/reopens with settings intact.
    Installation must be blocked during gameplay or pending uploads.
-8. Existing 1.11.0 users opted into Beta Testing receive the old download-page
+9. Existing 1.11.0 users opted into Beta Testing receive the old download-page
    notification after restart and install manually. Opted-out users wait for stable.
-   After beta acceptance, TNT builds/tests/publishes stable `1.12.0` with
-   `installer=production`, then verifies beta-to-stable and the 1.11.0 notification.
+   After beta acceptance, TNT repeats the build/release process with installer
+   **production**, version **1.12.0**, tag `v1.12.0`, and a normal stable release.
 
 Use a higher unused version if another candidate is needed; never replace an
-existing version's installer with different bytes. These two deliberate builds
-produce seven-day workflow artifacts. Release assets remain until explicitly removed.
+existing version's installer with different bytes. Artifacts expire after seven
+days; download them before then. Published release assets remain available.
+Neither a merge nor a manual build publishes automatically.
 
-If **Run workflow** is missing because the repository's default branch is still
-`develop`, TNT can dispatch the merged workflow explicitly with GitHub CLI:
+### Path-lock candidate checks
 
-```sh
-gh workflow run build.yml --repo tnt-coders/rock-buddy-app --ref main -f installer=production-beta -f version=1.12.0-beta.11
-```
-
-GitHub CLI must be installed and signed in (`gh auth login`). A maintainer can
-also add the manual workflow to the default branch; changing the default branch
-is not necessary. Builds never publish automatically. Keep older releases available.
+1. Install beta.11 and confirm Rock Buddy opens. In Config choose Rhythm and click
+   the lock next to Preferred Path; its tooltip should say **Always show Rhythm**.
+2. Search a chart with Rhythm and confirm its Rhythm scores appear. Search the
+   Head Like a Hole chart with Lead/Bass only: keep Rhythm selected and show
+   **No Rhythm arrangement available.** There should be no leaderboard error.
+3. Check the same behavior in Sniffer. The lock controls the displayed leaderboard;
+   playing Lead still submits a Lead score, never a Rhythm score.
+4. Restart Rock Buddy and confirm the lock stays enabled. Turn it off and confirm
+   missing Rhythm falls back to Lead again. Changing accounts must use that
+   account's own setting. Check the icon in light and dark themes.
 
 The public backend is already live. This release needs no database import, domain
 change, or coordinated backend downtime. Existing desktop versions can continue
@@ -302,7 +316,7 @@ Install `Rock-Buddy-1.12.0-beta.10-x64-Setup.exe` over regular Rock Buddy, not t
 rehearsal Beta. It uses production scores/accounts, live PayPal and TNT's update
 feed. Enable **Config → Advanced Config → Beta Testing** for future official
 prereleases. Fork releases do not appear in TNT's automatic update feed.
-The next official build should use a higher version, such as `1.12.0-beta.11`.
+The next official build should use a higher version, such as `1.12.0-beta.12`.
 
 [Windows build 42093568306](https://github.com/Jamesllllllllll/rock-buddy-app/actions/runs/42093568306)
 passed all 124 tests, native compilation, packaging, actual NSIS installation/startup,
@@ -320,8 +334,7 @@ Jimmy's beta.10 gameplay checks confirmed a verified Rhythm score for Money City
 Maniacs, retention of that score after a lower replay, and the existing verified
 Rhythm score for Tristessa. Its unknown play count and last-played date reflect
 missing saved-history values. Head Like a Hole has no Rhythm arrangement in the
-queried chart, so its fallback to Lead matches the existing behavior. A proposed
-path-lock control is not implemented.
+queried chart, so its fallback to Lead matches the existing behavior. The optional path lock is included in the next candidate, beta.11.
 
 Installed upgrade/restart, gameplay across tabs, history imports, Discord presence,
 account switching and payment handoff still need the remaining Windows acceptance.

@@ -189,6 +189,7 @@ export function ScoreFilters({
     difficulty,
     onChange,
     showLabels = false,
+    pathLocked = false,
 }: {
     paths: string[];
     path: string;
@@ -196,7 +197,11 @@ export function ScoreFilters({
     difficulty: string;
     onChange: (field: 'path' | 'mode' | 'difficulty', value: string) => void;
     showLabels?: boolean;
+    pathLocked?: boolean;
 }) {
+    // Keep an unavailable locked path visible instead of showing a different selection.
+    const options = pathLocked && !paths.some((name) => name.toLowerCase() === path)
+        ? [path, ...paths] : paths;
     return (
         <div className="score-filters">
             <label>
@@ -214,10 +219,11 @@ export function ScoreFilters({
                 {showLabels && <span>Path:</span>}
                 <select
                     aria-label="Arrangement"
+                    disabled={pathLocked}
                     value={path}
                     onChange={(event) => onChange('path', event.target.value)}
                 >
-                    {paths.map((name) => (
+                    {options.map((name) => (
                         <option value={name.toLowerCase()} key={name}>
                             {name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()}
                         </option>

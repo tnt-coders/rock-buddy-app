@@ -823,6 +823,7 @@ fieldset {
     margin: 6px 0;
 }
 .config-row > strong,
+.config-row > label[for="preferred-path"],
 .config-sound-choice > strong,
 .config-section-heading > h2 {
     flex: 0 0 200px;
@@ -895,6 +896,7 @@ fieldset {
 }
 @media (max-width: 640px) {
     .config-row > strong,
+.config-row > label[for="preferred-path"],
     .config-sound-choice > strong,
     .config-section-heading > h2 {
         flex-basis: 160px;
@@ -1185,4 +1187,22 @@ th {
 }
 .app-shell table tr.current-user > td:first-child {
     box-shadow: inset 3px 0 var(--current-row-accent);
+}
+
+/* Keep the path lock legible in every theme without giving it a full button fill. */
+.app-shell[data-theme] .path-lock {
+    display: inline-grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    color: var(--select-text);
+    background: transparent;
+    border: 1px solid transparent;
+    box-shadow: none;
+}
+.app-shell[data-theme] .path-lock:hover,
+.app-shell[data-theme] .path-lock[aria-pressed="true"] {
+    background: var(--select-background);
+    border-color: var(--select-border);
 }
