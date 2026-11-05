@@ -19,7 +19,7 @@ function ConnectionNotice() {
     );
 }
 
-// These components can stay mounted in the shared shell as pages move to React.
+// Keep connection status visible in the shared shell across page changes.
 export function DesktopStatus() {
     return (
         <>

@@ -19,7 +19,7 @@ function UpdateIcon({ kind }: { kind: 'download' | 'restart' | 'later' }) {
     );
 }
 
-// A browser dialog traps focus without blocking timers, gameplay or uploads.
+// A browser dialog asks when to restart without blocking gameplay or uploads.
 function UpdateDialog({ state, onLater }: { state: DesktopUpdateState; onLater: () => void }) {
     const dialog = useRef<HTMLDialogElement>(null);
     const laterButton = useRef<HTMLButtonElement>(null);
@@ -111,7 +111,7 @@ export function DesktopVersion() {
     );
 }
 
-// Checks stay quiet; downloads and deferred updates appear inside the header.
+// Keep checks quiet; show downloads in the header and allow reopening deferred updates.
 export function DesktopUpdates() {
     const state = useDesktopState(window.api.getUpdateState, window.api.onUpdateState);
     const [deferredVersion, setDeferredVersion] = useState(() => sessionStorage.getItem('deferred-update'));
@@ -123,12 +123,14 @@ export function DesktopUpdates() {
         ? Math.min(100, Math.max(0, Math.round(progress)))
         : null;
 
+    // Remember deferral for this version during the current renderer session.
     function later() {
         if (!state?.version) return;
         sessionStorage.setItem('deferred-update', state.version);
         setDeferredVersion(state.version);
     }
 
+    // Bring back a deferred restart prompt from the header.
     function reopen() {
         sessionStorage.removeItem('deferred-update');
         setDeferredVersion(null);

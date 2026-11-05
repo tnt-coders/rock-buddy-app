@@ -80,6 +80,7 @@ function trackWindowState(win, store, screen, initialState, timers = globalThis)
         }
     }
 
+    // Write the latest captured window bounds and clear the pending save timer.
     function persist() {
         timers.clearTimeout(timer);
         timer = undefined;
@@ -103,6 +104,7 @@ function trackWindowState(win, store, screen, initialState, timers = globalThis)
         persist();
     }
 
+    // Move the window back into reach when a monitor or its usable area changes.
     function recoverDisplay() {
         if (win.isDestroyed() || win.isMinimized() || win.isFullScreen()) {
             return;

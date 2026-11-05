@@ -51,6 +51,7 @@ export const accountInfo = (auth: AuthData): Resource<{ username: string; email:
     read: () => request('account/get_account_info', auth),
 });
 
+// List only safe page reads for prefetching; never run settings or payment actions.
 export function pageResources(path: string, auth: AuthData): Resource<unknown>[] {
     switch (path) {
         case '/rank': return [rankSummary(auth)];

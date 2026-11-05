@@ -6,12 +6,13 @@ function createBackendClient(host, { fetchImpl = fetch, now = Date.now, onState 
     let state = { connected: true, message: '' };
     let pending = 0;
 
-    // Only report a connection change once, even when several pages request data together.
+    // Share connection status with every page that uses this backend client.
     function setConnected(connected) {
         state = { connected, message: connected ? '' : CONNECTION_MESSAGE };
         onState(state);
     }
 
+    // Return the remaining cooldown so callers can avoid immediate repeat requests.
     function unavailable() {
         return { error: CONNECTION_MESSAGE, connectionError: true, retryAfterMs: Math.max(0, retryAt - now()) };
     }
@@ -23,6 +24,7 @@ function createBackendClient(host, { fetchImpl = fetch, now = Date.now, onState 
             return { error: 'This request does not belong to the selected Rock Buddy server.' };
         }
 
+        // Pause requests during the shared cooldown without queuing writes for later.
         if (now() < retryAt) return unavailable();
         pending++;
 
@@ -47,6 +49,7 @@ function createBackendClient(host, { fetchImpl = fetch, now = Date.now, onState 
             try { result = JSON.parse(text); } catch { throw new Error('Invalid server response'); }
             if (!result || typeof result !== 'object') throw new Error('Invalid server response');
 
+            // A valid API response restores connectivity even when it reports a rejected request.
             retryAt = 0;
             setConnected(true);
             if (!response.ok && !result.error) return { error: `The server rejected this request (${response.status}).` };

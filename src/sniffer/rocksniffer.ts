@@ -12,6 +12,7 @@ export class Rocksniffer {
         this._path = path;
     }
 
+    // Locate the bundled reader and load the address of its local data server.
     public static async create() {
         const rocksnifferPath = await window.api.getRocksnifferPath();
 
@@ -22,6 +23,7 @@ export class Rocksniffer {
         return rocksniffer;
     }
 
+    // Read one snapshot with a short timeout and reject incompatible reader versions.
     public async sniff(): Promise<any> {
         const controller = new AbortController();
         const timeout = setTimeout(() => {
@@ -67,6 +69,7 @@ export class Rocksniffer {
         }
     }
 
+    // Read the local reader address and ensure its data server is enabled.
     private async configure(): Promise<void> {
         const addonConfigFile = await window.api.pathJoin(this._path, 'config', 'addons.json');
 

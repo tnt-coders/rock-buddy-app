@@ -32,6 +32,7 @@ automatic feature-branch build. Historical test branches do not publish releases
   Electron event object and return unsubscribe functions for subscriptions.
 - Preserve appearance and gameplay verification rules. Use descriptive names,
   blank lines between logical blocks, and simple comments for non-obvious logic.
+  Follow [the desktop code style guide](docs/code-style.md) for comments and spacing.
 - `npm test` includes real React component tests. `build:renderer` works on Linux;
   native reader builds and installed gameplay still need Windows. Both development
   and production renderer builds clear only generated `dist/` output first.

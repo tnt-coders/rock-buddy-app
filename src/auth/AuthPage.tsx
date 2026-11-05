@@ -5,6 +5,7 @@ import { useSession } from '../ui/Session';
 import { useAction } from '../ui/useAction';
 import { validateEmail, validatePassword, validateUsername } from '../ui/validation';
 
+// Use the same form for sign-in and signup while keeping their requests separate.
 export function AuthPage({ signup = false }: { signup?: boolean }) {
     const session = useSession();
     const navigate = useNavigate();
@@ -17,6 +18,7 @@ export function AuthPage({ signup = false }: { signup?: boolean }) {
 
     if (session.state.auth) return <Navigate to="/" replace />;
 
+    // Create an account or sign in, then clear the password fields even if the request fails.
     function submit(event: FormEvent) {
         event.preventDefault();
         void action.run(async () => {
@@ -39,6 +41,7 @@ export function AuthPage({ signup = false }: { signup?: boolean }) {
         });
     }
 
+    // Request a reset email for the entered account without signing the user in.
     function resetPassword() {
         void action.run(async () => {
             if (!username.trim()) throw new Error('Please enter your username or email.');

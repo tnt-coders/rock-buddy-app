@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Modal } from './Modal';
 
+// Recognize the hidden key sequence without counting keys typed into text fields.
 export function BoulderBro() {
     const [visible, setVisible] = useState(false);
     useEffect(() => {

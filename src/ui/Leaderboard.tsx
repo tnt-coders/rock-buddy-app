@@ -30,6 +30,7 @@ export function rankedScores(scores: Score[], mode: string) {
     });
 }
 
+// Render ranked scores with the current account highlighted and optional column controls.
 export function ScoresTable({ scores, mode, hiddenColumns = [], columnWidths, onColumnResize, columnOrder, onColumnReorder, font }: {
     scores: Score[];
     mode: string;
@@ -112,6 +113,7 @@ export function ScoresTable({ scores, mode, hiddenColumns = [], columnWidths, on
 }
 
 // Headers, widths and cells all follow the same ordered list of column IDs.
+// Format each column without turning missing history into a zero value.
 function ScoreCell({ column, score, onPlayer }: {
     column: ScoreColumn;
     score: Score & { rank: number };
@@ -144,6 +146,7 @@ function ScoreCell({ column, score, onPlayer }: {
     }
 }
 
+// Keep leaderboard requests separate by account, chart, path, game mode and difficulty.
 export function Leaderboard({
     song,
     hash,
@@ -178,6 +181,7 @@ export function Leaderboard({
     );
 }
 
+// Share path and game-mode controls between Search and Sniffer.
 export function ScoreFilters({
     paths,
     path,

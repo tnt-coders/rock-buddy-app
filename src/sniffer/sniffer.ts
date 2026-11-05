@@ -39,6 +39,7 @@ export interface SnifferState {
 // Startup and song selection are normal waiting states, not reader failures.
 class SnifferWaiting extends Error {}
 
+// Track one account's gameplay independently of which React page is visible.
 export class Sniffer {
     // Refresh rate in milliseconds
     private static readonly refreshRate: number = 100; // milliseconds
@@ -125,6 +126,7 @@ export class Sniffer {
         leaderboard: { message: '', scores: null, mode: 'las' },
     };
 
+    // Capture the account and readers that belong to this gameplay session.
     private constructor(
         rocksmith: Rocksmith,
         rocksniffer: Rocksniffer,
@@ -146,17 +148,20 @@ export class Sniffer {
         };
     };
 
+    // Notify React of a new snapshot only while this engine is still running.
     private publish(change: Partial<SnifferState>) {
         if (this.stopped) return;
         this.state = { ...this.state, ...change };
         this.listeners.forEach((listener) => listener());
     }
 
+    // Separate normal reader waiting states from failures that need attention.
     private showError(error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
         this.publish({ error: message, status: 'Waiting...', activity: error instanceof SnifferWaiting ? 'waiting' : 'error' });
     }
 
+    // Load local readers and account settings, stopping setup if the session is cancelled.
     public static async create(auth: AuthData, signal?: AbortSignal): Promise<Sniffer> {
         signal?.throwIfAborted();
         const rocksmith = await Rocksmith.create();
@@ -220,6 +225,7 @@ export class Sniffer {
         }
     }
 
+    // Start one polling timer for this engine.
     public start(): void {
         if (this.timer || this.stopped) return;
         logMessage('Sniffer started');
@@ -239,6 +245,7 @@ export class Sniffer {
         if (wasRunning) window.api.setGameplayActive(false);
     }
 
+    // Reject late requests from a stopped engine or a different signed-in session.
     private async send(url: string, data: any) {
         const current = JSON.parse(window.sessionStorage.getItem('auth_data') || 'null');
         if (
@@ -251,11 +258,13 @@ export class Sniffer {
         return post(url, data);
     }
 
+    // Request a history sync on the next eligible refresh.
     public queueSnort(): void {
         this._snort = true;
         this.publish({ canSnort: false });
     }
 
+    // Update the leaderboard filters and request a refresh for the new selection.
     public select(field: 'path' | 'mode' | 'difficulty', value: string) {
         if (field === 'path') this._path = value;
         if (field === 'mode') this._gameMode = value;
@@ -264,6 +273,7 @@ export class Sniffer {
         this.queueSnort();
     }
 
+    // Read the game snapshot and turn startup states into waiting messages.
     private async sniff(): Promise<any> {
         const rocksnifferData = await this._rocksniffer.sniff();
         if (rocksnifferData === null) {
@@ -283,6 +293,7 @@ export class Sniffer {
         return rocksnifferData;
     }
 
+    // Advance gameplay checks while save-history sync runs separately.
     private async refresh(): Promise<void> {
         if (this.stopped) return;
         this._refreshCounter++;
@@ -416,10 +427,12 @@ export class Sniffer {
         this._refreshActive = false;
     }
 
+    // Publish the detected song details for the Sniffer screen.
     private updateSongInfo(data: any): void {
         this.publish({ song: data.songDetails });
     }
 
+    // Show live counters and retain the completed run after returning to the song menu.
     private updateLiveFeed(data: any): void {
         // Keep the final run visible when the player returns to the song menu.
         if (!approxEqual(data.memoryReadout.songTimer, 0)) {
@@ -435,6 +448,7 @@ export class Sniffer {
         }
     }
 
+    // Follow the played arrangement during a run and use the saved preference for new songs.
     private updatePath(data: any): void {
         const available = getAvailablePaths(data.songDetails.arrangements);
         const paths = available.map((path) => path.name);
@@ -458,6 +472,7 @@ export class Sniffer {
         this.publish({ paths, path: this._path });
     }
 
+    // Compare consecutive snapshots to detect pauses, speed changes and completed verified runs.
     private async monitorProgress(rocksnifferData: any): Promise<void> {
         // Cannot proceed until we have a previous data set to work with
         if (this._previousRocksnifferData === null) {
@@ -881,6 +896,7 @@ export class Sniffer {
         }
     }
 
+    // Keep the internal verification flag and visible explanation in sync.
     private setVerificationState(state: VerificationState, message = ''): void {
         if (state === VerificationState.Verified) this._verified = true;
         if (state === VerificationState.Unverified || state === VerificationState.None)
@@ -891,6 +907,7 @@ export class Sniffer {
         }
     }
 
+    // Submit the completed live score once; this path does not save failed uploads for retry.
     private async recordVerifiedScore(rocksnifferData: any, totalNotes: number): Promise<void> {
         // Define object to hold snort data
         let data: any = {};
@@ -936,6 +953,7 @@ export class Sniffer {
         await this.showLeaderboard(rocksnifferData);
     }
 
+    // Sync when the song or save changes, respecting the account's snort delay.
     private async checkSnort(rocksnifferData: any): Promise<void> {
         const previousData = this._previousRocksnifferData;
         const newProfileDataAvailable = await this._rocksmith.newProfileDataAvailable();
@@ -1002,6 +1020,7 @@ export class Sniffer {
         }
     }
 
+    // Import only the detected song's saved history, then refresh its leaderboard.
     private async snort(rocksnifferData: any) {
         this.publish({
             status: 'Snorting data...',
@@ -1038,7 +1057,7 @@ export class Sniffer {
             logMessage('SONG: ' + snortData['artist'] + ' - ' + snortData['title']);
         }
 
-        // Loop athrough each arrangement
+        // Collect history for each arrangement contained in this song.
         rocksnifferData['songDetails']['arrangements'].forEach((arrangement: any) => {
             let arrangementData: any = {};
 
@@ -1062,6 +1081,7 @@ export class Sniffer {
                 );
             }
 
+            // Match saved history to arrangement hashes, independently of the live verified score.
             const lasDataExists =
                 rocksmithData !== null && rocksmithData['Stats']['Songs'].hasOwnProperty(hash);
             const saDataExists =
@@ -1069,11 +1089,15 @@ export class Sniffer {
             if (lasDataExists) {
                 arrangementData['mastery'] = rocksmithData['Stats']['Songs'][hash]['MasteryPeak'];
                 arrangementData['streak'] = rocksmithData['Stats']['Songs'][hash]['Streak'];
+
+                // Missing save fields stay unknown; live verification does not provide these values.
                 arrangementData['las_last_played'] =
                     rocksmithData['Stats']['Songs'][hash]['DateLAS'];
                 arrangementData['las_play_count'] =
                     rocksmithData['Stats']['Songs'][hash]['PlayedCount'];
             }
+
+            // Import Score Attack results separately from Learn a Song mastery.
             if (saDataExists) {
                 arrangementData['scores'] = {};
                 arrangementData['badges'] = {};
@@ -1119,6 +1143,7 @@ export class Sniffer {
         }
     }
 
+    // Sync chart metadata and permitted history, then check for a newer chart version.
     private async syncWithServer(snortData: any): Promise<boolean> {
         const host = await window.api.getHost();
 
@@ -1166,6 +1191,7 @@ export class Sniffer {
         this._syncErrorDisplayed = false;
         this._retrySyncAt = 0;
 
+        // Check chart versions only after the metadata sync succeeds.
         const version_response = await this.send(host + '/api/data/get_versions.php', {
             auth_data: this.auth,
             song_data: snortData,
@@ -1190,6 +1216,7 @@ export class Sniffer {
         return true;
     }
 
+    // Compare known chart versions when all version strings can be interpreted safely.
     private async isLatestVersion(currentVersion: string, versionsAvailable: string[]) {
         // No known versions, treat it as latest
         if (versionsAvailable.length === 0) {
@@ -1224,11 +1251,14 @@ export class Sniffer {
         return await window.api.semverGte(currentVersion, latestVersionAvailable);
     }
 
+    // Load scores for the current filters and discard replies for older selections.
     private async showLeaderboard(data: any): Promise<void> {
         if (!this._snorted) {
             this.queueSnort();
             return;
         }
+
+        // Capture the requested filters before waiting for the server.
         const requestId = ++this.leaderboardRequest;
         const song = data.songDetails;
         const mode = this._gameMode;

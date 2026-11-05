@@ -27,6 +27,7 @@ function remember(auth: AuthData | null) {
     }
 }
 
+// Check saved credentials and determine whether the account still needs activation.
 async function validate(auth: AuthData): Promise<SessionState> {
     const result = await request('auth/authenticate', auth);
     if (!result.success) return signedOut;
@@ -36,9 +37,11 @@ async function validate(auth: AuthData): Promise<SessionState> {
     return { status: activation.activated ? 'ready' : 'activation', auth };
 }
 
+// Own the signed-in account and replace its private page cache when it changes.
 export function SessionProvider({ children }: { children: ReactNode }) {
     const [state, setState] = useState<SessionState>({ status: 'loading', auth: null });
 
+    // Recheck the saved login after a connection failure or an account change.
     async function refresh() {
         setState({ status: 'loading', auth: null });
         try {
@@ -69,6 +72,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
             }
         });
 
+        // Close protected screens when the API rejects the current session.
         const expire = () => {
             remember(null);
             setState({ ...signedOut, error: 'Please log back in to verify your identity.' });
@@ -80,6 +84,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         };
     }, []);
 
+    // Validate a fresh login before saving its credentials and opening protected pages.
     async function login(username: string, password: string) {
         const auth = await request<AuthData>('auth/login', {
             username_or_email: username,
@@ -92,6 +97,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         setState(next);
     }
 
+    // End the current session and remove its saved credentials.
     async function logout() {
         // Clear the renderer session first so an old gameplay request cannot keep submitting.
         remember(null);
@@ -114,6 +120,7 @@ export function useSession() {
     return session;
 }
 
+// Require account credentials before a protected screen starts its requests.
 export function useAuth() {
     const { state } = useSession();
     if (!state.auth) throw new Error('This page requires a signed-in account.');

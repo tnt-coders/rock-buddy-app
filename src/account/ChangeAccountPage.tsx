@@ -14,6 +14,7 @@ import {
     validatePassword,
 } from '../ui/validation';
 
+// Share account-edit validation, cooldowns and password cleanup across the three forms.
 export function ChangeAccountPage({ field }: { field: 'username' | 'email' | 'password' }) {
     const auth = useAuth();
     const client = useQueryClient();
@@ -24,6 +25,8 @@ export function ChangeAccountPage({ field }: { field: 'username' | 'email' | 'pa
     const [password, setPassword] = useState('');
     const [confirmation, setConfirmation] = useState('');
     const [remaining, setRemaining] = useState(0);
+
+    // Fetch the username cooldown before allowing a username change.
     const info = useResource(`change:${auth.user_id}:${field}`, async () => {
         if (field !== 'username') return { deadline: 0 };
         const account = await request('account/get_account_info', auth);
@@ -44,6 +47,7 @@ export function ChangeAccountPage({ field }: { field: 'username' | 'email' | 'pa
         return () => clearInterval(timer);
     }, [info.data]);
 
+    // Validate the edit, save it, and refresh any pages that show the changed account.
     function submit(event: FormEvent) {
         event.preventDefault();
         if (remaining > 0 || info.loading || info.refreshing || info.error) return;
@@ -57,10 +61,13 @@ export function ChangeAccountPage({ field }: { field: 'username' | 'email' | 'pa
                     [`new_${field}`]: value,
                     password,
                 });
+
+                // Refresh cached names and recheck activation after changing the email address.
                 await invalidatePageData(client);
                 if (field === 'email') await session.refresh();
                 navigate(field === 'email' ? '/activation' : '/account', { replace: true });
             } finally {
+                // Do not retain either the old or new password after a submission attempt.
                 setPassword('');
                 if (field === 'password') {
                     setValue('');

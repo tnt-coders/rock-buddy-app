@@ -22,6 +22,7 @@ interface Chart {
     author: string;
 }
 
+// Load one chart's paths and use the saved preference until the user changes it.
 function ChartScores({ chart }: { chart: Chart }) {
     const auth = useAuth();
     const [selection, setSelection] = useState({ path: '', mode: 'las', difficulty: 'hard' });
@@ -43,6 +44,8 @@ function ChartScores({ chart }: { chart: Chart }) {
         },
     );
     const available = paths.data?.available || [];
+
+    // Prefer the configured path, falling back to an available path rather than a score.
     const wanted = selection.path || paths.data?.preferred;
     const path =
         available.find((name) => name.toLowerCase() === wanted)?.toLowerCase() ||
@@ -73,6 +76,7 @@ function ChartScores({ chart }: { chart: Chart }) {
     );
 }
 
+// Let the user choose a chart version and view its scores without leaving Search.
 function SongDialog({ song, onClose }: { song: Song; onClose: () => void }) {
     const auth = useAuth();
     const [index, setIndex] = useState(0);
@@ -106,6 +110,7 @@ function SongDialog({ song, onClose }: { song: Song; onClose: () => void }) {
     );
 }
 
+// Load matching songs and keep the selected song dialog attached to these results.
 function SearchResults({ query }: { query: string }) {
     const auth = useAuth();
     const [song, setSong] = useState<Song>();
@@ -147,6 +152,7 @@ function SearchResults({ query }: { query: string }) {
     );
 }
 
+// Preserve the search between page visits and refresh it on an explicit submission.
 export function SearchPage() {
     const auth = useAuth();
     const client = useQueryClient();

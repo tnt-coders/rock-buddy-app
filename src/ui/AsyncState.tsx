@@ -1,3 +1,4 @@
+// Show initial loading or errors without hiding data already displayed by the page.
 export function AsyncState({
     loading,
     error,

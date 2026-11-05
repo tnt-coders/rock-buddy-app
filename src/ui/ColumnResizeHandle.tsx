@@ -24,6 +24,7 @@ export function ColumnResizeHandle({ label, width, minimum = MIN_COLUMN_WIDTH, o
                 drag.current = { pointer: event.pointerId, x: event.clientX, width };
             }}
             onPointerMove={event => {
+                // Preview the drag without writing settings on every pointer movement.
                 const start = drag.current;
                 if (!start || start.pointer !== event.pointerId) return;
                 onResize(clamp(start.width + event.clientX - start.x), false);
@@ -31,6 +32,8 @@ export function ColumnResizeHandle({ label, width, minimum = MIN_COLUMN_WIDTH, o
             onPointerUp={event => {
                 const start = drag.current;
                 if (!start || start.pointer !== event.pointerId) return;
+
+                // Save the completed drag once and release pointer capture.
                 drag.current = null;
                 onResize(clamp(start.width + event.clientX - start.x), true);
                 event.currentTarget.releasePointerCapture(event.pointerId);
@@ -38,6 +41,8 @@ export function ColumnResizeHandle({ label, width, minimum = MIN_COLUMN_WIDTH, o
             onLostPointerCapture={() => {
                 const start = drag.current;
                 drag.current = null;
+
+                // Cancel an interrupted drag by restoring its starting width.
                 if (start) onResize(start.width, false);
             }}
             onKeyDown={event => {

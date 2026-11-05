@@ -4,6 +4,7 @@ export interface AuthData {
     [key: string]: unknown;
 }
 
+// Preserve the API's numeric flags and missing history values at the renderer boundary.
 export interface Score {
     user_id: number;
     username: string;

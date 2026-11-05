@@ -6,6 +6,8 @@ async function readForm(response) {
     if (!response.ok || !response.headers.get('content-type')?.includes('text/html')) {
         throw new Error('Support is unavailable right now. Please try again later.');
     }
+
+    // Limit response size before extracting the signed checkout field.
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let size = 0;
@@ -32,6 +34,7 @@ function createSupportCheckout(host, hosts, { fetchImpl = fetch, openExternal })
     let state = null;
     let busy = false;
 
+    // Open one checkout at a time and preserve its signed state for a safe retry.
     async function start(input) {
         const amount = supportAmount(input?.amount);
         const kind = input?.kind;
@@ -52,6 +55,7 @@ function createSupportCheckout(host, hosts, { fetchImpl = fetch, openExternal })
                 if (!state) throw new Error('Support is unavailable right now. Please try again later.');
             }
 
+            // Request the approval redirect without following it or sending payment details to the renderer.
             const response = await fetchImpl(origin + '/support/checkout', {
                 method: 'POST', redirect: 'manual', signal: AbortSignal.timeout(30000),
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded', Origin: origin },

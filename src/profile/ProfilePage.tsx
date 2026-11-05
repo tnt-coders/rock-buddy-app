@@ -10,6 +10,7 @@ import { userProfile, userStats, type Profile } from '../ui/pageResources';
 
 const paths = ['overall', 'lead', 'rhythm', 'bass'] as const;
 
+// Keep an unsaved Twitch edit separate from the last profile returned by the server.
 function TwitchForm({ profile, onSaved }: {
     profile: Profile;
     onSaved: (profile: Profile) => Promise<void>;
@@ -56,6 +57,7 @@ function TwitchForm({ profile, onSaved }: {
     );
 }
 
+// Share profile details and statistics between the current account and player dialogs.
 export function ProfileContent({ username }: { username?: string }) {
     const auth = useAuth();
     const client = useQueryClient();

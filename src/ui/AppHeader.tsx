@@ -11,6 +11,7 @@ export function HeaderAccount() {
     const { state, logout } = useSession();
     const signingOut = useRef(false);
 
+    // Ignore repeat clicks while the saved login is being removed.
     async function signOut() {
         if (signingOut.current) return;
         signingOut.current = true;
@@ -42,6 +43,7 @@ export function HeaderAccount() {
     );
 }
 
+// Show account-appropriate navigation and warm page data on hover or keyboard focus.
 export function AppHeader({ compact = false, children }: { compact?: boolean; children?: ReactNode }) {
     const prefetch = usePagePrefetch();
     const links = compact ? [] : pages;

@@ -12,6 +12,7 @@ export function useColumnMinimums(enabled: boolean, columns: string, font?: stri
         const headings = [...table.current.querySelectorAll<HTMLElement>('[data-column-heading]')];
         let active = true;
 
+        // Include header padding and borders when calculating each column's minimum width.
         function measure() {
             if (!active) return;
             const next: Partial<Record<ScoreColumn, number>> = {};
@@ -34,6 +35,7 @@ export function useColumnMinimums(enabled: boolean, columns: string, font?: stri
                 ? previous : measured);
         }
 
+        // Remeasure when the table or its fonts change, and remove observers on unmount.
         measure();
         const observer = typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(measure);
         headings.forEach(heading => observer?.observe(heading));

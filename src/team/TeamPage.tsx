@@ -9,6 +9,7 @@ const members = [
     ['Jimmy_Pants_', 'Cloud Wrangler', 'jimmy-pants.png'],
 ];
 
+// Show the team and open support through the shared dialog route.
 export function TeamPage() {
     const [params, setParams] = useSearchParams();
     return <main className="team-page">

@@ -29,6 +29,7 @@ export function SupportDialog({ onClose }: { onClose: () => void }) {
     </Modal>;
 }
 
+// Collect the amount and frequency, then hand payment approval to the browser.
 export function SupportForm() {
     const [checkoutSession] = useState(() => crypto.randomUUID());
     const [amount, setAmount] = useState('5');

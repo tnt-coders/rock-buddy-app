@@ -8,10 +8,14 @@ function resolveRocksmithConfig(store, userId, getSteamProfiles, getRocksmithPro
     const savedRoot = store.get(prefix + 'steam_user_data_path');
     const savedSteam = store.get(prefix + 'steam_profile');
     const savedRocksmith = store.get(prefix + 'rocksmith_profile');
+
+    // Reuse known Steam folders for discovery, but keep this account's profile selection.
     const roots = savedRoot ? [savedRoot] : [
         store.get('default_steam_user_data_path'),
         ...Object.values(store.get('user_data') || {}).map(user => user?.steam_user_data_path),
     ];
+
+    // Look for existing save files that match any choices already made in Config.
     const candidates = [];
     for (const root of new Set(roots.filter(value => typeof value === 'string' && value))) {
         if (!fs.existsSync(root)) continue;
@@ -31,6 +35,8 @@ function resolveRocksmithConfig(store, userId, getSteamProfiles, getRocksmithPro
     }
     // Ambiguous or missing profiles need an explicit choice in Config.
     if (candidates.length !== 1) return null;
+
+    // Remember a unique match so Config and later reads use the same file.
     const result = candidates[0];
     store.set(prefix + 'steam_user_data_path', result.steamUserDataPath);
     store.set(prefix + 'steam_profile', result.steamProfile);

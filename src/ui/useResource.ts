@@ -12,6 +12,7 @@ export function useResource<T>(resource: string | Resource<T>, read?: () => Prom
     return useResourceValue(typeof resource === 'string' ? { key: resource, read: read!, ...options } : resource);
 }
 
+// Read cached page data and opt live views into periodic and focus-based refreshes.
 function useResourceValue<T>({ key, read, ...options }: Resource<T>) {
     const client = useQueryClient();
     const query = useQuery({

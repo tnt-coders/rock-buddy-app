@@ -11,6 +11,7 @@ export function validateEmail(value: string) {
     }
 }
 
+// Check password strength before comparing the confirmation field.
 export function validatePassword(value: string, confirmation: string) {
     if (
         value.length < 8 ||
@@ -28,6 +29,7 @@ export function validatePassword(value: string, confirmation: string) {
     if (value !== confirmation) throw new Error('Passwords do not match.');
 }
 
+// Round the remaining wait up so the message never promises an early username change.
 export function usernameWaitMessage(seconds: number) {
     if (seconds >= 86400) {
         const days = Math.ceil(seconds / 86400);

@@ -18,6 +18,7 @@ export function WindowSizeControls() {
     );
 }
 
+// Apply valid dimensions in order without replacing newer typing with an older result.
 function WindowSizeForm({ initial }: { initial: WindowSize }) {
     const [draft, setDraft] = useState({ width: String(initial.width), height: String(initial.height) });
     const current = useRef(draft);
@@ -31,6 +32,7 @@ function WindowSizeForm({ initial }: { initial: WindowSize }) {
         return () => { mounted.current = false; };
     }, []);
 
+    // Keep incomplete typing in the form and resize only when both dimensions are valid.
     function change(field: keyof WindowSize, value: string) {
         const next = { ...current.current, [field]: value };
         current.current = next;

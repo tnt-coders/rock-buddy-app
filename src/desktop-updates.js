@@ -13,11 +13,13 @@ function createDesktopUpdates(updater, { version, allowBeta, canInstall, onState
     let checkedBetas = false;
     let installing = false;
 
+    // Merge the update status and notify the renderer.
     function publish(patch) {
         state = { ...state, ...patch };
         onState(state);
     }
 
+    // Keep an already downloaded update available if the restart attempt fails.
     function failed() {
         if (state.status === 'installing') {
             publish({ status: 'ready', message: 'Could not restart Rock Buddy. Please try again.' });
@@ -71,6 +73,7 @@ function createDesktopUpdates(updater, { version, allowBeta, canInstall, onState
         return state;
     }
 
+    // Check that gameplay and uploads are idle before handing control to the installer.
     async function install() {
         if (installing || state.status !== 'ready') return state;
         installing = true;

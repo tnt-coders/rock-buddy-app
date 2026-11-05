@@ -9,6 +9,7 @@ import { Modal } from '../ui/Modal';
 import { useAuth } from '../ui/Session';
 import { ColumnPicker, useSnifferColumns } from '../ui/ScoreColumns';
 
+// Render the shared engine snapshot with this account's saved column preferences.
 function SnifferView({ engine }: { engine: Sniffer }) {
     const auth = useAuth();
     const columns = useSnifferColumns(auth.user_id);
@@ -150,6 +151,7 @@ function SnifferView({ engine }: { engine: Sniffer }) {
     );
 }
 
+// Show engine startup errors or the live view without creating another reader.
 export function SnifferPage() {
     const auth = useAuth();
     const { engine, error, retry } = useGameplay();

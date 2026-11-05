@@ -10,6 +10,7 @@ import { rankSummary, type Rank } from '../ui/pageResources';
 
 const paths = ['overall', 'lead', 'rhythm', 'bass'] as const;
 
+// Show a podium place or the overall crown with a stable random caption.
 function RankCard({
     player,
     rank,
@@ -39,6 +40,7 @@ function RankCard({
     );
 }
 
+// Load the full ranking for one path and allow opening a player's profile.
 function RankDialog({ path, onClose }: { path: string; onClose: () => void }) {
     const auth = useAuth();
     const [player, setPlayer] = useState<string>();
@@ -93,6 +95,7 @@ function RankDialog({ path, onClose }: { path: string; onClose: () => void }) {
     );
 }
 
+// Show the overall leader and the top three players for each path.
 export function RankPage() {
     const auth = useAuth();
     const [player, setPlayer] = useState<string>();

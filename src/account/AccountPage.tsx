@@ -6,6 +6,7 @@ import { AsyncState } from '../ui/AsyncState';
 import { useAction } from '../ui/useAction';
 import { accountInfo } from '../ui/pageResources';
 
+// Show account details only after they load, with links to edit each field.
 export function AccountPage() {
     const auth = useAuth();
     const { logout } = useSession();
@@ -47,6 +48,7 @@ export function AccountPage() {
     );
 }
 
+// Let signed-in users resend activation mail or check whether activation is complete.
 export function ActivationPage() {
     const auth = useAuth();
     const { refresh, logout } = useSession();

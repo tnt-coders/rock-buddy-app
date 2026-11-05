@@ -92,6 +92,7 @@ function purgeOldLogs() {
     }
 }
 
+// Append diagnostics to the daily log using the local date and time.
 function logMessage(message) {
     let text = message;
     if (typeof message !== "string") {
@@ -147,6 +148,7 @@ function checkForUpdates(win) {
         onLatest: latest => { onLatestVersion = latest; },
     });
 
+    // Check once at startup and every four hours without keeping the process alive.
     void desktopUpdates.check();
     const timer = setInterval(() => void desktopUpdates.check(), 4 * 60 * 60 * 1000);
     timer.unref();
@@ -181,12 +183,14 @@ function readRocksmithData(dataFile) {
     const key = Buffer.from('\x72\x8B\x36\x9E\x24\xED\x01\x34\x76\x85\x11\x02\x18\x12\xAF\xC0\xA3\xC2\x5D\x02\x06\x5F\x16\x6B\x4B\xCC\x58\xCD\x26\x44\xF2\x9E', 'ascii');
 
     try {
+        // Skip the save header before decrypting the compressed payload.
         let saveFile = fs.readFileSync(dataFile, { encoding: null });
         saveFile = saveFile.slice(20);
 
         const aesEcb = new aesjs.ModeOfOperation.ecb(key);
         const decrypted = aesEcb.decrypt(saveFile);
 
+        // Inflate the decrypted data and remove its trailing terminator before parsing JSON.
         const unzipped = unzipSync(decrypted);
         const text = unzipped.toString('utf8').slice(0, -1);
 
@@ -197,6 +201,7 @@ function readRocksmithData(dataFile) {
     }
 }
 
+// Map Steam display names to their local userdata folder IDs.
 function getSteamProfiles(steamUserDataPath) {
     let profiles = {};
     try {
@@ -227,6 +232,7 @@ function getSteamProfiles(steamUserDataPath) {
     }
 }
 
+// Map Rocksmith profile names to save IDs within the chosen Steam account.
 function getRocksmithProfiles(steamUserDataPath, steamProfile) {
     let profiles = {};
     if (!steamUserDataPath || !steamProfile) return profiles;
@@ -244,6 +250,7 @@ function getRocksmithProfiles(steamUserDataPath, steamProfile) {
     return profiles;
 }
 
+// Use the build output during development and the bundled reader after installation.
 function getRocksnifferPath() {
     let rocksnifferPath = 'RockSniffer';
     if (isDev) {
@@ -353,6 +360,7 @@ function createWindow() {
         server.close();
     });
 
+    // Remove reader cache files after a backend-requested cache refresh.
     ipcMain.on('clear-rocksniffer-cache', (event) => {
         const rocksnifferPath = getRocksnifferPath();
 
@@ -373,6 +381,7 @@ function createWindow() {
         return getRocksnifferPath();
     });
 
+    // Start the reader once, using the signed-in account's local connection and Discord settings.
     ipcMain.on('launch-rocksniffer', (event) => {
         const rocksnifferPath = getRocksnifferPath();
 
@@ -473,6 +482,7 @@ function createWindow() {
         }
     });
 
+    // Grant instant snorts only when Beta Testing is enabled and this version is confirmed current.
     ipcMain.handle('on-latest-beta-version', (event) => {
         const authData = store.get('auth_data');
         let betaTesting = false;
@@ -522,6 +532,7 @@ function createWindow() {
         });
     });
 
+    // Open links through the operating system and report failures outside the renderer.
     ipcMain.on('open-external-link', async (event, url) => {
         try {
             await shell.openExternal(url);
@@ -691,7 +702,7 @@ function createWindow() {
         return readRocksmithData(dataFile);
     });
 
-    // Gets a map of Steam profiles and their corresponding folder names
+    // Discover a unique local save for this account without claiming who is playing.
     ipcMain.handle('resolve-rocksmith-config', () => {
         return resolveRocksmithConfig(store, store.get('auth_data')?.user_id, getSteamProfiles, getRocksmithProfiles);
     });
@@ -705,6 +716,7 @@ function createWindow() {
         return getRocksmithProfiles(steamUserDataPath, steamProfile);
     });
 
+    // Serve window screenshots to local streaming overlays while the addon server is enabled.
     let enableAddons = (event, host, port) => {
         server.on('error', (error) => {
             console.log("Server error: " + error);
@@ -751,6 +763,7 @@ function createWindow() {
 
     ipcMain.on('enable-addons', enableAddons);
 
+    // Stop screenshot capture and close the addon server together.
     ipcMain.on('disable-addons', (event) => {
         if (captureInterval !== null) {
             clearInterval(captureInterval);
@@ -772,6 +785,7 @@ function createWindow() {
     checkForUpdates(win);
 }
 
+// Share request cooldowns and connection status across renderer screens.
 ipcMain.handle('backend-post', (_event, url, data) => backendClient.post(url, data));
 ipcMain.handle('get-connection-state', () => backendClient.getState());
 
@@ -791,6 +805,8 @@ ipcMain.handle('install-desktop-update', () => desktopUpdates?.install());
 // Checkout is available only while the bundled app's support dialog is open.
 const appPage = pathToFileURL(path.join(__dirname, 'index.html')).href;
 let supportSession = null;
+
+// Require an open bundled support dialog and reset checkout state for each new dialog session.
 function supportClient(event, session) {
     if (!isSupportLocation(event.senderFrame?.url || 'about:blank', appPage)) {
         throw new Error('Open Support Rock Buddy first.');
@@ -802,9 +818,11 @@ function supportClient(event, session) {
     supportCheckout ??= createSupportCheckout(host, HOSTS, { openExternal: url => shell.openExternal(url) });
     return supportCheckout;
 }
+
 ipcMain.handle('support-info', (event, session) => supportClient(event, session).info());
 ipcMain.handle('support-checkout', (event, input) => supportClient(event).start(input));
 ipcMain.handle('support-manage', event => supportClient(event).manage());
+// Keep a recent gameplay signal for the final update-install safety check.
 ipcMain.on('gameplay-state', (_event, active) => {
     playing = active === true;
     lastGameplayReport = Date.now();

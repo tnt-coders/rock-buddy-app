@@ -48,6 +48,7 @@ const ThemeContext = createContext<{
     setCustom: (custom: CustomTheme) => void;
 } | null>(null);
 
+// Restore the saved theme and share theme changes across the app.
 export function ThemeProvider({ children }: { children: ReactNode }) {
     const [theme, updateTheme] = useState(() => {
         const saved = localStorage.getItem('theme') || 'dark';
@@ -55,6 +56,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     });
     const [custom, updateCustom] = useState(readCustomTheme);
 
+    // Save only supported themes before updating the visible selection.
     function setTheme(next: string) {
         if (!themes.includes(next)) return;
         localStorage.setItem('theme', next);
@@ -68,6 +70,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         updateCustom(next);
     }
 
+    // Expose custom colors as shared CSS variables so every screen uses the same palette.
     const style = theme === 'streamer' ? ({
         '--streamer-color': custom.background,
         '--streamer-text-color': custom.text,
@@ -94,6 +97,7 @@ export function HeaderThemeChooser() {
     const value = useContext(ThemeContext)!;
     const [editing, setEditing] = useState(false);
 
+    // Open the custom editor only for Customize, not every time Custom is selected.
     function chooseTheme(next: string) {
         if (next === 'customize') {
             value.setTheme('streamer');

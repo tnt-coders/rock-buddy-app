@@ -48,6 +48,8 @@ async function readConfig(userId: number): Promise<ConfigData> {
         ]),
     );
     const settings = Object.fromEntries(entries) as Settings;
+
+    // Build each profile list from the saved parent folder and Steam account.
     const steam = settings.steam_user_data_path
         ? await window.api.getSteamProfiles(settings.steam_user_data_path)
         : {};
@@ -60,6 +62,7 @@ async function readConfig(userId: number): Promise<ConfigData> {
     return { settings, steam, rocksmith };
 }
 
+// Edit this account's local settings while keeping rapid saves in order.
 function ConfigForm({ initial, reload }: { initial: ConfigData; reload: () => void }) {
     const auth = useAuth();
     const client = useQueryClient();
@@ -78,11 +81,13 @@ function ConfigForm({ initial, reload }: { initial: ConfigData; reload: () => vo
         return () => { mounted.current = false; };
     }, []);
 
+    // Keep the next queued save in sync with the values currently shown in the form.
     function showSettings(next: Settings) {
         currentSettings.current = next;
         if (mounted.current) setSettings(next);
     }
 
+    // Save one setting and apply any related changes to readers or cached pages.
     async function save<K extends keyof Settings>(key: K, value: Settings[K]) {
         const previous = currentSettings.current;
         let next = { ...previous, [key]: value };
@@ -96,6 +101,7 @@ function ConfigForm({ initial, reload }: { initial: ConfigData; reload: () => vo
             throw failure;
         }
 
+        // External readers cannot verify this app's full run, so force read-only Lurk Mode.
         if (key === 'use_external_rocksniffer' && value) {
             await window.api.storeSet(prefix + 'lurk_mode', true);
             next = { ...next, lurk_mode: true };
@@ -119,6 +125,7 @@ function ConfigForm({ initial, reload }: { initial: ConfigData; reload: () => vo
         }
     }
 
+    // Queue setting changes and report a failed save without disabling the whole form.
     function change<K extends keyof Settings>(key: K, value: Settings[K]) {
         setPendingSaves(count => count + 1);
 
@@ -137,6 +144,7 @@ function ConfigForm({ initial, reload }: { initial: ConfigData; reload: () => vo
         });
     }
 
+    // Connect a boolean setting to the shared save queue.
     function checkbox(key: BooleanSetting, label: string, disabled = false) {
         return (
             <label className="checkbox-row">
@@ -151,6 +159,7 @@ function ConfigForm({ initial, reload }: { initial: ConfigData; reload: () => vo
         );
     }
 
+    // Save host and port edits when focus leaves the field, after checking the port.
     function address(kind: 'addons' | 'rocksniffer') {
         return (
             <div className="config-row config-address">
@@ -190,6 +199,7 @@ function ConfigForm({ initial, reload }: { initial: ConfigData; reload: () => vo
         );
     }
 
+    // Finish pending saves before choosing a file or changing the Steam data folder.
     function browse(
         key: 'steam_user_data_path' | 'custom_miss_sfx_path' | 'custom_miss_sfx_multi_path',
     ) {
@@ -202,6 +212,8 @@ function ConfigForm({ initial, reload }: { initial: ConfigData; reload: () => vo
                     : await window.api.getPath(settings[key]);
             if (path === null) return;
             await save(key, path);
+
+            // A different Steam folder invalidates both saved profile choices.
             if (key === 'steam_user_data_path') {
                 await window.api.storeDelete(prefix + 'steam_profile');
                 await window.api.storeDelete(prefix + 'rocksmith_profile');
@@ -210,6 +222,7 @@ function ConfigForm({ initial, reload }: { initial: ConfigData; reload: () => vo
         });
     }
 
+    // Save the chosen profile and reload the choices that depend on it.
     function chooseProfile(key: 'steam_profile' | 'rocksmith_profile', value: string) {
         if (!value) return;
         void action.run(async () => {
@@ -374,6 +387,7 @@ function ConfigForm({ initial, reload }: { initial: ConfigData; reload: () => vo
     );
 }
 
+// Reload local settings whenever Config opens instead of reusing stale discovery results.
 export function ConfigPage() {
     const auth = useAuth();
     // Profile discovery and editable local settings must be reread on each visit.

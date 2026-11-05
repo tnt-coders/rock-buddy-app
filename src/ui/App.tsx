@@ -22,21 +22,27 @@ import { TeamPage } from '../team/TeamPage';
 import { SupportOverlay } from '../support/SupportDialog';
 import { SupportWelcome } from '../support/SupportWelcome';
 
+// Contain rendering failures to the current screen so navigation remains available.
 class ScreenBoundary extends Component<
     { children: ReactNode; route: string },
     { failed: boolean }
 > {
     state = { failed: false };
+
     static getDerivedStateFromError() {
         return { failed: true };
     }
+
+    // A different page gets a fresh render attempt after a screen failure.
     componentDidUpdate(previous: { route: string }) {
         if (previous.route !== this.props.route && this.state.failed)
             this.setState({ failed: false });
     }
+
     componentDidCatch() {
         window.api.logMessage('A React screen failed to render.');
     }
+
     render() {
         if (this.state.failed)
             return (
@@ -70,6 +76,7 @@ function AlwaysSniff() {
     return null;
 }
 
+// Require an activated account before showing gameplay and account-management pages.
 function ProtectedScreens() {
     const { state } = useSession();
     if (!state.auth) return <Navigate to="/login" replace />;
@@ -77,11 +84,13 @@ function ProtectedScreens() {
     return <Outlet />;
 }
 
+// Allow activation and email changes before the account is activated.
 function AccountAccess() {
     const { state } = useSession();
     return state.auth ? <Outlet /> : <Navigate to="/login" replace />;
 }
 
+// Keep one gameplay engine alive across pages and replace it when the account changes.
 function SessionRuntime({ children }: { children: ReactNode }) {
     const { state } = useSession();
     if (state.status !== 'ready' || !state.auth) return <>{children}</>;
@@ -93,6 +102,7 @@ function SessionRuntime({ children }: { children: ReactNode }) {
     );
 }
 
+// Keep navigation and desktop status mounted while the middle page changes.
 function Shell() {
     const { state, refresh, logout } = useSession();
     const location = useLocation();
@@ -205,6 +215,7 @@ function Shell() {
     );
 }
 
+// Share authentication and page prefetching across the single React app.
 export function App() {
     return (
         <SessionProvider>

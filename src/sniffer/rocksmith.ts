@@ -4,6 +4,7 @@ export class Rocksmith {
     private _profileTimestamp: number = 0;
     public readonly importHistory: boolean;
 
+    // Find the selected save, or continue without history when discovery is ambiguous.
     public static async create() {
         // Local save selection is only for historical scores, not account ownership.
         const config = await window.api.resolveRocksmithConfig();
@@ -15,12 +16,14 @@ export class Rocksmith {
         this.importHistory = importHistory;
     }
 
+    // Check the save timestamp before reading its contents again.
     public async newProfileDataAvailable(): Promise<boolean> {
         if (!this.importHistory) return false;
         const profileTimestamp = await window.api.getFileTimestamp(this._profilePath);
         return this._profileTimestamp !== profileTimestamp;
     }
 
+    // Reuse decoded history until Rocksmith writes a newer save.
     public async getProfileData(): Promise<any> {
         if (!this.importHistory) return null;
         if (await this.newProfileDataAvailable()) {

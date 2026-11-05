@@ -56,6 +56,7 @@ function normalizeOrder(saved: unknown): ScoreColumn[] {
     return [...new Set([...known, ...defaultOrder])];
 }
 
+// Restore the saved column order or use the defaults when it cannot be read.
 function readOrder(key: string) {
     try {
         return normalizeOrder(JSON.parse(window.localStorage.getItem(key) || 'null'));
@@ -64,6 +65,7 @@ function readOrder(key: string) {
     }
 }
 
+// Accept only one of the supported table fonts from saved settings.
 function readFont(key: string): TableFont {
     try {
         const saved = window.localStorage.getItem(key);
@@ -106,6 +108,7 @@ export function useSnifferColumns(userId: number) {
     const [font, setFont] = useState(() => readFont(fontKey));
     const [error, setError] = useState('');
 
+    // Apply visible-column choices immediately and try to save them for next time.
     function change(next: ScoreColumn[]) {
         setHidden(next);
         setError('');
@@ -123,6 +126,7 @@ export function useSnifferColumns(userId: number) {
         if (save) saveWidths(next);
     }
 
+    // Persist a completed resize without undoing the visible layout if storage fails.
     function saveWidths(next: ColumnWidths) {
         setError('');
         try {
@@ -132,6 +136,7 @@ export function useSnifferColumns(userId: number) {
         }
     }
 
+    // Return to automatic sizing without changing column visibility or order.
     function resetWidths() {
         setWidths(null);
         setError('');
@@ -142,6 +147,7 @@ export function useSnifferColumns(userId: number) {
         }
     }
 
+    // Save a complete, valid column order for both game modes.
     function changeOrder(next: ScoreColumn[]) {
         const normalized = normalizeOrder(next);
         setOrder(normalized);
@@ -161,6 +167,7 @@ export function useSnifferColumns(userId: number) {
         changeOrder(next);
     }
 
+    // Save a supported font and apply it to the current table.
     function changeFont(next: TableFont) {
         if (!Object.hasOwn(tableFonts, next)) return;
         setFont(next);
@@ -175,6 +182,7 @@ export function useSnifferColumns(userId: number) {
     return { hidden, change, widths, resize, resetWidths, order, changeOrder, reorder, font, changeFont, error };
 }
 
+// Edit column visibility, order and font without leaving the Sniffer page.
 export function ColumnPicker({ mode, hidden, onChange, error, onResetWidths, order, onOrderChange, font, onFontChange }: {
     mode: string;
     hidden: ScoreColumn[];

@@ -6,6 +6,7 @@ import type { AuthData } from './api';
 
 const PrefetchContext = createContext<(path: string) => void>(() => {});
 
+// Warm the same cache entries the destination page will use.
 export async function prefetchPage(client: QueryClient, path: string, auth: AuthData) {
     await Promise.all(pageResources(path, auth).map(resource => client.prefetchQuery({
         queryKey: ['resource', resource.key],
@@ -16,6 +17,7 @@ export async function prefetchPage(client: QueryClient, path: string, auth: Auth
     })));
 }
 
+// Prefetch a few common pages only while an activated account is signed in.
 export function PagePrefetchProvider({ children }: { children: ReactNode }) {
     const { state } = useSession();
     const client = useQueryClient();

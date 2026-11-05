@@ -18,10 +18,14 @@ export function Modal({
 }) {
     const dialog = useRef<HTMLDialogElement>(null);
     const startedOutside = useRef(false);
+
+    // Distinguish clicks on the backdrop from clicks inside the dialog bounds.
     function outside(element: HTMLDialogElement, x: number, y: number) {
         const bounds = element.getBoundingClientRect();
         return x < bounds.left || x > bounds.right || y < bounds.top || y > bounds.bottom;
     }
+
+    // Lock page scrolling while open and restore the previous focus when closing.
     useEffect(() => {
         const element = dialog.current!;
         const previousFocus = document.activeElement;

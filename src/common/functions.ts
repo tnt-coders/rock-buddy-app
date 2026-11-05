@@ -1,9 +1,11 @@
 
+// Send diagnostics to both DevTools and the app's daily log.
 export function logMessage(message: any) {
     console.log(message);
     window.api.logMessage(message);
 }
 
+// Treat small floating-point differences as equal when comparing scores and timers.
 export function approxEqual(a: number, b: number, tolerance = 0.0001): boolean {
     return Math.abs(a - b) <= tolerance;
 }
@@ -54,6 +56,7 @@ export function getAvailablePaths(arrangementData: any) {
         bonusBass: [],
     };
 
+    // Group arrangements by instrument and variant before assigning their display labels.
     arrangementData.forEach((arrangement: any) => {
         const hash = arrangement['arrangementID'];
         const type = arrangement['type'];
@@ -244,6 +247,7 @@ export function getAvailablePaths(arrangementData: any) {
     return paths;
 }
 
+// Order Lead, Rhythm and Bass with each instrument's alternate and bonus paths.
 export function sortPaths(paths: string[]): string[] {
     const leadPaths: string[] = paths.filter(path => path.includes('Lead') && !path.includes('Alternate') && !path.includes('Bonus')).sort();
     const altLeadPaths: string[] = paths.filter(path => path.includes('Alternate Lead')).sort();
@@ -259,6 +263,7 @@ export function sortPaths(paths: string[]): string[] {
     return sortedPaths;
 }
 
+// Cache the installed version for API requests during this renderer session.
 export async function getVersion(): Promise<string | null> {
     let version = sessionStorage.getItem('version');
     if (version === null) {
@@ -272,6 +277,7 @@ export async function getVersion(): Promise<string | null> {
     return version;
 }
 
+// Send a versioned API request through Electron and handle explicit session expiry.
 export async function post(url: string, data: any) {
     const response = await window.api.requestBackend(url, { ...data, version: await getVersion() });
 

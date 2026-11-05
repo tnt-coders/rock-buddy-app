@@ -14,6 +14,7 @@ export function useAction() {
         };
     }, []);
 
+    // Run one user action at a time and report its result only while the screen is mounted.
     async function run(action: () => Promise<void>) {
         if (locked.current) return;
         locked.current = true;
