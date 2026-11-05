@@ -1,8 +1,60 @@
-/* Keep checkout in the same black and purple palette as the desktop. */
-body { min-width: 0; height: auto; }
-.support-page { max-width: 480px; margin: 56px auto 90px; }
-.support-page h1 { margin: 24px 0 32px; font-size: 28px; text-align: left; }
-.support-thanks { margin: 0 0 24px; line-height: 1.5; }
+/* The compact checkout inherits the surrounding dialog's theme. */
+.app-dialog.support-dialog { width: min(480px, calc(100vw - 48px)); box-sizing: border-box; text-align: left; }
+.support-page { margin: 0; }
+.app-dialog.support-welcome {
+    width: min(620px, calc(100vw - 32px));
+    box-sizing: border-box;
+    padding: 22px 28px 26px;
+}
+.app-shell[data-theme] .app-dialog.support-welcome {
+    --welcome-accent: #b78be9;
+}
+.app-shell[data-theme="light"] .app-dialog.support-welcome { --welcome-accent: #7541b1; }
+.app-shell[data-theme="streamer"] .app-dialog.support-welcome { --welcome-accent: var(--streamer-accent-color); }
+.app-shell[data-theme="classic"] .app-dialog.support-welcome { --welcome-accent: var(--retro-navy); }
+.support-welcome[open] { display: flex; flex-direction: column; }
+.support-welcome-logo {
+    order: -1;
+    align-self: center;
+    flex-shrink: 0;
+    object-fit: contain;
+    margin-bottom: 12px;
+    transform: rotate(-8deg);
+    filter: drop-shadow(4px 6px 0 color-mix(in srgb, var(--welcome-accent) 30%, transparent));
+}
+.app-dialog.support-welcome > h2 {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.25;
+    text-align: center;
+    margin: 0 12px 18px;
+}
+.support-welcome p { line-height: 1.6; margin: 0 0 18px; }
+.support-welcome-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    margin: 8px 0 20px;
+}
+.app-shell[data-theme] .support-welcome-actions button.btn-primary { padding: 12px 24px; font-size: 17px; font-weight: 700; }
+.support-welcome-actions .text-button { background: transparent; border: 0; color: inherit; text-decoration: underline; }
+.app-shell[data-theme] .support-welcome .support-welcome-signoff {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--welcome-accent);
+    text-align: center;
+    font-size: 24px;
+    font-weight: 800;
+    font-style: italic;
+    letter-spacing: 0.03em;
+    transform: rotate(-3deg);
+    margin: 0;
+}
+.support-welcome-signoff img { flex-shrink: 0; object-fit: contain; }
+.support-thanks { margin: 0 0 16px; line-height: 1.5; }
 .support-page button, .support-page input { font: inherit; }
 .support-page button { cursor: pointer; }
 .support-page button:disabled { cursor: default; opacity: 0.5; }

@@ -1,13 +1,19 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
 import { supportAmount } from '../support-amount';
+import { Modal } from '../ui/Modal';
 
 type CheckoutState =
     | { status: 'idle' | 'pending' | 'opened' }
     | { status: 'error'; message: string };
 
 // Keep the support form inside the app and leave PayPal approval to the browser.
-export function SupportPage() {
+export function SupportDialog({ onClose }: { onClose: () => void }) {
+    return <Modal title="Support Rock Buddy" className="support-dialog" onClose={onClose} dismissOnBackdrop>
+        <SupportForm />
+    </Modal>;
+}
+
+export function SupportForm() {
     const [checkoutSession] = useState(() => crypto.randomUUID());
     const [amount, setAmount] = useState('5');
     const [kind, setKind] = useState<'once' | 'monthly'>('once');
@@ -27,7 +33,7 @@ export function SupportPage() {
             setEnvironment(info);
         }).catch(() => {
             if (!mounted) return;
-            setCheckout({ status: 'error', message: 'Support is unavailable. Reopen this page to try again.' });
+            setCheckout({ status: 'error', message: 'Support is unavailable. Close and reopen this dialog to try again.' });
         });
 
         return () => { mounted = false; };
@@ -68,9 +74,9 @@ export function SupportPage() {
         : checkout.status === 'opened' ? 'Finish reviewing your payment in PayPal.' : '';
 
     return (
-        <main className="support-page">
-            <h1>Support Rock Buddy</h1>
-            <p className="support-thanks">Thank you for supporting Rock Buddy. Your generosity helps keep this community project going.</p>
+        <div className="support-page">
+            <p className="support-thanks">Community support makes Rock Buddy possible. Thank you for being part of it!</p>
+            <p className="support-thanks">You can support Rock Buddy with a one-time or monthly donation.</p>
             {environment?.sandbox && <p id="sandbox-note" className="sandbox-note">PayPal sandbox · No real payments</p>}
 
             <form id="support-form" onSubmit={startCheckout}>
@@ -110,7 +116,6 @@ export function SupportPage() {
             </form>
 
             <button type="button" id="support-manage" className="text-button" onClick={manageSupport} disabled={submitting}>Manage monthly support</button>
-            <p><Link to="/team" replace>Back to Team</Link></p>
-        </main>
+        </div>
     );
 }

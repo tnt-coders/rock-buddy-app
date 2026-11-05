@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
+import { SupportDialog } from '../support/SupportDialog';
 
 const members = [
     ['TNTMusicStudios', 'Founder / Lead Developer', 'TNT.png'],
@@ -10,16 +11,29 @@ const members = [
 ];
 
 export function TeamPage() {
-    return <main className="team-page"><h1>Team Members</h1>
+    const [params, setParams] = useSearchParams();
+    const supportOpen = params.get('support') === '1';
+    function closeSupport() {
+        const next = new URLSearchParams(params);
+        next.delete('support');
+        setParams(next, { replace: true });
+    }
+
+    return <main className="team-page">
+        <div className="team-heading">
+            <h1>Team Members</h1>
+        </div>
         <ul className="list-team-members">{members.map(([name, role, image]) => <li key={name}>
             <a href={`https://www.twitch.tv/${name.toLowerCase()}`} onClick={event => { event.preventDefault(); window.api.openExternalLink(event.currentTarget.href); }}>
                 <img src={`../images/${image}`} alt={name} /><span className="member-title">{name}</span><span className="member-title-hover">{role}</span>
             </a>
         </li>)}</ul>
-        <section className="team-support" aria-labelledby="team-support-heading">
-            <h2 id="team-support-heading">Support Rock Buddy</h2>
-            <p>Community support makes Rock Buddy possible. Thank you for being part of it!</p>
-            <p>You can support Rock Buddy with a <Link to="/support" replace>one-time or monthly donation</Link>.</p>
-        </section>
+        <div className="team-support-actions">
+            <button className="team-support" type="button" aria-haspopup="dialog"
+                onClick={() => setParams({ ...Object.fromEntries(params), support: '1' })}>
+                Support Rock Buddy!
+            </button>
+        </div>
+        {supportOpen && <SupportDialog onClose={closeSupport} />}
     </main>;
 }

@@ -10,11 +10,10 @@ const semver = require('semver');
 const { spawn } = require('child_process');
 const { unzipSync } = require('node:zlib');
 const { resolveRocksmithConfig } = require('./rocksmith-config');
-const { approveProfileImport } = require('./profile-import');
-const profileImportDecisions = new Map();
 const { createBackendClient, CONNECTION_MESSAGE } = require('./backend-client');
 const { createDesktopUpdates, updatesEnabled } = require('./desktop-updates');
 const { createSupportCheckout } = require('./support-checkout');
+const { isSupportLocation } = require('./support-link');
 const { restoreWindowState, trackWindowState, applyWindowSize } = require('./window-state');
 const { MINIMUM_SIZE } = require('./window-size');
 const { pathToFileURL } = require('node:url');
@@ -547,13 +546,11 @@ function createWindow() {
 
     // Set persistent data
     ipcMain.handle('store-set', (event, key, value) => {
-        if (key === 'auth_data') profileImportDecisions.clear();
         store.set(key, value);
     });
 
     // Delete persistent data
     ipcMain.handle('store-delete', (event, key) => {
-        if (key === 'auth_data') profileImportDecisions.clear();
         store.delete(key);
     });
 
@@ -683,49 +680,6 @@ function createWindow() {
         return resolveRocksmithConfig(store, store.get('auth_data')?.user_id, getSteamProfiles, getRocksmithProfiles);
     });
 
-    ipcMain.handle('prepare-rocksmith-import', async () => {
-        const auth = store.get('auth_data');
-        if (!auth?.api_key) throw new Error('Please log in before importing Rocksmith history.');
-        const config = resolveRocksmithConfig(store, auth.user_id, getSteamProfiles, getRocksmithProfiles);
-        if (!config) return null;
-        const unchangedLogin = () => {
-            const current = store.get('auth_data');
-            if (current?.user_id !== auth.user_id || current?.api_key !== auth.api_key)
-                throw new Error('Login changed. Please reopen Sniffer.');
-        };
-        const profile = { steam_id: config.steamProfile, profile_id: config.rocksmithProfile, profile_name: config.profileName };
-        const key = JSON.stringify([auth.user_id, profile.steam_id, profile.profile_id]);
-        if (!profileImportDecisions.has(key)) {
-            const allowed = await approveProfileImport(profile, async (action, candidate) => {
-                unchangedLogin();
-                // Share version compatibility and connection handling with every other API call.
-                const data = await backendClient.post(host + '/api/account/rocksmith_profile.php', {
-                    version: currentVersion, auth_data: auth, action, profile: candidate,
-                });
-                unchangedLogin();
-                if (data.error) throw new Error(data.error);
-                if (!Object.hasOwn(data, 'profile')) throw new Error('Invalid Rocksmith profile response.');
-                return data;
-            }, async (original, candidate) => {
-                unchangedLogin();
-                const result = await dialog.showMessageBox(win, {
-                    type: 'question', title: 'Rocksmith profile',
-                    message: original ? 'Import history from a different Rocksmith profile?' : 'Link this Rocksmith profile to your Rock Buddy account?',
-                    detail: original
-                        ? `Original: ${original.profile_name} (Steam ${original.steam_id})\nSelected: ${candidate.profile_name} (Steam ${candidate.steam_id})\n\nImport this profile's saved scores and play counts for this login? Your original link will stay unchanged. Skipping still allows new verified gameplay scores.`
-                        : `Selected: ${candidate.profile_name} (Steam ${candidate.steam_id})\n\nConfirm this is your Rocksmith profile. Rock Buddy will remember it across computers and import its saved scores and play counts. Skipping still allows new verified gameplay scores.`,
-                    buttons: ['Skip import', original ? 'Import this session' : 'Link profile'],
-                    defaultId: 0, cancelId: 0, noLink: true,
-                });
-                unchangedLogin();
-                return result.response === 1;
-            });
-            unchangedLogin();
-            profileImportDecisions.set(key, allowed);
-        }
-        return { ...config, importHistory: profileImportDecisions.get(key) };
-    });
-
     ipcMain.handle('get-steam-profiles', (event, steamUserDataPath) => {
         return getSteamProfiles(steamUserDataPath);
     });
@@ -818,13 +772,12 @@ ipcMain.handle('get-update-state', () => desktopUpdates?.getState() || { status:
 // The changelog uses the same guarded check as the automatic schedule.
 ipcMain.handle('check-desktop-update', () => desktopUpdates?.check() || { status: 'disabled', message: 'Updates are available in installed Windows builds.' });
 ipcMain.handle('install-desktop-update', () => desktopUpdates?.install());
-// Checkout is available only to the bundled app's Support route.
+// Checkout is available only while the bundled app's Team support dialog is open.
 const appPage = pathToFileURL(path.join(__dirname, 'index.html')).href;
 let supportSession = null;
 function supportClient(event, session) {
-    const sender = new URL(event.senderFrame?.url || 'about:blank');
-    if (sender.hash !== '#/support' || sender.href.split('#')[0] !== appPage) {
-        throw new Error('Open the Support page first.');
+    if (!isSupportLocation(event.senderFrame?.url || 'about:blank', appPage)) {
+        throw new Error('Open Support Rock Buddy from Team first.');
     }
     if (session && session !== supportSession) {
         supportSession = session;

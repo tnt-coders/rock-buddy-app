@@ -17,6 +17,19 @@ export function PageDataProvider({ children }: { children: ReactNode }) {
     }));
     const generation = useRef(0);
 
+    // Electron can regain focus without changing document visibility.
+    useEffect(() => {
+        const refreshLive = () => {
+            void client.refetchQueries({
+                queryKey: ['resource'],
+                type: 'active',
+                predicate: query => query.meta?.live === true,
+            }, { cancelRefetch: false });
+        };
+        window.addEventListener('focus', refreshLive);
+        return () => window.removeEventListener('focus', refreshLive);
+    }, [client]);
+
     // Discard private data on logout, without clearing it during Strict Mode's test remount.
     useEffect(() => {
         const current = ++generation.current;
@@ -34,7 +47,10 @@ export function PageDataProvider({ children }: { children: ReactNode }) {
 
 // A fixed indicator does not move the existing content while a page refreshes.
 export function PageLoadingIndicator() {
-    const fetching = useIsFetching({ queryKey: ['resource'] });
+    const fetching = useIsFetching({
+        queryKey: ['resource'],
+        predicate: query => query.getObserversCount() > 0,
+    });
     return fetching > 0
         ? <div className="page-loading-indicator" role="status" aria-label="Loading page data" />
         : null;

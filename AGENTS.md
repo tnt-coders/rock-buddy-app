@@ -10,6 +10,8 @@ automatic feature-branch build. Historical test branches do not publish releases
 
 ## React renderer
 
+- Do not add decorative accent strips or heavier top borders to popups or dialogs.
+  Keep the normal themed border consistent on every side.
 - `src/index.html` and `src/ui/main.tsx` are the only HTML entry and React root.
   Use React Router links and routes; never load another HTML page for navigation.
 - React owns screen content, shared navigation, dialogs, status notices, and forms.

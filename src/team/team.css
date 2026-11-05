@@ -1,17 +1,51 @@
 .team-page {
     width: 100%;
     max-width: 1024px;
-    margin: 8px auto 0;
+    margin: 0 auto;
+}
+
+.team-heading {
+    margin-bottom: 16px;
+}
+
+.team-heading h1 {
     text-align: center;
 }
 
-.team-support {
-    margin: 16px auto 24px;
-    max-width: 660px;
+.team-support-actions {
+    display: flex;
+    justify-content: center;
+    padding: 16px 12px;
 }
 
-.team-support p {
+.app-shell[data-theme] .team-support-actions button.team-support {
+    --support-accent: #7541b1;
+    --support-ink: #ffffff;
     margin: 8px 0;
+    padding: 14px 20px;
+    font-size: 17px;
+    font-weight: 800;
+    border: 2px solid color-mix(in srgb, var(--support-accent) 65%, var(--support-ink));
+    border-radius: var(--streamer-radius, 8px);
+    background: var(--support-accent);
+    color: var(--support-ink);
+    box-shadow: 0 3px 0 color-mix(in srgb, var(--support-accent) 60%, #000),
+        0 0 0 3px color-mix(in srgb, var(--support-accent) 18%, transparent);
+}
+
+.app-shell[data-theme="streamer"] .team-support-actions button.team-support {
+    --support-accent: var(--streamer-accent-color);
+    --support-ink: var(--streamer-accent-text);
+}
+
+.app-shell[data-theme="classic"] .team-support-actions button.team-support {
+    --support-accent: var(--retro-navy);
+    border-radius: 0;
+}
+
+.app-shell[data-theme] .team-support-actions button.team-support:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--support-accent) 90%, var(--support-ink));
+    border-color: var(--support-ink);
 }
 
 .list-team-members {

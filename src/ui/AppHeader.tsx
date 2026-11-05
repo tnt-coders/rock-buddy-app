@@ -1,7 +1,8 @@
 import { Fragment, useRef, type ReactNode } from 'react';
-import { NavLink } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { useSession } from './Session';
 import { HeaderThemeChooser } from './Theme';
+import { usePagePrefetch } from './PagePrefetch';
 
 const pages = ['Sniffer', 'Search', 'Rank', 'Profile', 'Config', 'Account'];
 
@@ -42,19 +43,22 @@ export function HeaderAccount() {
 }
 
 export function AppHeader({ compact = false, children }: { compact?: boolean; children?: ReactNode }) {
+    const prefetch = usePagePrefetch();
     const links = compact ? [] : pages;
     return (
         <nav className="navtop" aria-label="Main navigation">
-            <div className="header-brand">
+            <Link className="header-brand" to="/sniffer">
                 <img src="../images/icon-256x256.png" width={28} height={28} alt="" />
                 <span className="header-title">Rock Buddy</span>
-            </div>
+            </Link>
             {links.map((name) => (
                 <Fragment key={name}>
                 {name === 'Config' && <HeaderThemeChooser />}
                 <NavLink
                     className="header-tab"
                     to={`/${name.toLowerCase()}`}
+                    onMouseEnter={() => prefetch(`/${name.toLowerCase()}`)}
+                    onFocus={() => prefetch(`/${name.toLowerCase()}`)}
                     aria-label={name}
                     style={compact ? { marginLeft: 'auto' } : undefined}
                 >

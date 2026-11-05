@@ -7,6 +7,7 @@ import { DesktopStatus } from './DesktopStatus';
 import { DesktopUpdates, DesktopVersion } from './DesktopUpdates';
 import { Footer } from './Footer';
 import { PageLoadingIndicator } from './PageData';
+import { PagePrefetchProvider } from './PagePrefetch';
 import { BoulderBro } from './BoulderBro';
 import { AuthPage } from '../auth/AuthPage';
 import { AccountPage, ActivationPage } from '../account/AccountPage';
@@ -17,8 +18,8 @@ import { RankPage } from '../rank/RankPage';
 import { SearchPage } from '../search/SearchPage';
 import { SnifferPage } from '../sniffer/SnifferPage';
 import { GameplayProvider } from '../sniffer/Gameplay';
-import { SupportPage } from '../support/SupportPage';
 import { TeamPage } from '../team/TeamPage';
+import { SupportWelcome } from '../support/SupportWelcome';
 
 class ScreenBoundary extends Component<
     { children: ReactNode; route: string },
@@ -139,7 +140,7 @@ function Shell() {
                             <Routes>
                                 <Route path="/login" element={<AuthPage key="login" />} />
                                 <Route path="/signup" element={<AuthPage key="signup" signup />} />
-                                <Route path="/support" element={<SupportPage />} />
+                                <Route path="/support" element={<Navigate to="/team?support=1" replace />} />
                                 <Route path="/team" element={<TeamPage />} />
                                 <Route element={<AccountAccess />}>
                                     <Route
@@ -197,6 +198,7 @@ function Shell() {
                 <DesktopVersion />
             </Footer>
             <BoulderBro />
+            <SupportWelcome enabled={!initial} />
         </ThemeProvider>
     );
 }
@@ -204,7 +206,7 @@ function Shell() {
 export function App() {
     return (
         <SessionProvider>
-            <Shell />
+            <PagePrefetchProvider><Shell /></PagePrefetchProvider>
         </SessionProvider>
     );
 }

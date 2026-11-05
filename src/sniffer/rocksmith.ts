@@ -5,9 +5,9 @@ export class Rocksmith {
     public readonly importHistory: boolean;
 
     public static async create() {
-        const config = await window.api.prepareRocksmithImport();
-        if (!config) throw new Error('Choose your Steam folder and Rocksmith profile in Config. No single saved profile could be selected automatically.');
-        return new Rocksmith(config.profilePath, config.importHistory);
+        // Local save selection is only for historical scores, not account ownership.
+        const config = await window.api.resolveRocksmithConfig();
+        return new Rocksmith(config?.profilePath ?? '', !!config?.profilePath);
     }
 
     private constructor(profilePath: string, importHistory: boolean) {

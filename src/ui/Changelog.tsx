@@ -11,8 +11,8 @@ const currentChanges = [
     'Refreshed themes, clearer score indicators and a header paintbrush for choosing or customizing colors.',
     'Window size and position are remembered. Width and Height changes in Config apply immediately, and rankings adapt to smaller windows.',
     'Faster navigation with cached results, clearer loading and connection errors, and a header and footer that stay visible.',
-    'Support Rock Buddy with one-time or monthly PayPal contributions through the Team page.',
-    'Profile discovery and confirmation before importing history from a different profile.',
+    'A one-time community welcome and optional one-time or monthly support through the Team page.',
+    'Automatic local save discovery preserves existing score imports without a startup profile prompt.',
 ];
 
 // Summaries from the official GitHub release notes; missing versions are omitted.

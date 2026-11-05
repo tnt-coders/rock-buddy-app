@@ -148,7 +148,7 @@ body {
 .navtop .header-tab[aria-current="page"] {
     background: color-mix(in srgb, var(--header-text) 18%, transparent);
 }
-.navtop .header-tab:focus-visible {
+.navtop :is(.header-tab, .header-brand):focus-visible {
     outline: 2px solid var(--header-text);
     outline-offset: 2px;
 }
@@ -171,13 +171,14 @@ body {
     outline: 2px solid var(--header-text);
     outline-offset: 2px;
 }
-.header-brand {
+.navtop .header-brand {
     display: flex;
     align-items: center;
     gap: 8px;
     margin-inline-end: 10px;
     flex-shrink: 0;
     color: var(--header-text);
+    text-decoration: none;
 }
 .header-brand img {
     display: block;
@@ -193,7 +194,8 @@ main {
 }
 main > h1,
 .page-heading > h1,
-.rank-page-heading > h1 {
+.rank-page-heading > h1,
+.team-heading > h1 {
     margin: 16px 0;
 }
 main > h2 {

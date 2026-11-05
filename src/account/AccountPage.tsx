@@ -4,14 +4,13 @@ import { useAuth, useSession } from '../ui/Session';
 import { useResource } from '../ui/useResource';
 import { AsyncState } from '../ui/AsyncState';
 import { useAction } from '../ui/useAction';
+import { accountInfo } from '../ui/pageResources';
 
 export function AccountPage() {
     const auth = useAuth();
     const { logout } = useSession();
     const action = useAction();
-    const account = useResource(`account:${auth.user_id}`, () =>
-        request('account/get_account_info', auth),
-    );
+    const account = useResource(accountInfo(auth));
 
     return (
         <main>

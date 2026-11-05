@@ -168,6 +168,7 @@ export function Leaderboard({
                 arrangement: path,
                 ...(mode === 'sa' ? { difficulty } : {}),
             }),
+        { live: true },
     );
     return (
         <>

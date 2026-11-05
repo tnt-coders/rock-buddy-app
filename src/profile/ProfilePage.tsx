@@ -6,17 +6,9 @@ import { useAction } from '../ui/useAction';
 import { AsyncState } from '../ui/AsyncState';
 import { Modal } from '../ui/Modal';
 import { useQueryClient } from '@tanstack/react-query';
+import { userProfile, userStats, type Profile } from '../ui/pageResources';
 
 const paths = ['overall', 'lead', 'rhythm', 'bass'] as const;
-interface Profile {
-    username: string;
-    twitch_username: string | null;
-}
-interface Stats {
-    verified_perfect_scores?: Record<(typeof paths)[number], number>;
-    verified_scores: Record<(typeof paths)[number], number>;
-    accuracy: Record<(typeof paths)[number], number>;
-}
 
 function TwitchForm({ profile, onSaved }: {
     profile: Profile;
@@ -67,14 +59,8 @@ function TwitchForm({ profile, onSaved }: {
 export function ProfileContent({ username }: { username?: string }) {
     const auth = useAuth();
     const client = useQueryClient();
-    const identity = username ? { username } : { user_id: auth.user_id };
-    const key = `${auth.user_id}:${username || 'self'}`;
-    const profile = useResource(`profile:${key}`, () =>
-        request<Profile>('data/get_user_profile_data', { auth_data: auth, ...identity }),
-    );
-    const stats = useResource(`stats:${key}`, () =>
-        request<Stats>('data/get_user_stats', { auth_data: auth, ...identity }),
-    );
+    const profile = useResource(userProfile(auth, username));
+    const stats = useResource(userStats(auth, username));
 
     return (
         <>

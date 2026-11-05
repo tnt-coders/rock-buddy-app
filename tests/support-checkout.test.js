@@ -2,6 +2,17 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 const { createSupportCheckout, supportAmount } = require('../src/support-checkout');
 const { HOSTS } = require('../src/backend-config');
+const { isSupportLocation } = require('../src/support-link');
+
+test('checkout accepts only the bundled Team support dialog, not another page or remote document', () => {
+    const appPage = 'file:///C:/RockBuddy/src/index.html';
+    assert.equal(isSupportLocation(appPage + '#/team?support=1', appPage), true);
+    for (const url of [appPage + '#/team', appPage + '#/team?support=0', appPage + '#/support',
+        appPage + '#/account?support=1', appPage + '#https://elsewhere.invalid/team?support=1',
+        'https://elsewhere.invalid/index.html#/team?support=1', 'file:///C:/other/index.html#/team?support=1', 'invalid']) {
+        assert.equal(isSupportLocation(url, appPage), false, url);
+    }
+});
 
 const form = () => new Response('<input type="hidden" name="state" value="signed.form-state">', {
     headers: { 'Content-Type': 'text/html' },

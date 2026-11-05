@@ -6,13 +6,8 @@ import { AsyncState } from '../ui/AsyncState';
 import { Modal } from '../ui/Modal';
 import { ProfileDialog } from '../profile/ProfilePage';
 import { rankVerbs } from './verbs';
+import { rankSummary, type Rank } from '../ui/pageResources';
 
-interface Rank {
-    user_id: number;
-    username: string;
-    points: number;
-    king?: boolean | 0 | 1;
-}
 const paths = ['overall', 'lead', 'rhythm', 'bass'] as const;
 
 function RankCard({
@@ -49,6 +44,7 @@ function RankDialog({ path, onClose }: { path: string; onClose: () => void }) {
     const [player, setPlayer] = useState<string>();
     const ranks = useResource(`rank:${auth.user_id}:${path}`, () =>
         request<Rank[]>(`data/get_ranks_${path}`, { auth_data: auth }),
+        { live: true },
     );
     return (
         <Modal title={`${path[0].toUpperCase()}${path.slice(1)} rankings`} onClose={onClose}>
@@ -101,9 +97,7 @@ export function RankPage() {
     const auth = useAuth();
     const [player, setPlayer] = useState<string>();
     const [expanded, setExpanded] = useState<string>();
-    const ranks = useResource(`ranks:${auth.user_id}`, () =>
-        request<Record<(typeof paths)[number], Rank[]>>('data/get_ranks_top3', { auth_data: auth }),
-    );
+    const ranks = useResource(rankSummary(auth));
     const king = ranks.data?.overall[0];
 
     return (

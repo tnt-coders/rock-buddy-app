@@ -27,6 +27,7 @@ Object.assign(globalThis, {
 
 function mockApi() {
     const stored = new Map<string, any>([['auth_data', { user_id: 1, api_key: 'synthetic' }]]);
+    stored.set('support_welcome_shown', true);
     const calls: string[] = [];
     const stats = { overall: 1, lead: 1, rhythm: 0, bass: 0 };
     window.api = {
@@ -47,10 +48,11 @@ function mockApi() {
             stored.delete(key);
         },
         launchRocksniffer: () => {},
-        prepareRocksmithImport: async () => {
+        resolveRocksmithConfig: async () => {
             calls.push('prepare');
             return null;
         },
+        getRocksnifferPath: async () => { throw new Error('Waiting for the test reader'); },
         logMessage: () => {},
         setGameplayActive: () => {},
         supportInfo: async () => ({ sandbox: true }),
@@ -90,7 +92,7 @@ test('one authenticated app survives navigation and logout without reinitializin
             </MemoryRouter>
         </StrictMode>,
     );
-    await waitFor(() => assert.match(screen.getByRole('alert').textContent || '', /Choose your Steam folder/));
+    await waitFor(() => assert.match(screen.getByRole('alert').textContent || '', /Waiting for the test reader/));
     assert.equal(calls.filter((call) => call === 'prepare').length, 1);
     assert.equal(calls.filter((call) => call === 'authenticate.php').length, 1);
 
@@ -98,9 +100,9 @@ test('one authenticated app survives navigation and logout without reinitializin
     await screen.findByRole('textbox', { name: 'Search songs' });
     assert.ok(!screen.queryByRole('link', { name: 'Support' }));
     fireEvent.click(screen.getByRole('link', { name: 'Team' }));
-    fireEvent.click(await screen.findByRole('link', { name: 'one-time or monthly donation' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Support Rock Buddy!' }));
     await screen.findByRole('button', { name: 'Continue to PayPal' });
-    fireEvent.click(screen.getByRole('link', { name: 'Back to Team' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
     await screen.findByRole('heading', { name: 'Team Members' });
     fireEvent.click(screen.getByRole('link', { name: 'Profile' }));
     await screen.findByRole('heading', { name: 'Verified 100% scores' });
@@ -327,6 +329,7 @@ test('header sign out clears the session and offers sign in from Support', async
         </MemoryRouter>,
     );
     const signOut = await screen.findByRole('button', { name: 'Sign out' });
+    fireEvent.click(await screen.findByRole('button', { name: 'Close' }));
     assert.equal(signOut.getAttribute('title'), 'Sign out');
     assert.ok(signOut.closest('nav'));
     assert.ok(!screen.queryByRole('link', { name: 'Sign in' }));
@@ -336,7 +339,7 @@ test('header sign out clears the session and offers sign in from Support', async
     assert.equal(stored.has('auth_data'), false);
     assert.equal(sessionStorage.getItem('auth_data'), null);
     assert.ok(!screen.queryByRole('button', { name: 'Sign out' }));
-    assert.ok(screen.getByRole('heading', { name: 'Support Rock Buddy' }));
+    assert.ok(screen.getByRole('heading', { name: 'Team Members' }));
 
     fireEvent.click(signIn);
     await screen.findByRole('button', { name: 'Log In' });
@@ -350,6 +353,7 @@ test('a signed-out visitor can navigate from Support back to login', async () =>
             <App />
         </MemoryRouter>,
     );
+    fireEvent.click(await screen.findByRole('button', { name: 'Close' }));
     fireEvent.click(await screen.findByRole('link', { name: 'Sign in' }));
     await screen.findByRole('textbox', { name: 'Username or email' });
     assert.ok(!screen.queryByRole('button', { name: 'Sign out' }));
@@ -365,6 +369,7 @@ test('header logout reports saved-login deletion failures after the session clos
             <App />
         </MemoryRouter>,
     );
+    fireEvent.click(await screen.findByRole('button', { name: 'Close' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Sign out' }));
     await screen.findByRole('link', { name: 'Sign in' });
     await waitFor(() => assert.equal(errors.length, 1));

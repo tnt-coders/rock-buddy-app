@@ -17,7 +17,8 @@ import { ThemeProvider } from '../../src/ui/Theme';
 import { AppHeader } from '../../src/ui/AppHeader';
 import { DesktopStatus } from '../../src/ui/DesktopStatus';
 import { DesktopUpdates, DesktopVersion } from '../../src/ui/DesktopUpdates';
-import { SupportPage } from '../../src/support/SupportPage';
+import { SupportForm } from '../../src/support/SupportDialog';
+import { TeamPage } from '../../src/team/TeamPage';
 import { Footer } from '../../src/ui/Footer';
 import { useDesktopState } from '../../src/ui/useDesktopState';
 
@@ -183,6 +184,49 @@ test('header navigates inside React and updates the active link', async () => {
         ),
     );
     assert.equal(screen.getByRole('link', { name: 'Search' }).getAttribute('aria-current'), null);
+    const brand = screen.getByRole('link', { name: 'Rock Buddy' });
+    assert.equal(brand.getAttribute('href'), '/sniffer');
+    fireEvent.click(brand.querySelector('img')!);
+    await waitFor(() => assert.equal(screen.getByRole('link', { name: 'Sniffer' }).getAttribute('aria-current'), 'page'));
+});
+
+test('Team opens support in a dialog, preserves the page and restores focus on close', async () => {
+    let checkouts = 0;
+    setApi({ supportInfo: async () => ({ sandbox: true }), startSupportCheckout: async () => { checkouts++; } });
+    render(<MemoryRouter initialEntries={['/team']}><TeamPage /></MemoryRouter>);
+    const trigger = screen.getByRole('button', { name: 'Support Rock Buddy!' });
+    const team = screen.getByRole('heading', { name: 'Team Members' });
+    assert.ok(!screen.queryByText(/Community support makes/));
+    trigger.focus();
+    fireEvent.click(trigger);
+    let dialog = screen.getByRole('dialog', { name: 'Support Rock Buddy' });
+    await waitFor(() => assert.equal((within(dialog).getByRole('button', { name: 'Continue to PayPal' }) as HTMLButtonElement).disabled, false));
+    assert.ok(within(dialog).getByText(/one-time or monthly donation/));
+    assert.ok(team.isConnected);
+    assert.equal(checkouts, 0);
+
+    // Dialog padding and drags from inside to outside must not dismiss it.
+    dialog.getBoundingClientRect = () => ({ left: 100, top: 100, right: 500, bottom: 600 } as DOMRect);
+    const pointer = (x: number, y: number) => fireEvent(dialog, new window.MouseEvent('pointerdown', { bubbles: true, clientX: x, clientY: y }));
+    pointer(120, 120);
+    fireEvent.click(dialog, { clientX: 120, clientY: 120 });
+    assert.ok(dialog.isConnected);
+    pointer(120, 120);
+    fireEvent.click(dialog, { clientX: 10, clientY: 10 });
+    assert.ok(dialog.isConnected);
+    pointer(10, 10);
+    fireEvent.click(dialog, { clientX: 10, clientY: 10 });
+    assert.ok(!screen.queryByRole('dialog'));
+    assert.ok(document.activeElement === trigger);
+
+    fireEvent.click(trigger);
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    assert.ok(!screen.queryByRole('dialog'));
+    fireEvent.click(trigger);
+    dialog = screen.getByRole('dialog');
+    fireEvent(dialog, new window.Event('cancel', { bubbles: false }));
+    assert.ok(!screen.queryByRole('dialog'));
+    assert.ok(team.isConnected);
 });
 
 test('support derives validation from the amount and does not create checkout in an effect', async () => {
@@ -195,7 +239,7 @@ test('support derives validation from the amount and does not create checkout in
     });
     render(
         <StrictMode>
-            <MemoryRouter><SupportPage /></MemoryRouter>
+            <MemoryRouter><SupportForm /></MemoryRouter>
         </StrictMode>,
     );
     const button = screen.getByRole('button', { name: 'Continue to PayPal' }) as HTMLButtonElement;
@@ -222,7 +266,7 @@ test('checkout prevents duplicate submissions and requires explicit approval-ope
             return response.promise;
         },
     });
-    render(<MemoryRouter><SupportPage /></MemoryRouter>);
+    render(<MemoryRouter><SupportForm /></MemoryRouter>);
     const button = screen.getByRole('button', { name: 'Continue to PayPal' }) as HTMLButtonElement;
     await waitFor(() => assert.equal(button.disabled, false));
     fireEvent.click(screen.getByRole('radio', { name: 'Monthly' }));
@@ -245,7 +289,7 @@ test('successful browser opening asks for approval without claiming a completed 
         supportInfo: async () => ({ sandbox: false }),
         startSupportCheckout: async () => ({ opened: true }),
     });
-    render(<MemoryRouter><SupportPage /></MemoryRouter>);
+    render(<MemoryRouter><SupportForm /></MemoryRouter>);
     const button = screen.getByRole('button', { name: 'Continue to PayPal' }) as HTMLButtonElement;
     await waitFor(() => assert.equal(button.disabled, false));
     assert.ok(!screen.queryByText(/PayPal sandbox/));
@@ -264,7 +308,7 @@ test('unavailable support stays disabled and reports the error', async () => {
             throw new Error('Unavailable');
         },
     });
-    render(<MemoryRouter><SupportPage /></MemoryRouter>);
+    render(<MemoryRouter><SupportForm /></MemoryRouter>);
     await waitFor(() =>
         assert.match(screen.getByRole('status').textContent || '', /Support is unavailable/),
     );

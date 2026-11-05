@@ -6,13 +6,20 @@ export function Modal({
     onClose,
     children,
     className = '',
+    dismissOnBackdrop = false,
 }: {
     title: string;
     onClose: () => void;
     children: ReactNode;
     className?: string;
+    dismissOnBackdrop?: boolean;
 }) {
     const dialog = useRef<HTMLDialogElement>(null);
+    const startedOutside = useRef(false);
+    function outside(element: HTMLDialogElement, x: number, y: number) {
+        const bounds = element.getBoundingClientRect();
+        return x < bounds.left || x > bounds.right || y < bounds.top || y > bounds.bottom;
+    }
     useEffect(() => {
         const element = dialog.current!;
         const previousFocus = document.activeElement;
@@ -27,7 +34,15 @@ export function Modal({
     }, []);
 
     return (
-        <dialog ref={dialog} aria-label={title} onCancel={onClose} className={`app-dialog ${className}`}>
+        <dialog ref={dialog} aria-label={title} onCancel={onClose} className={`app-dialog ${className}`}
+            onPointerDown={event => {
+                startedOutside.current = event.target === event.currentTarget && outside(event.currentTarget, event.clientX, event.clientY);
+            }}
+            onClick={event => {
+                if (dismissOnBackdrop && startedOutside.current && event.target === event.currentTarget
+                    && outside(event.currentTarget, event.clientX, event.clientY)) onClose();
+                startedOutside.current = false;
+            }}>
             <button className="close" aria-label="Close" onClick={onClose}>
                 ×
             </button>

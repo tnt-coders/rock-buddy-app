@@ -13,23 +13,107 @@ public release's recorded submodule commits.
 - Keeps recent page data visible during refreshes and remembers Search between
   visits. Adds loading states, bounded connection retries, and protection against
   saving account/profile forms whose data did not load.
+- Preloads Rank, Profile and Account after sign-in and on navigation hover/focus.
+  Rankings, profile statistics and search leaderboards revalidate on entry and
+  focus, and refresh every 15 seconds while visible. Successful score uploads
+  still invalidate score views immediately; Sniffer keeps its existing live reads.
+  Preloads share the login session's memory cache and do not run Config discovery
+  or payment/account actions. These changes require the next candidate build;
+  they are not included in the published beta.9 installer.
+
 - Adds automatic update downloads with **Restart now** and **Restart later**.
   Users on 1.11.0 must manually install this first update; later releases can be
   installed from inside the app. Restarting to install is blocked during gameplay
   and pending API requests.
-- Adds a native Support page for one-time/monthly PayPal support, using the
-  website's checkout. PayPal approval still opens in the browser.
-- Remembers window size/position, adds Sniffer column controls, profile discovery
-  and history-import confirmation, username-change countdowns, and updated Team
+- Adds a prominent, themed **Support Rock Buddy!** button centered below the team
+  members, with the Team heading also centered.
+  It opens a donation dialog over Team with community-support copy and one-time /
+  monthly PayPal support. Outside click, Escape or the top-right X closes it.
+  PayPal approval still opens in the browser.
+- Shows a themed community thank-you and support invitation once at startup.
+  The installation-wide setting is saved before display and is not tied to an
+  account or app version, so dismissal, upgrades and signing into another account
+  do not repeat it. The support button opens the existing Team donation dialog;
+  X, Escape, outside click or Maybe later dismiss it. No checkout starts automatically.
+- Remembers window size/position, adds Sniffer column controls, local save discovery,
+  username-change countdowns, and updated Team
   and copyright information.
+- Removes Rocksmith-to-account linking and its confirmation UI. Existing local
+  save selection/history imports remain; no profile identity is sent to the
+  account-link endpoint. A missing or ambiguous save skips history without
+  blocking live sniffing. Local selection in Config does not identify the player
+  currently in the game or establish account ownership.
 - Shows verified 100% arrangement counts only when the backend supplies them.
   That backend change is separate and is not required to release this desktop.
 
+Navigation-prefetch validation (November 1): 124 tests and the Windows native /
+renderer development build pass. Component checks cover warm-cache rendering,
+fresh reads on entry/focus, upload invalidation, duplicate request sharing,
+quiet background preload, and discarding late reads across login sessions.
+Installed-candidate navigation and gameplay acceptance remain untested for this change.
+
+Team/support dialog validation (November 1): 126 tests and the Windows native /
+renderer build pass. Windows UI preview verified the 1024x768 layout in dark and
+light themes, outside-click and X dismissal. Checkout remains restricted to the
+bundled Team dialog; automated checks use synthetic payments, and no live checkout
+was performed. This and the prefetch changes are not in the published beta.9.
+
 This is a substantial renderer change, so earlier tests of the old Beta UI do not
-replace testing this candidate. Profile confirmation protects history imports; it
-does not identify the active player inside Rocksmith. Failed verified uploads are
+replace testing this candidate. Local save selection does not identify the active
+player inside Rocksmith. Failed verified uploads are
 reported but are not saved in a durable retry queue. Neither limitation should be
 advertised as fixed by this release.
+
+The November 1 profile-confirmation implementation was superseded on November 2
+by removal of account linking. Saved-score/play-count imports remain separate
+from this change, including Score Attack history. Existing server links and
+previously uploaded scores are not deleted. Live verified scores still belong
+to the signed-in account; use Lurk Mode to prevent uploads. This change is not
+in the published beta.9; installed-candidate gameplay acceptance remains pending.
+
+November 2 validation: all 119 tests and the Windows native / renderer build pass.
+Focused checks exercise startup without a local save, catalog sync and live
+verified submission without history, and local history reads without linking.
+The reduced test count removes the superseded linking/dialog tests.
+
+Community welcome validation (November 4): 124 tests and the Windows native /
+renderer build pass. The isolated Windows preview shows the themed invitation at
+1024x768 and retains its seen flag across reloads. Automated checks cover Strict
+Mode, dismissal, closing with the dialog open, readiness, failed persistence and
+navigation to Team support without starting checkout. No installer was produced.
+
+The welcome signoff includes the bundled [peepoLove emote by lexible on BetterTTV](https://betterttv.com/emotes/5f8fb66258e96102e9298b81)
+(`images/peepoLove.png`, downloaded from the emote's 3x CDN asset). Display uses the
+local image and does not make a startup request to the emote provider.
+
+## Future multiplayer account assignment (not implemented)
+
+Single-player should not require linking a local Rocksmith profile to a Rock Buddy
+account. Multiplayer account assignment is a separate feature, not an extension
+of saved-history import approval.
+
+- Keep the host signed in. Let a guest authorize their own Rock Buddy account
+  without replacing the host session. Prefer a temporary, revocable authorization
+  for score submission; do not retain the guest's password or expose host account
+  management through the guest session.
+- Assign authenticated accounts to the reader's Player 1 and Player 2 slots.
+  Show each slot's detected arrangement separately: Lead/Rhythm/Bass are parts,
+  not stable player identities. Validate the final labels against the game's UI.
+- Capture account, player slot, arrangement and game/run identity when a run
+  starts. Never transfer a partial run to another account when assignments change.
+  Unassigned or disconnected players do not submit scores; host logout ends the
+  guest session. Give the guest an explicit disconnect action.
+- Authorize each submission for its assigned account on the server. The host
+  must not be able to submit for an arbitrary user ID. Keep guest credentials,
+  settings, requests and cached data isolated from the host.
+- Before enabling leaderboard submissions, validate independent player counters,
+  arrangement ownership, accuracy, pause/seek/replay and completion across game
+  restarts. Experimental approximate accuracy is not sufficient evidence for
+  verified scores. Ambiguous or incomplete readings must not upload as verified.
+
+This design does not change the bundled reader or enable multiplayer uploads.
+RockList's experimental reader evidence can inform validation but is not proof
+that Rock Buddy's current reader supports these requirements.
 
 ## Release sequence
 
@@ -399,8 +483,10 @@ so check Windows installer/publisher prompts during acceptance.
   Wayland positioning is controlled by the compositor and is not a Windows test.
 - Upgrade existing regular 1.11.0 to the production or official-beta candidate on Windows, preserving
   login, settings, addons and install identity. This is separate from Beta upgrades.
-- Confirm linking once, restart, switch accounts/profiles, decline alternate history,
-  approve it, and return to the original. History is still imported per song.
+- Confirm startup has no profile-link dialog or account-link requests. Test a
+  selected local save, no saves and several unselected saves: live sniffing must
+  remain available, with history imported only when discovery resolves one save.
+  Switch local saves in Config and confirm history is still imported per song.
   This does not establish active in-game player identity or prevent all wrong-account
   live submissions. No bulk profile upload is added.
 - Verify Learn a Song Lead/Rhythm/Bass, lower-score preservation, a competing user,
@@ -411,8 +497,8 @@ so check Windows installer/publisher prompts during acceptance.
   uploads show an explicit warning and are **not durably queued or replayed**.
 - Navigate between screens during a song and verify there is one reader loop,
   the live run continues, and the final score belongs to the original account.
-  Enter Config, change profiles, then return to Sniffer; verify import approval
-  and the new selection. Log out during a pending sync and sign in as another user.
+  Enter Config, change local saves, then return to Sniffer; verify the new selection.
+  Log out during a pending sync and sign in as another user.
 - Verify profile editing stays unavailable if its original data could not load.
 - With the new backend, verify a genuine verified 100% increases the count once;
   repeating it, importing unverified 100%, and replaying an identical chart version

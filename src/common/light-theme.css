@@ -2,9 +2,9 @@
 
 /*  Head nav */
 
-.navtop {
-    background-color: #f4f4f5;
-    background-image: linear-gradient(#2222225b, #2222225b);
+.app-shell[data-theme="light"] .navtop {
+    background: #ffffff;
+    border: 1px solid #e4e4e7;
     border-radius: 12px;
     padding: 1%;
 }

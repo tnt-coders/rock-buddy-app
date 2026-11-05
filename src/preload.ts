@@ -56,7 +56,6 @@ export const API = {
     readRocksmithData: async (dataFile: string) => ipcRenderer.invoke('read-rocksmith-data', dataFile),
     getSteamProfiles: async (steamUserDataPath: string) => ipcRenderer.invoke('get-steam-profiles', steamUserDataPath),
     resolveRocksmithConfig: async () => ipcRenderer.invoke('resolve-rocksmith-config'),
-    prepareRocksmithImport: async () => ipcRenderer.invoke('prepare-rocksmith-import'),
     getRocksmithProfiles: async (steamUserDataPath: string, steamProfile: string) => ipcRenderer.invoke('get-rocksmith-profiles', steamUserDataPath, steamProfile),
     openAddonsFolder: async () => ipcRenderer.send('open-addons-folder'),
     enableAddons: async (host: string, port: number) => ipcRenderer.send('enable-addons', host, port),
