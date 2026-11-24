@@ -822,6 +822,11 @@ fieldset {
     align-items: center;
     margin: 6px 0;
 }
+.config-note {
+    margin: 2px 0 6px;
+    font-size: 0.9em;
+    opacity: 0.75;
+}
 .config-row > strong,
 .config-row > label[for="preferred-path"],
 .config-sound-choice > strong,

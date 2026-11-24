@@ -53,3 +53,20 @@ test('cleaning up one status subscriber does not disconnect other components', (
     unsubscribeSecond();
     assert.equal(ipc.listenerCount('connection-state'), 0);
 });
+
+test('game overlay updates are sent as plain state and its subscription cleans up', () => {
+    const { api, ipc } = bridge();
+    const sent = [];
+    ipc.send = (...args) => sent.push(args);
+    const state = { text: 'Lead · 3 verified · You: #1', tone: 'info', corner: 'top-right', size: 'medium' };
+
+    api.setGameOverlay(state);
+    assert.deepEqual(sent, [['game-overlay-update', state]]);
+
+    const received = [];
+    const unsubscribe = api.onGameOverlayState((...args) => received.push(args));
+    ipc.emit('game-overlay-state', { sender: 'private Electron event' }, state);
+    assert.deepEqual(received, [[state]]);
+    unsubscribe();
+    assert.equal(ipc.listenerCount('game-overlay-state'), 0);
+});
