@@ -6,6 +6,9 @@ const SIZES = ['small', 'medium', 'large'];
 const TONES = ['verified', 'maybe-verified', 'unverified', 'ineligible', 'info'];
 const MAX_TEXT_LENGTH = 200;
 
+// How often a visible overlay re-claims the top of the window stack.
+const KEEP_ON_TOP_MS = 2000;
+
 // Wide enough for the longest live line at the large size; the transparent area is click-through.
 const OVERLAY_SIZE = { width: 760, height: 44 };
 
@@ -38,6 +41,20 @@ function createGameOverlay({ BrowserWindow, screen, preload, webPreferences, ind
     let overlay = null;
     let latest = null;
     let placedCorner = null;
+    let keepOnTopTimer = null;
+
+    // Raise the overlay without activating it. A restarted Rocksmith opens a new game window
+    // above the hidden overlay, and showing a window again does not move it back to the front.
+    function raise() {
+        if (!overlay || overlay.isDestroyed() || !overlay.isVisible()) return;
+        overlay.setAlwaysOnTop(true, 'screen-saver');
+        overlay.moveTop();
+    }
+
+    function stopKeepingOnTop() {
+        clearInterval(keepOnTopTimer);
+        keepOnTopTimer = null;
+    }
 
     function open() {
         overlay = new BrowserWindow({
@@ -68,6 +85,7 @@ function createGameOverlay({ BrowserWindow, screen, preload, webPreferences, ind
             if (overlay && !overlay.isDestroyed()) overlay.webContents.send('game-overlay-state', latest);
         });
         overlay.on('closed', () => {
+            stopKeepingOnTop();
             overlay = null;
             placedCorner = null;
         });
@@ -79,10 +97,14 @@ function createGameOverlay({ BrowserWindow, screen, preload, webPreferences, ind
         latest = sanitizeOverlayState(state);
 
         if (!latest) {
+            stopKeepingOnTop();
             if (overlay && !overlay.isDestroyed()) {
                 overlay.webContents.send('game-overlay-state', null);
                 overlay.hide();
             }
+
+            // Re-measure the display next time in case its resolution or scaling changed meanwhile.
+            placedCorner = null;
             return;
         }
 
@@ -94,11 +116,21 @@ function createGameOverlay({ BrowserWindow, screen, preload, webPreferences, ind
         }
 
         overlay.webContents.send('game-overlay-state', latest);
-        if (!overlay.isVisible()) overlay.showInactive();
+        if (!overlay.isVisible()) {
+            overlay.showInactive();
+            raise();
+        }
+
+        // Rocksmith can be restarted or re-focused while the overlay is up, so keep re-claiming the top.
+        if (!keepOnTopTimer) {
+            keepOnTopTimer = setInterval(raise, KEEP_ON_TOP_MS);
+            keepOnTopTimer.unref?.();
+        }
     }
 
     // Close the overlay with the main window so it cannot keep the app running.
     function destroy() {
+        stopKeepingOnTop();
         latest = null;
         if (overlay && !overlay.isDestroyed()) overlay.destroy();
         overlay = null;

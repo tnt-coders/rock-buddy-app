@@ -21,6 +21,7 @@ function fakeElectron() {
             windows.push(this);
         }
         setAlwaysOnTop(flag, level) { this.topLevel = level; }
+        moveTop() { this.raised = (this.raised ?? 0) + 1; }
         setIgnoreMouseEvents(flag) { this.clickThrough = flag; }
         setMenuBarVisibility() {}
         on(event, handler) { this.handlers[event] = handler; }
@@ -90,4 +91,40 @@ test('hiding keeps the window for reuse and destroying closes it', () => {
 
     gameOverlay.destroy();
     assert.equal(win.destroyed, true);
+});
+
+test('showing the overlay again raises it above a game window opened while it was hidden', () => {
+    const electron = fakeElectron();
+    const gameOverlay = overlay(electron);
+    const line = { text: 'Lead · 3 verified · You: #1', tone: 'info', corner: 'top-right', size: 'medium' };
+    gameOverlay.update(line);
+    const [win] = electron.windows;
+    assert.equal(win.raised, 1);
+
+    // Rocksmith closes (overlay hides), restarts above it, then a song is detected again.
+    gameOverlay.update(null);
+    gameOverlay.update(line);
+    assert.equal(win.raised, 2);
+    assert.equal(win.topLevel, 'screen-saver');
+
+    // Line changes while visible do not need an immediate raise; the keep-on-top timer handles focus changes.
+    gameOverlay.update({ ...line, text: 'Lead · 4 verified · You: #1' });
+    assert.equal(win.raised, 2);
+    gameOverlay.destroy();
+});
+
+test('a visible overlay keeps re-claiming the top until it is hidden', async (t) => {
+    t.mock.timers.enable({ apis: ['setInterval'] });
+    const electron = fakeElectron();
+    const gameOverlay = overlay(electron);
+    gameOverlay.update({ text: '10/10 (100.00%)', tone: 'verified', corner: 'top-right', size: 'medium' });
+    const [win] = electron.windows;
+
+    t.mock.timers.tick(4000);
+    assert.equal(win.raised, 3);
+
+    gameOverlay.update(null);
+    t.mock.timers.tick(10000);
+    assert.equal(win.raised, 3);
+    gameOverlay.destroy();
 });
