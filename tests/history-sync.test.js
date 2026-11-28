@@ -18,11 +18,12 @@ test('no selected local save still syncs the catalog and records a new verified 
         }).outputText;
         vm.runInNewContext(source, { exports, window,
             require: () => ({ logMessage() {},
-                getAvailablePaths: arrangements => arrangements.map(a => ({ hash: a.arrangementID, name: 'Lead' })),
+                getAvailablePaths: paths,
                 post: async (url, body) => { sent.push({ url, body }); return { success: true }; } }),
         });
         return exports;
     };
+    const { getAvailablePaths: paths } = load('src/common/functions.ts');
     const { Rocksmith } = load('src/sniffer/rocksmith.ts');
     const { Sniffer } = load('src/sniffer/sniffer.ts');
     const rocksmith = await Rocksmith.create();
@@ -30,15 +31,27 @@ test('no selected local save still syncs the catalog and records a new verified 
     sniffer.showLeaderboard = async () => {};
     const data = { songDetails: { songID: 'song', psarcFileHash: 'file', songName: 'Song', artistName: 'Artist',
         albumName: 'Album', albumYear: 2026, toolkit: { author: 'Author', version: '1' },
-        arrangements: [{ arrangementID: 'lead', noteDataHash: 'notes' }] },
-        memoryReadout: { arrangementID: 'lead', noteData: { HighestHitStreak: 42, Accuracy: 90 } } };
+        arrangements: [
+            { arrangementID: 'rhythm', noteDataHash: 'seven-string', type: 'Rhythm', isAlternateArrangement: true,
+                tuning: { CentsOffset: -1200, OpenStringPitches: [35, 40, 45, 50, 55, 59, 64] } },
+            { arrangementID: 'stock', noteDataHash: 'stock-rhythm', type: 'Rhythm', isBonusArrangement: true,
+                tuning: { CentsOffset: -1200 } },
+        ] },
+        memoryReadout: { arrangementID: 'rhythm', noteData: { HighestHitStreak: 42, Accuracy: 90 } } };
     assert.equal(await rocksmith.newProfileDataAvailable(), false);
     await sniffer.snort(data);
     const sync = sent.find(r => r.url.endsWith('/sniffer_sync.php')).body;
     assert.equal(sync.lurk_mode, true);
-    assert.deepEqual(Object.keys(sync.song_data.arrangements.lead).sort(), ['hash', 'name', 'note_data_hash']);
+    assert.deepEqual({ ...sync.song_data.arrangements.rhythm }, {
+        hash: 'rhythm', name: 'Alternate Rhythm', note_data_hash: 'seven-string',
+    });
+    assert.equal(sync.song_data.arrangements.stock.name, 'Bass*');
     await sniffer.recordVerifiedScore(data, 100);
     const verified = sent.find(r => r.url.endsWith('/record_verified_score.php')).body;
+    assert.equal(verified.song_data.song_key, sync.song_data.song_key);
+    assert.equal(verified.song_data.psarc_hash, sync.song_data.psarc_hash);
+    assert.equal(verified.song_data.arrangement_hash, sync.song_data.arrangements.rhythm.hash);
+    assert.equal(verified.song_data.total_notes, 100);
     assert.equal(verified.song_data.mastery, 0.9);
     assert.equal(verified.song_data.streak, 42);
 });
