@@ -795,6 +795,11 @@ function createWindow() {
     ipcMain.on('game-overlay-update', (event, state) => {
         if (event.sender === mainContents) gameOverlay.update(state);
     });
+    ipcMain.handle('get-game-overlay-state', (event) => gameOverlay.current(event.sender));
+
+    // A reload or renderer crash skips React cleanup, so clear the line the old page left behind.
+    mainContents.on('did-start-loading', () => gameOverlay.update(null));
+    mainContents.on('render-process-gone', () => gameOverlay.update(null));
 
     // Close the overlay with the main window so it cannot keep the app running.
     win.on('closed', () => gameOverlay.destroy());

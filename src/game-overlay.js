@@ -81,9 +81,6 @@ function createGameOverlay({ BrowserWindow, screen, preload, webPreferences, ind
         overlay.setIgnoreMouseEvents(true);
         overlay.setMenuBarVisibility(false);
 
-        overlay.webContents.on('did-finish-load', () => {
-            if (overlay && !overlay.isDestroyed()) overlay.webContents.send('game-overlay-state', latest);
-        });
         overlay.on('closed', () => {
             stopKeepingOnTop();
             overlay = null;
@@ -136,7 +133,13 @@ function createGameOverlay({ BrowserWindow, screen, preload, webPreferences, ind
         overlay = null;
     }
 
-    return { update, destroy };
+    // Answer the overlay page's request for the current line once its listener is registered,
+    // so a line sent before the page finished loading is not lost.
+    function current(sender) {
+        return overlay && !overlay.isDestroyed() && sender === overlay.webContents ? latest : null;
+    }
+
+    return { update, destroy, current };
 }
 
 module.exports = { createGameOverlay, sanitizeOverlayState, overlayBounds, OVERLAY_SIZE };

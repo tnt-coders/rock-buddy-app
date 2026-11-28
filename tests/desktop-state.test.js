@@ -70,3 +70,11 @@ test('game overlay updates are sent as plain state and its subscription cleans u
     unsubscribe();
     assert.equal(ipc.listenerCount('game-overlay-state'), 0);
 });
+
+test('the overlay page asks the main process for the current line', async () => {
+    const { api, ipc } = bridge();
+    const asked = [];
+    ipc.invoke = async (...args) => { asked.push(args); return null; };
+    assert.equal(await api.getGameOverlayState(), null);
+    assert.deepEqual(asked, [['get-game-overlay-state']]);
+});

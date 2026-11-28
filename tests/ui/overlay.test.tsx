@@ -95,6 +95,7 @@ test('the overlay view renders only what the main process sends', () => {
             listener = callback;
             return () => { unsubscribed = true; };
         },
+        getGameOverlayState: async () => null,
     };
 
     const view = render(<GameOverlay />);
@@ -111,4 +112,33 @@ test('the overlay view renders only what the main process sends', () => {
 
     view.unmount();
     assert.ok(unsubscribed);
+});
+
+test('the overlay view shows a line that was sent before it subscribed', async () => {
+    const line: GameOverlayState = { text: 'Lead · 12 verified · You: #5', tone: 'info', corner: 'top-right', size: 'medium' };
+    (window as any).api = {
+        onGameOverlayState: () => () => {},
+        getGameOverlayState: async () => line,
+    };
+
+    const view = render(<GameOverlay />);
+    await act(async () => {});
+    assert.ok(view.container.querySelector('.game-overlay-text')?.textContent === line.text);
+});
+
+test('a pushed line is not replaced by an older fetched line', async () => {
+    let listener: ((state: GameOverlayState | null) => void) | undefined;
+    let answer: ((state: GameOverlayState | null) => void) | undefined;
+    (window as any).api = {
+        onGameOverlayState: (callback: typeof listener) => {
+            listener = callback;
+            return () => {};
+        },
+        getGameOverlayState: () => new Promise<GameOverlayState | null>((resolve) => { answer = resolve; }),
+    };
+
+    const view = render(<GameOverlay />);
+    act(() => listener?.({ text: 'newer', tone: 'verified', corner: 'top-right', size: 'medium' }));
+    await act(async () => answer?.({ text: 'older', tone: 'info', corner: 'top-right', size: 'medium' }));
+    assert.ok(view.container.querySelector('.game-overlay-text')?.textContent === 'newer');
 });

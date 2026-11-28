@@ -35,6 +35,7 @@ export const API = {
     // Mirror one line of gameplay status into the click-through in-game overlay window.
     setGameOverlay: (state: GameOverlayState | null) => ipcRenderer.send('game-overlay-update', state),
     onGameOverlayState: (callback: (state: GameOverlayState | null) => void) => subscribe('game-overlay-state', callback),
+    getGameOverlayState: async (): Promise<GameOverlayState | null> => ipcRenderer.invoke('get-game-overlay-state'),
 
     // Manage the local reader and the beta tester snort preference.
     getRocksnifferPath: () => ipcRenderer.invoke('get-rocksniffer-path'),

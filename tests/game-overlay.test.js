@@ -128,3 +128,18 @@ test('a visible overlay keeps re-claiming the top until it is hidden', async (t)
     assert.equal(win.raised, 3);
     gameOverlay.destroy();
 });
+
+test('the overlay page can fetch the line it missed while loading', () => {
+    const electron = fakeElectron();
+    const gameOverlay = overlay(electron);
+    const line = { text: 'Lead · 3 verified · You: #1', tone: 'info', corner: 'top-right', size: 'medium' };
+    gameOverlay.update(line);
+    const [win] = electron.windows;
+
+    assert.deepEqual(gameOverlay.current(win.webContents), line);
+    assert.equal(gameOverlay.current({}), null);
+
+    gameOverlay.update(null);
+    assert.equal(gameOverlay.current(win.webContents), null);
+    gameOverlay.destroy();
+});

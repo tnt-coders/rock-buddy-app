@@ -69,14 +69,15 @@ export function GameplayProvider({ children }: { children: ReactNode }) {
     }, [client, engine]);
 
     // Mirror the running engine into the optional in-game overlay; it never starts another reader.
+    // Config stops the engine without clearing it, so hide the overlay there and re-read settings on return.
     useEffect(() => {
-        if (!engine) return;
+        if (!engine || configuring) return;
         let cancelled = false;
         let unsubscribe: (() => void) | undefined;
         let previous = '';
 
         void (async () => {
-            // Read this account's overlay settings; Config stops the engine, so edits apply on return.
+            // Read this account's overlay settings.
             const read = (key: string) => window.api.storeGet(`user_data.${auth.user_id}.${key}`);
             const enabled = (await read('game_overlay')) === true;
             const savedCorner = await read('game_overlay_corner');
@@ -105,7 +106,7 @@ export function GameplayProvider({ children }: { children: ReactNode }) {
             unsubscribe?.();
             if (previous && previous !== 'null') window.api.setGameOverlay(null);
         };
-    }, [auth.user_id, engine]);
+    }, [auth.user_id, configuring, engine]);
 
     return (
         <GameplayContext value={{ engine, error, paused: configuring, retry: () => setRevision((value) => value + 1) }}>

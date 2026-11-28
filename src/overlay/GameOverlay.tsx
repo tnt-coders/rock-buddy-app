@@ -6,7 +6,23 @@ import type { GameOverlayState } from '../ui/desktop-state';
 export function GameOverlay() {
     const [state, setState] = useState<GameOverlayState | null>(null);
 
-    useEffect(() => window.api.onGameOverlayState(setState), []);
+    useEffect(() => {
+        let pushed = false;
+        let active = true;
+        const unsubscribe = window.api.onGameOverlayState((next) => {
+            pushed = true;
+            setState(next);
+        });
+
+        // Ask for the current line after subscribing; a pushed update is newer, so it wins.
+        void window.api.getGameOverlayState().then((latest) => {
+            if (active && !pushed) setState(latest);
+        });
+        return () => {
+            active = false;
+            unsubscribe();
+        };
+    }, []);
 
     if (!state) return null;
 
