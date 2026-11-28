@@ -4,6 +4,7 @@ import { useDesktopState } from './useDesktopState';
 
 // These notes describe the code bundled with this installer, including beta builds.
 const currentChanges = [
+    'Sniffer can read charts made for RS Extended Range. This beta lets you test score uploads on extended-range arrangements.',
     'Lock your preferred path in Config to keep it selected in Search and Sniffer, including charts without that arrangement.',
     'Rock Buddy opens automatically after an interactive Windows installation.',
     'Sniffing continues while browsing other pages; Config still pauses tracking.',
