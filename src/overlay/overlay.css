@@ -1,0 +1,45 @@
+/* In-game overlay: styled after Steam's FPS counter (bright text on a solid black box). */
+
+html.game-overlay,
+html.game-overlay body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: transparent !important;
+    user-select: none;
+}
+
+.game-overlay-frame {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    pointer-events: none;
+}
+
+.game-overlay-frame.top-right { align-items: flex-start; justify-content: flex-end; }
+.game-overlay-frame.top-left { align-items: flex-start; justify-content: flex-start; }
+.game-overlay-frame.bottom-right { align-items: flex-end; justify-content: flex-end; }
+.game-overlay-frame.bottom-left { align-items: flex-end; justify-content: flex-start; }
+
+.game-overlay-text {
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    padding: 1px 5px;
+    background: #010201;
+    font-family: Arial, Helvetica, sans-serif;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.25;
+}
+
+.game-overlay-text.small { font-size: 12px; }
+.game-overlay-text.medium { font-size: 15px; }
+.game-overlay-text.large { font-size: 19px; }
+
+/* Steam's counter green, with matching yellow, red and grey for the other states. */
+.game-overlay-text.verified { color: #3acb3a; }
+.game-overlay-text.maybe-verified { color: #e3c33a; }
+.game-overlay-text.unverified { color: #e5413b; }
+.game-overlay-text.ineligible { color: #9a9a9a; }
+.game-overlay-text.info { color: #d6d6d6; }

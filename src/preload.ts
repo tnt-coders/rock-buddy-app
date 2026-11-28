@@ -1,4 +1,4 @@
-import type { ConnectionState, DesktopUpdateState } from './ui/desktop-state';
+import type { ConnectionState, DesktopUpdateState, GameOverlayState } from './ui/desktop-state';
 
 const { contextBridge, ipcRenderer } = require('electron');
 
@@ -31,6 +31,11 @@ export const API = {
     // Send API requests and gameplay state through the main-process safeguards.
     requestBackend: async (url: string, data: any) => ipcRenderer.invoke('backend-post', url, data),
     setGameplayActive: (active: boolean) => ipcRenderer.send('gameplay-state', active),
+
+    // Mirror one line of gameplay status into the click-through in-game overlay window.
+    setGameOverlay: (state: GameOverlayState | null) => ipcRenderer.send('game-overlay-update', state),
+    onGameOverlayState: (callback: (state: GameOverlayState | null) => void) => subscribe('game-overlay-state', callback),
+    getGameOverlayState: async (): Promise<GameOverlayState | null> => ipcRenderer.invoke('get-game-overlay-state'),
 
     // Manage the local reader and the beta tester snort preference.
     getRocksnifferPath: () => ipcRenderer.invoke('get-rocksniffer-path'),

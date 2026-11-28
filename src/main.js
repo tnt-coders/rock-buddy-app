@@ -15,6 +15,7 @@ const { createDesktopUpdates, updatesEnabled } = require('./desktop-updates');
 const { createSupportCheckout } = require('./support-checkout');
 const { isSupportLocation } = require('./support-link');
 const { restoreWindowState, trackWindowState, applyWindowSize } = require('./window-state');
+const { createGameOverlay } = require('./game-overlay');
 const { MINIMUM_SIZE } = require('./window-size');
 const { pathToFileURL } = require('node:url');
 let supportCheckout = null;
@@ -781,6 +782,27 @@ function createWindow() {
     }
 
     win.loadFile('src/index.html');
+
+    // Optional in-game overlay; only this window's gameplay engine may update it.
+    const mainContents = win.webContents;
+    const gameOverlay = createGameOverlay({
+        BrowserWindow,
+        screen,
+        preload: path.join(__dirname, '..', 'dist', 'preload.js'),
+        webPreferences: backend.webPreferences,
+        indexFile: 'src/index.html',
+    });
+    ipcMain.on('game-overlay-update', (event, state) => {
+        if (event.sender === mainContents) gameOverlay.update(state);
+    });
+    ipcMain.handle('get-game-overlay-state', (event) => gameOverlay.current(event.sender));
+
+    // A reload or renderer crash skips React cleanup, so clear the line the old page left behind.
+    mainContents.on('did-start-loading', () => gameOverlay.update(null));
+    mainContents.on('render-process-gone', () => gameOverlay.update(null));
+
+    // Close the overlay with the main window so it cannot keep the app running.
+    win.on('closed', () => gameOverlay.destroy());
 
     checkForUpdates(win);
 }

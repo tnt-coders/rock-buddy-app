@@ -15,6 +15,9 @@ const defaults = {
     use_external_rocksniffer: false,
     rocksniffer_host: '127.0.0.1',
     rocksniffer_port: 9002,
+    game_overlay: false,
+    game_overlay_corner: 'top-right',
+    game_overlay_size: 'medium',
     addons_enabled: false,
     addons_host: 'localhost',
     addons_port: 9001,
@@ -358,6 +361,49 @@ function ConfigForm({ initial, reload }: { initial: ConfigData; reload: () => vo
                             </button>
                         </div>
                     )}
+                </div>
+                <hr />
+                <div className="config-row config-section-heading">
+                    <h2>In-Game Overlay</h2>
+                </div>
+                {checkbox('game_overlay', 'Show live feed and leaderboard place over Rocksmith')}
+                <p className="config-note">
+                    Rocksmith must run in windowed or borderless mode for the overlay to appear.
+                </p>
+                <div className="config-row">
+                    <label>
+                        <strong>Corner:</strong>{' '}
+                        <select
+                            className="config-choice"
+                            value={settings.game_overlay_corner}
+                            disabled={!settings.game_overlay}
+                            onChange={(event) => change('game_overlay_corner', event.target.value)}
+                        >
+                            {Object.entries({
+                                'top-right': 'Top right',
+                                'top-left': 'Top left',
+                                'bottom-right': 'Bottom right',
+                                'bottom-left': 'Bottom left',
+                            }).map(([key, name]) => (
+                                <option key={key} value={key}>{name}</option>
+                            ))}
+                        </select>
+                    </label>
+                    <label>
+                        <strong>Text size:</strong>{' '}
+                        <select
+                            className="config-choice"
+                            value={settings.game_overlay_size}
+                            disabled={!settings.game_overlay}
+                            onChange={(event) => change('game_overlay_size', event.target.value)}
+                        >
+                            {Object.entries({ small: 'Small', medium: 'Medium', large: 'Large' }).map(
+                                ([key, name]) => (
+                                    <option key={key} value={key}>{name}</option>
+                                ),
+                            )}
+                        </select>
+                    </label>
                 </div>
                 <hr />
                 <div className="config-row config-section-heading">
